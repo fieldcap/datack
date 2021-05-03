@@ -1,0 +1,57 @@
+<clr-main-container>
+  <clr-header class="header-5">
+    <div class="branding">
+      <a [routerLink]="['/']" class="nav-link">
+        <span class="title">Datack SQL</span>
+      </a>
+    </div>
+    <div class="header-nav" [clr-nav-level]="1">
+      <a
+        [routerLink]="['/']"
+        routerLinkActive="active"
+        class="nav-link nav-text"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="isMenuOpen = false"
+      >
+        Home
+      </a>
+      <a
+        [routerLink]="['/servers']"
+        routerLinkActive="active"
+        class="nav-link nav-text"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="isMenuOpen = false"
+      >
+        Servers
+      </a>
+      <a
+        [routerLink]="['/jobs']"
+        routerLinkActive="active"
+        class="nav-link nav-text"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="isMenuOpen = false"
+      >
+        Jobs
+      </a>
+    </div>
+    <div class="settings">
+      <clr-dropdown>
+        <button clrDropdownTrigger>
+          <div class="nav-link nav-icon">
+            <cds-icon shape="cog"></cds-icon>
+          </div>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <span clrDropdownItem (click)="setTheme(0)">Light</span>
+          <span clrDropdownItem (click)="setTheme(1)">Dark</span>
+          <span [routerLink]="['/profile']" clrDropdownItem>Profile</span>
+          <span (click)="logout()" clrDropdownItem>Log out</span>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+    </div>
+  </clr-header>
+  <div class="content-container">
+    <main class="content-area">...</main>
+    <nav class="sidenav" [clr-nav-level]="2">...</nav>
+  </div>
+</clr-main-container>

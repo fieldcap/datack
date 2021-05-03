@@ -1,0 +1,11 @@
+{
+  "/Api": {
+    "target": "http://localhost:7201/",
+    "secure": false
+  },
+  "/hub": {
+    "target": "http://localhost:7201/",
+    "secure": false,
+    "ws": true
+  }
+}

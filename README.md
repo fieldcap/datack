@@ -1,1 +1,1 @@
-# datack
+# Datack is a simple SQL Server backup tool

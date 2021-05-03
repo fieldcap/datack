@@ -1,0 +1,31 @@
+### DotnetCore ###
+# .NET Core build folders
+src/dotnet/**/bin
+src/dotnet/**/obj
+src/dotnet/**/*.user
+src/dotnet/**/.vs
+src/dotnet/**/wwwroot/
+
+### Angular ###
+# compiled output
+src/angular/dist/
+src/angular/tmp/
+src/angular/app/**/*.js
+src/angular/app/**/*.js.map
+src/angular/node_modules/
+
+# misc
+src/angular/.sass-cache/
+src/angular/connect.lock/
+src/angular/coverage/
+src/angular/libpeerconnection.log/
+src/angular/npm-debug.log
+src/angular/testem.log
+src/angular/typings/
+
+# e2e
+src/angular/e2e/*.js
+src/angular/e2e/*.map
+
+#System Files
+**/.DS_Store/
