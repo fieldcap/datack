@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, Inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { AuthenticationService } from '../authentication/authentication.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -17,12 +18,23 @@ export class MainLayoutComponent implements OnInit {
 
   public linkRef: HTMLLinkElement;
 
-  constructor(@Inject(DOCUMENT) private document: Document, private router: Router) {}
+  constructor(
+    @Inject(DOCUMENT) private document: Document,
+    private router: Router,
+    private authenticationService: AuthenticationService
+  ) {}
 
   ngOnInit(): void {}
 
   public logout(): void {
-    this.router.navigate(['/login']);
+    this.authenticationService.logout().subscribe(
+      () => {
+        this.router.navigate(['/login']);
+      },
+      () => {
+        this.router.navigate(['/login']);
+      }
+    );
   }
 
   public setTheme(index: number) {

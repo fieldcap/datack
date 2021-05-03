@@ -1,6 +1,6 @@
 import { DOCUMENT } from '@angular/common';
 import { Component, Inject } from '@angular/core';
-import { MainLayoutComponent } from './components/main-layout/main-layout.component';
+import { MainLayoutComponent } from './main-layout/main-layout.component';
 
 @Component({
   selector: 'app-root',

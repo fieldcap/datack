@@ -11,17 +11,26 @@ import { ClarityModule } from '@clr/angular';
 import { FileSizePipe, NgxFilesizeModule } from 'ngx-filesize';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { LoginComponent } from './components/login/login.component';
-import { MainLayoutComponent } from './components/main-layout/main-layout.component';
-import { NavbarComponent } from './components/navbar/navbar.component';
+import { ForgotPasswordComponent } from './authentication/forgot-password/forgot-password.component';
+import { LoginComponent } from './authentication/login/login.component';
+import { ResetPasswordComponent } from './authentication/reset-password/reset-password.component';
+import { DashboardIndexComponent } from './dashboard/dashboard-index/dashboard-index.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { MainLayoutComponent } from './main-layout/main-layout.component';
 
 ClarityIcons.addIcons(homeIcon, successStandardIcon, infoStandardIcon, barsIcon, cogIcon);
 
 registerLocaleData(en);
 
 @NgModule({
-  declarations: [AppComponent, MainLayoutComponent, NavbarComponent, LoginComponent],
+  declarations: [
+    AppComponent,
+    MainLayoutComponent,
+    LoginComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent,
+    DashboardIndexComponent,
+  ],
   imports: [
     BrowserModule,
     AppRoutingModule,
