@@ -4,8 +4,8 @@ import { ForgotPasswordComponent } from './authentication/forgot-password/forgot
 import { LoginComponent } from './authentication/login/login.component';
 import { ResetPasswordComponent } from './authentication/reset-password/reset-password.component';
 import { DashboardIndexComponent } from './dashboard/dashboard-index/dashboard-index.component';
-import { AuthGuard } from './guards/auth.guard';
 import { MainLayoutComponent } from './main-layout/main-layout.component';
+import { ServersIndexComponent } from './servers/servers-index/servers-index.component';
 
 const routes: Routes = [
   {
@@ -23,12 +23,16 @@ const routes: Routes = [
   {
     path: '',
     component: MainLayoutComponent,
-    canActivate: [AuthGuard],
+    //canActivate: [AuthGuard],
     children: [
       {
         path: '',
         component: DashboardIndexComponent,
       },
+      {
+        path: 'servers',
+        component: ServersIndexComponent,
+      }
     ],
   },
 ];

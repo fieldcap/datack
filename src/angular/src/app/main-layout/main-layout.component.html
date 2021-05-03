@@ -2,6 +2,7 @@
   <clr-header class="header-5">
     <div class="branding">
       <a [routerLink]="['/']" class="nav-link">
+        <cds-icon shape="logo"></cds-icon>
         <span class="title">Datack SQL</span>
       </a>
     </div>
@@ -24,34 +25,24 @@
       >
         Servers
       </a>
-      <a
-        [routerLink]="['/jobs']"
-        routerLinkActive="active"
-        class="nav-link nav-text"
-        [routerLinkActiveOptions]="{ exact: true }"
-        (click)="isMenuOpen = false"
-      >
-        Jobs
-      </a>
     </div>
-    <div class="settings">
-      <clr-dropdown>
-        <button clrDropdownTrigger>
-          <div class="nav-link nav-icon">
-            <cds-icon shape="cog"></cds-icon>
-          </div>
+    <div class="header-actions">
+      <clr-dropdown aria-label="toggle settings menu">
+        <button clrDropdownTrigger class="nav-icon dropdown-toggle">
+          <cds-icon shape="cog"></cds-icon>
+          <cds-icon shape="angle" direction="down"></cds-icon>
         </button>
         <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <label class="dropdown-header" aria-hidden="true">Theme</label>
           <span clrDropdownItem (click)="setTheme(0)">Light</span>
           <span clrDropdownItem (click)="setTheme(1)">Dark</span>
+          <div class="dropdown-divider" role="separator" aria-hidden="true"></div>
           <span [routerLink]="['/profile']" clrDropdownItem>Profile</span>
+          <div class="dropdown-divider" role="separator" aria-hidden="true"></div>
           <span (click)="logout()" clrDropdownItem>Log out</span>
         </clr-dropdown-menu>
       </clr-dropdown>
     </div>
   </clr-header>
-  <div class="content-container">
-    <main class="content-area">...</main>
-    <nav class="sidenav" [clr-nav-level]="2">...</nav>
-  </div>
+  <router-outlet></router-outlet>
 </clr-main-container>
