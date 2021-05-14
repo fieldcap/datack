@@ -1,7 +1,0 @@
-.clr-select-wrapper select:hover,
-.clr-select-wrapper select:active,
-.clr-select-wrapper select option,
-.clr-select-wrapper select optgroup {
-  color: #acbac3;
-  background-color: #21333b;
-}
