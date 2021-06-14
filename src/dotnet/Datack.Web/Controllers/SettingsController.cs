@@ -13,9 +13,9 @@ namespace Datack.Web.Controllers
     [Route("Api/Settings")]
     public class SettingsController : Controller
     {
-        private readonly ISettings _settings;
+        private readonly Settings _settings;
 
-        public SettingsController(ISettings settings)
+        public SettingsController(Settings settings)
         {
             _settings = settings;
         }

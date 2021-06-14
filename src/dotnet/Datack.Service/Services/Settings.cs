@@ -6,19 +6,11 @@ using Datack.Data.Models.Data;
 
 namespace Datack.Service.Services
 {
-    public interface ISettings
+    public class Settings
     {
-        Task<IList<Setting>> GetAll();
-        Task Update(IList<Setting> settings);
-        Task<String> GetString(String key);
-        Task<Int32> GetNumber(String key);
-    }
+        private readonly SettingData _settingData;
 
-    public class Settings : ISettings
-    {
-        private readonly ISettingData _settingData;
-
-        public Settings(ISettingData settingData)
+        public Settings(SettingData settingData)
         {
             _settingData = settingData;
         }

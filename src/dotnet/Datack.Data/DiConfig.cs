@@ -7,8 +7,9 @@ namespace Datack.Data
     {
         public static void Config(IServiceCollection services)
         {
-            services.AddScoped<ISettingData, SettingData>();
-            services.AddScoped<IUserData, UserData>();
+            services.AddScoped<SettingData>();
+            services.AddScoped<ServerData>();
+            services.AddScoped<UserData>();
         }
     }
 }

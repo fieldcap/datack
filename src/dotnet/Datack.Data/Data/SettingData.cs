@@ -7,14 +7,7 @@ using Datack.Data.Models.Data;
 
 namespace Datack.Data.Data
 {
-    public interface ISettingData
-    {
-        Task<IList<Setting>> GetAll();
-        Task Update(IList<Setting> settings);
-        Task<Setting> Get(String key);
-    }
-
-    public class SettingData : ISettingData
+    public class SettingData 
     {
         private readonly DataContext _dataContext;
 

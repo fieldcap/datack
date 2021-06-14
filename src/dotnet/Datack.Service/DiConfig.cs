@@ -7,9 +7,10 @@ namespace Datack.Service
     {
         public static void Config(IServiceCollection services)
         {
-            services.AddScoped<IAuthentication, Authentication>();
-            services.AddScoped<IRemoteService, RemoteService>();
-            services.AddScoped<ISettings, Settings>();
+            services.AddScoped<Authentication>();
+            services.AddScoped<RemoteService>();
+            services.AddScoped<Settings>();
+            services.AddScoped<Servers>();
         }
     }
 }

@@ -1,9 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Datack.Data.Models.Data;
+using Datack.Data.Models.Internal;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Datack.Data.Data
 {
@@ -13,24 +18,41 @@ namespace Datack.Data.Data
         {
         }
 
+        public DbSet<Server> Servers { get; set; }
         public DbSet<Setting> Settings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
         }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
 
-            var cascadeFKs = builder.Model.GetEntityTypes()
-                                    .SelectMany(t => t.GetForeignKeys())
-                                    .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
+            modelBuilder.HasDbFunction(typeof(DataContext).GetMethod(nameof(JsonValue)))
+                        .HasTranslation(e => new SqlFunctionExpression("JSON_VALUE",
+                                                                       e,
+                                                                       true,
+                                                                       new[]
+                                                                       {
+                                                                           false, false
+                                                                       },
+                                                                       typeof(String),
+                                                                       null))
+                        .HasParameter("column")
+                        .HasStoreType("nvarchar(max)");
+
+            var cascadeFKs = modelBuilder.Model.GetEntityTypes()
+                                         .SelectMany(t => t.GetForeignKeys())
+                                         .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
 
             foreach (var fk in cascadeFKs)
             {
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
+
+            modelBuilder.ApplyConfiguration(new ServerConfiguration());
+            modelBuilder.ApplyConfiguration(new ServerDbConfiguration());
         }
 
         public async Task Seed()
@@ -48,6 +70,67 @@ namespace Datack.Data.Data
                     await Settings.AddAsync(seedSetting);
                     await SaveChangesAsync();
                 }
+            }
+
+            /*var server = new Server
+            {
+                DbSettings = new ServerDbSettings
+                {
+                    Server = "127.0.0.1",
+                    UserName = "Backup",
+                    Password = "backup"
+                },
+                Settings = new ServerSettings
+                {
+                    TempPath = @"C:\Temp"
+                },
+                Name = "Local SQL Server",
+                ServerId = Guid.NewGuid()
+            };
+
+            await Servers.AddAsync(server);
+            await SaveChangesAsync();*/
+
+        }
+
+        public static String JsonValue(Object column, String path)
+        {
+            throw new NotSupportedException();
+        }
+
+        public class ServerConfiguration : IEntityTypeConfiguration<Server>
+        {
+            public void Configure(EntityTypeBuilder<Server> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v,
+                                                                    new JsonSerializerOptions
+                                                                    {
+                                                                        IgnoreNullValues = true
+                                                                    }),
+                                      v => JsonSerializer.Deserialize<ServerSettings>(v,
+                                                                                        new JsonSerializerOptions
+                                                                                        {
+                                                                                            IgnoreNullValues = true
+                                                                                        }));
+            }
+        }
+
+        public class ServerDbConfiguration : IEntityTypeConfiguration<Server>
+        {
+            public void Configure(EntityTypeBuilder<Server> builder)
+            {
+                builder.Property(e => e.DbSettings)
+                       .HasConversion(v => JsonSerializer.Serialize(v,
+                                                                    new JsonSerializerOptions
+                                                                    {
+                                                                        IgnoreNullValues = true
+                                                                    }),
+                                      v => JsonSerializer.Deserialize<ServerDbSettings>(v,
+                                                                                        new JsonSerializerOptions
+                                                                                        {
+                                                                                            IgnoreNullValues = true
+                                                                                        }));
             }
         }
     }

@@ -2,12 +2,7 @@
 
 namespace Datack.Service.Services
 {
-    public interface IRemoteService
-    {
-
-    }
-
-    public class RemoteService : IRemoteService
+    public class RemoteService
     {
         private readonly IHubContext<DatackHub> _hub;
 
