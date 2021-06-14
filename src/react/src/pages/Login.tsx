@@ -1,54 +1,199 @@
-import React, { FC, useState } from 'react';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import { RouteComponentProps } from 'react-router-dom';
+import {
+    Alert,
+    AlertIcon,
+    Box,
+    Button,
+    chakra,
+    Checkbox,
+    Flex,
+    FormControl,
+    FormHelperText,
+    Heading,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    Link,
+    Spinner,
+    Stack
+} from '@chakra-ui/react';
+import React, { FC, useEffect, useState } from 'react';
+import { FaLock, FaUserAlt } from 'react-icons/fa';
+import { Redirect, RouteComponentProps } from 'react-router-dom';
+import LogoIcon from '../icons/LogoIcon';
+import Auth from '../services/auth';
 import './Login.scss';
 
+const CFaUserAlt = chakra(FaUserAlt);
+const CFaLock = chakra(FaLock);
+
 const Login: FC<RouteComponentProps> = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
+    const [rememberMe, setRememberMe] = useState<boolean>(true);
+    const [isSetup, setIsSetup] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [redirect, setRedirect] = useState<boolean>(false);
+
+    useEffect(() => {
+        (async () => {
+            const result = await Auth.isSetup();
+
+            setIsLoading(false);
+            setIsSetup(result);
+        })();
+    }, []);
 
     const validateForm = () => {
         return email.length > 0 && password.length > 0;
     };
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        setError(null);
+        setIsLoggingIn(true);
+
+        try {
+            await Auth.login(email, password, rememberMe);
+
+            setIsLoggingIn(false);
+            setRedirect(true);
+        } catch (err) {
+            setError(err);
+            setIsLoggingIn(false);
+        }
     };
 
-    return (
-        <div className="login-container">
-            <div className="login-form">
-                <h3>Welcome to Datack SQL</h3>
-                <Form onSubmit={handleSubmit}>
-                    <Form.Group controlId="email">
-                        <Form.Label>Email</Form.Label>
-                        <Form.Control
-                            autoFocus
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </Form.Group>
-                    <Form.Group controlId="password">
-                        <Form.Label>Password</Form.Label>
-                        <Form.Control
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </Form.Group>
-                    <Button
-                        block
-                        size="lg"
-                        type="submit"
-                        disabled={!validateForm()}
+    if (redirect) {
+        return <Redirect to="/" />;
+    }
+
+    const loadingForm = (
+        <>
+            <Flex
+                flexDirection="column"
+                width="100%"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <LogoIcon boxSize={20} color="teal.500" />
+                <Heading color="teal.500">Datack SQL</Heading>
+                <Spinner />
+            </Flex>
+        </>
+    );
+
+    const loginForm = (
+        <>
+            <Flex
+                flexDirection="column"
+                width="100%"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <LogoIcon boxSize={20} color="teal.500" />
+                <Heading color="teal.500">Datack SQL</Heading>
+            </Flex>
+            {!isSetup ? (
+                <Alert status="info">
+                    Welcome to Datack! <br />
+                    To setup the first account please enter a username and
+                    password to continue.
+                </Alert>
+            ) : null}
+            <FormControl>
+                <InputGroup>
+                    <InputLeftElement
+                        pointerEvents="none"
+                        children={<CFaUserAlt color="gray.300" />}
+                    />
+                    <Input
+                        type="text"
+                        placeholder="Username"
+                        autoFocus={true}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
+                </InputGroup>
+            </FormControl>
+            <FormControl>
+                <InputGroup>
+                    <InputLeftElement
+                        pointerEvents="none"
+                        color="gray.300"
+                        children={<CFaLock color="gray.300" />}
+                    />
+                    <Input
+                        type="password"
+                        placeholder="Password"
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
+                </InputGroup>
+                <FormHelperText textAlign="right">
+                    <Link>forgot password?</Link>
+                </FormHelperText>
+            </FormControl>
+            <FormControl>
+                <InputGroup>
+                    <Checkbox
+                        defaultIsChecked
+                        onChange={(e) => setRememberMe(e.target.checked)}
                     >
-                        Login
-                    </Button>
-                </Form>
-            </div>
-        </div>
+                        Remember me?
+                    </Checkbox>
+                </InputGroup>
+            </FormControl>
+            {error != null ? (
+                <Alert status="error">
+                    <AlertIcon />
+                    {error}
+                </Alert>
+            ) : null}
+            <Button
+                borderRadius={0}
+                type="submit"
+                variant="solid"
+                colorScheme="teal"
+                width="full"
+                disabled={!validateForm() || isLoggingIn}
+                isLoading={isLoggingIn}
+            >
+                Login
+            </Button>
+        </>
+    );
+
+    return (
+        <Flex
+            flexDirection="column"
+            width="100wh"
+            height="100vh"
+            backgroundColor="gray.200"
+            justifyContent="center"
+            alignItems="center"
+            className="login-container"
+        >
+            <Stack
+                flexDir="column"
+                mb="2"
+                justifyContent="center"
+                alignItems="center"
+            >
+                <Box minW={{ base: '90%', md: '468px' }}>
+                    <form onSubmit={handleSubmit}>
+                        <Stack
+                            spacing={4}
+                            p="1rem"
+                            backgroundColor="whiteAlpha.900"
+                            boxShadow="md"
+                        >
+                            {isLoading ? loadingForm : loginForm}
+                        </Stack>
+                    </form>
+                </Box>
+            </Stack>
+        </Flex>
     );
 };
 

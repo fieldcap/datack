@@ -1,10 +1,10 @@
 import React, { FC } from 'react';
-import { Route, RouteComponentProps, Switch } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import ServerOverview from '../pages/servers/ServerOverview';
 import './MainLayout.scss';
 import NavLayout from './NavLayout';
 
-const MainLayout: FC<RouteComponentProps> = () => {
+const MainLayout: FC = () => {
     return (
         <div className="wrapper">
             <NavLayout></NavLayout>

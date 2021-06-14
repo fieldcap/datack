@@ -3,9 +3,18 @@ import { AxiosError } from 'axios';
 export namespace ErrorHelper {
     export const getError = (error: any): string => {
         if (isAxiosError(error)) {
+            if (error.response == null) {
+                return error.message;
+            }
+            error = error.response;
+        }
+
+        if (isError(error)) {
             return error.message;
-        } else if (isError(error)) {
-            return error.message;
+        }
+
+        if (error.data) {
+            return error.data;
         }
 
         return error.toString();

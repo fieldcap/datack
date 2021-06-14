@@ -1,11 +1,8 @@
 import axios from 'axios';
 import React, { FC } from 'react';
-import { Tab, Tabs } from 'react-bootstrap';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Server } from '../../models/server';
 import Servers from '../../services/servers';
-import ServerDbSettingsTab from './ServerDbSettingsTab';
-import ServerJobsTab from './ServerJobsTab';
 import './ServerOverview.scss';
 
 type RouteParams = {
@@ -46,7 +43,7 @@ const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         <>
             <h1>{server.name}</h1>
 
-            <Tabs defaultActiveKey="home" transition={false}>
+            {/* <Tabs defaultActiveKey="home" transition={false}>
                 <Tab eventKey="home" title="Jobs">
                     <ServerJobsTab server={server}></ServerJobsTab>
                 </Tab>
@@ -54,7 +51,7 @@ const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                     <ServerDbSettingsTab server={server}></ServerDbSettingsTab>
                 </Tab>
                 <Tab eventKey="settings" title="Settings"></Tab>
-            </Tabs>
+            </Tabs> */}
         </>
     );
 };

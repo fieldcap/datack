@@ -18,47 +18,18 @@ namespace Datack.Web.Controllers
         }
         
         [AllowAnonymous]
-        [Route("IsLoggedIn")]
+        [Route("IsSetup")]
         [HttpGet]
-        public async Task<ActionResult> IsLoggedIn()
-        {
-            if (User.Identity?.IsAuthenticated == false)
-            {
-                var user = await _authentication.GetUser();
-
-                if (user == null)
-                {
-                    return StatusCode(402, "Setup required");
-                }
-                
-                return Unauthorized();
-            }
-            
-            return Ok();
-        }
-        
-        [AllowAnonymous]
-        [Route("Create")]
-        [HttpPost]
-        public async Task<ActionResult> Create([FromBody] AuthControllerLoginRequest request)
+        public async Task<ActionResult<Boolean>> IsLoggedIn()
         {
             var user = await _authentication.GetUser();
 
-            if (user != null)
+            if (user == null)
             {
-                return StatusCode(401);
-            }
-
-            var registerResult = await _authentication.Register(request.UserName, request.Password);
-
-            if (!registerResult.Succeeded)
-            {
-                return BadRequest(registerResult.Errors.First().Description);
+                return Ok(false);
             }
             
-            await _authentication.Login(request.UserName, request.Password);
-
-            return Ok();
+            return Ok(true);
         }
 
         [AllowAnonymous]
@@ -70,7 +41,12 @@ namespace Datack.Web.Controllers
 
             if (user == null)
             {
-                return StatusCode(402);
+                var registerResult = await _authentication.Register(request.UserName, request.Password);
+
+                if (!registerResult.Succeeded)
+                {
+                    return BadRequest(registerResult.Errors.First().Description);
+                }
             }
 
             var result = await _authentication.Login(request.UserName, request.Password);
@@ -80,7 +56,9 @@ namespace Datack.Web.Controllers
                 return BadRequest("Invalid credentials");
             }
 
-            return Ok();
+            user = await _authentication.GetUser();
+
+            return Ok(user.UserName);
         }
         
         [Route("Logout")]
@@ -96,5 +74,6 @@ namespace Datack.Web.Controllers
     {
         public String UserName { get; set; }
         public String Password { get; set; }
+        public Boolean RememberMe { get; set; }
     }
 }
