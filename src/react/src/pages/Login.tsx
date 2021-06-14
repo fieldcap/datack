@@ -14,7 +14,9 @@ import {
     InputLeftElement,
     Link,
     Spinner,
-    Stack
+    Stack,
+    useColorMode,
+    useColorModeValue
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { FaLock, FaUserAlt } from 'react-icons/fa';
@@ -27,6 +29,9 @@ const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 const Login: FC<RouteComponentProps> = () => {
+    const { colorMode, toggleColorMode } = useColorMode();
+    const bg = useColorModeValue('whiteAlpha.900', 'gray.700');
+
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [rememberMe, setRememberMe] = useState<boolean>(true);
@@ -78,8 +83,8 @@ const Login: FC<RouteComponentProps> = () => {
                 justifyContent="center"
                 alignItems="center"
             >
-                <LogoIcon boxSize={20} color="teal.500" />
-                <Heading color="teal.500">Datack SQL</Heading>
+                <LogoIcon boxSize={20} />
+                <Heading>Datack SQL</Heading>
                 <Spinner />
             </Flex>
         </>
@@ -93,8 +98,8 @@ const Login: FC<RouteComponentProps> = () => {
                 justifyContent="center"
                 alignItems="center"
             >
-                <LogoIcon boxSize={20} color="teal.500" />
-                <Heading color="teal.500">Datack SQL</Heading>
+                <LogoIcon boxSize={20} />
+                <Heading>Datack SQL</Heading>
             </Flex>
             {!isSetup ? (
                 <Alert status="info">
@@ -107,7 +112,7 @@ const Login: FC<RouteComponentProps> = () => {
                 <InputGroup>
                     <InputLeftElement
                         pointerEvents="none"
-                        children={<CFaUserAlt color="gray.300" />}
+                        children={<CFaUserAlt />}
                     />
                     <Input
                         type="text"
@@ -121,8 +126,7 @@ const Login: FC<RouteComponentProps> = () => {
                 <InputGroup>
                     <InputLeftElement
                         pointerEvents="none"
-                        color="gray.300"
-                        children={<CFaLock color="gray.300" />}
+                        children={<CFaLock />}
                     />
                     <Input
                         type="password"
@@ -153,8 +157,6 @@ const Login: FC<RouteComponentProps> = () => {
             <Button
                 borderRadius={0}
                 type="submit"
-                variant="solid"
-                colorScheme="teal"
                 width="full"
                 disabled={!validateForm() || isLoggingIn}
                 isLoading={isLoggingIn}
@@ -169,7 +171,6 @@ const Login: FC<RouteComponentProps> = () => {
             flexDirection="column"
             width="100wh"
             height="100vh"
-            backgroundColor="gray.200"
             justifyContent="center"
             alignItems="center"
             className="login-container"
@@ -185,8 +186,8 @@ const Login: FC<RouteComponentProps> = () => {
                         <Stack
                             spacing={4}
                             p="1rem"
-                            backgroundColor="whiteAlpha.900"
                             boxShadow="md"
+                            backgroundColor={bg}
                         >
                             {isLoading ? loadingForm : loginForm}
                         </Stack>

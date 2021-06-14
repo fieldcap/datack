@@ -1,46 +1,112 @@
-import React, { FC } from 'react';
-import { Server } from '../models/server';
-import Servers from '../services/servers';
+import { MoonIcon, SettingsIcon } from '@chakra-ui/icons';
+import {
+    Box,
+    Button,
+    Drawer,
+    DrawerBody,
+    DrawerCloseButton,
+    DrawerContent,
+    DrawerOverlay,
+    HStack,
+    IconButton,
+    useColorMode,
+    VStack
+} from '@chakra-ui/react';
+import React, { FC, useState } from 'react';
+import { FaSignOutAlt } from 'react-icons/fa';
+import { useHistory, useLocation } from 'react-router-dom';
+import LogoIcon from '../icons/LogoIcon';
+import Auth from '../services/auth';
 import './NavLayout.scss';
 
-type Props = {};
+type NavLayoutProps = {
+    onClose: () => void;
+    isOpen: boolean;
+    variant: string | undefined;
+};
 
-const NavLayout: FC<Props> = () => {
-    let [servers, setServers] = React.useState<Server[]>([]);
+const NavLayout: FC<NavLayoutProps> = (props) => {
+    const location = useLocation();
+    const { colorMode, toggleColorMode } = useColorMode();
 
-    React.useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const result = await Servers.getList();
+    const [activeRoute, setActiveRoute] = useState<string>(location.pathname);
 
-                setServers(result);
-            } catch {
-                console.log('err');
-            }
-        };
-        fetchData();
-    }, []);
+    const history = useHistory();
+
+    const handleNavigate = (page: string) => {
+        history.push(page);
+        setActiveRoute(page);
+    };
+
+    const logout = async () => {
+        await Auth.logout();
+        history.push('/login');
+    };
+
+    const content = (
+        <VStack>
+            <LogoIcon boxSize={20} />
+            <HStack spacing="24px">
+                <IconButton
+                    aria-label="Switch dark/light mode"
+                    title="Switch dark/light mode"
+                    icon={<MoonIcon />}
+                    onClick={() => toggleColorMode()}
+                />
+                <IconButton
+                    aria-label="Settings"
+                    title="Settings"
+                    icon={<SettingsIcon />}
+                />
+                <IconButton
+                    aria-label="Sign out"
+                    title="Sign out"
+                    icon={<FaSignOutAlt />}
+                    onClick={() => logout()}
+                />
+            </HStack>
+            <Button
+                onClick={() => handleNavigate('/')}
+                w="100%"
+                isActive={activeRoute === '/'}
+            >
+                Home
+            </Button>
+            <Button
+                onClick={() => handleNavigate('/servers')}
+                w="100%"
+                isActive={activeRoute === '/servers'}
+            >
+                Servers
+            </Button>
+        </VStack>
+    );
+
+    if (props.variant === 'sidebar') {
+        return (
+            <Box
+                position="fixed"
+                left={0}
+                p={5}
+                w="320px"
+                top={0}
+                h="100%"
+                className="sidebar"
+            >
+                {content}
+            </Box>
+        );
+    }
 
     return (
-        <nav className="sidebar">
-            <div className="branding">Datack SQL</div>
-
-            <ul className="list-unstyled nav-items">
-                <li className="active nav-item">
-                    <a href="/#/">Home</a>
-                </li>
-                <li className="nav-item">
-                    <a href="/#/Settings">Settings</a>
-                </li>
-                {servers.map((server) => (
-                    <li className="nav-item" key={server.serverId}>
-                        <a href={'/#/server/' + server.serverId}>
-                            {server.name}
-                        </a>
-                    </li>
-                ))}
-            </ul>
-        </nav>
+        <Drawer isOpen={props.isOpen} placement="left" onClose={props.onClose}>
+            <DrawerOverlay>
+                <DrawerContent>
+                    <DrawerCloseButton />
+                    <DrawerBody>{content}</DrawerBody>
+                </DrawerContent>
+            </DrawerOverlay>
+        </Drawer>
     );
 };
 

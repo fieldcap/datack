@@ -34,6 +34,11 @@ export namespace Auth {
             throw ErrorHelper.getError(err);
         }
     };
+
+    export const logout = async (): Promise<void> => {
+        localStorage.removeItem('isAuthenticated');
+        await axios.post(`/api/Authentication/Logout`, {});
+    };
 }
 
 export default Auth;
