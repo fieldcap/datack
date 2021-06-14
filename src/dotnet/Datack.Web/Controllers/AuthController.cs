@@ -49,7 +49,7 @@ namespace Datack.Web.Controllers
                 }
             }
 
-            var result = await _authentication.Login(request.UserName, request.Password);
+            var result = await _authentication.Login(request.UserName, request.Password, request.RememberMe);
 
             if (!result.Succeeded)
             {
@@ -61,6 +61,7 @@ namespace Datack.Web.Controllers
             return Ok(user.UserName);
         }
         
+        [AllowAnonymous]
         [Route("Logout")]
         [HttpPost]
         public async Task<ActionResult> Logout()

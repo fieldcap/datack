@@ -14,10 +14,16 @@ namespace Datack.Data.Data
 {
     public class DataContext : IdentityDbContext
     {
+        private static readonly JsonSerializerOptions SerializerOptions = new JsonSerializerOptions
+        {
+            IgnoreNullValues = true
+        };
+
         public DataContext(DbContextOptions options) : base(options)
         {
         }
 
+        public DbSet<Job> Jobs { get; set; }
         public DbSet<Server> Servers { get; set; }
         public DbSet<Setting> Settings { get; set; }
 
@@ -51,6 +57,7 @@ namespace Datack.Data.Data
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
+            modelBuilder.ApplyConfiguration(new JobConfiguration());
             modelBuilder.ApplyConfiguration(new ServerConfiguration());
             modelBuilder.ApplyConfiguration(new ServerDbConfiguration());
         }
@@ -98,21 +105,23 @@ namespace Datack.Data.Data
             throw new NotSupportedException();
         }
 
+        public class JobConfiguration : IEntityTypeConfiguration<Job>
+        {
+            public void Configure(EntityTypeBuilder<Job> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<JobSettings>(v, SerializerOptions));
+            }
+        }
+
         public class ServerConfiguration : IEntityTypeConfiguration<Server>
         {
             public void Configure(EntityTypeBuilder<Server> builder)
             {
                 builder.Property(e => e.Settings)
-                       .HasConversion(v => JsonSerializer.Serialize(v,
-                                                                    new JsonSerializerOptions
-                                                                    {
-                                                                        IgnoreNullValues = true
-                                                                    }),
-                                      v => JsonSerializer.Deserialize<ServerSettings>(v,
-                                                                                        new JsonSerializerOptions
-                                                                                        {
-                                                                                            IgnoreNullValues = true
-                                                                                        }));
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<ServerSettings>(v, SerializerOptions));
             }
         }
 
@@ -121,16 +130,8 @@ namespace Datack.Data.Data
             public void Configure(EntityTypeBuilder<Server> builder)
             {
                 builder.Property(e => e.DbSettings)
-                       .HasConversion(v => JsonSerializer.Serialize(v,
-                                                                    new JsonSerializerOptions
-                                                                    {
-                                                                        IgnoreNullValues = true
-                                                                    }),
-                                      v => JsonSerializer.Deserialize<ServerDbSettings>(v,
-                                                                                        new JsonSerializerOptions
-                                                                                        {
-                                                                                            IgnoreNullValues = true
-                                                                                        }));
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<ServerDbSettings>(v, SerializerOptions));
             }
         }
     }

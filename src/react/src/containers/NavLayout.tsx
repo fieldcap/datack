@@ -17,7 +17,6 @@ import { FaSignOutAlt } from 'react-icons/fa';
 import { useHistory, useLocation } from 'react-router-dom';
 import LogoIcon from '../icons/LogoIcon';
 import Auth from '../services/auth';
-import './NavLayout.scss';
 
 type NavLayoutProps = {
     onClose: () => void;
@@ -27,7 +26,7 @@ type NavLayoutProps = {
 
 const NavLayout: FC<NavLayoutProps> = (props) => {
     const location = useLocation();
-    const { colorMode, toggleColorMode } = useColorMode();
+    const { toggleColorMode } = useColorMode();
 
     const [activeRoute, setActiveRoute] = useState<string>(location.pathname);
 
@@ -85,13 +84,12 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
     if (props.variant === 'sidebar') {
         return (
             <Box
-                position="fixed"
                 left={0}
                 p={5}
                 w="320px"
                 top={0}
-                h="100%"
-                className="sidebar"
+                h="100vh"
+                boxShadow="0 3px 30px rgba(0, 0, 0, 0.1), 0 3px 20px rgba(0, 0, 0, 0.1)"
             >
                 {content}
             </Box>

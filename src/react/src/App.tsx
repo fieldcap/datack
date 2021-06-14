@@ -3,10 +3,12 @@ import { OmitNative } from 'react-router';
 import {
     HashRouter,
     Redirect,
-    Route, RouteProps,
+    Route,
+    RouteProps,
     Switch
 } from 'react-router-dom';
 import './App.scss';
+import MainLayout from './containers/MainLayout';
 import Login from './pages/Login';
 import Auth from './services/auth';
 
@@ -15,8 +17,6 @@ const loading = (
         <div className="sk-spinner sk-spinner-pulse"></div>
     </div>
 );
-
-const MainLayout = React.lazy(() => import('./containers/MainLayout'));
 
 type PrivateRouteProps = RouteProps & OmitNative<{}, keyof RouteProps> & {};
 

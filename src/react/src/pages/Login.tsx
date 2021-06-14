@@ -14,22 +14,19 @@ import {
     InputLeftElement,
     Link,
     Spinner,
-    Stack,
-    useColorMode,
-    useColorModeValue
+    Stack, useColorModeValue
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { FaLock, FaUserAlt } from 'react-icons/fa';
 import { Redirect, RouteComponentProps } from 'react-router-dom';
+import BackgroundImage from '../assets/daniel-leone-g30P1zcOzXo-unsplash.jpg';
 import LogoIcon from '../icons/LogoIcon';
 import Auth from '../services/auth';
-import './Login.scss';
 
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
 const Login: FC<RouteComponentProps> = () => {
-    const { colorMode, toggleColorMode } = useColorMode();
     const bg = useColorModeValue('whiteAlpha.900', 'gray.700');
 
     const [email, setEmail] = useState<string>('');
@@ -174,6 +171,10 @@ const Login: FC<RouteComponentProps> = () => {
             justifyContent="center"
             alignItems="center"
             className="login-container"
+            backgroundImage={BackgroundImage}
+            backgroundRepeat="no-repeat"
+            backgroundPosition="50%"
+            backgroundSize="cover"
         >
             <Stack
                 flexDir="column"

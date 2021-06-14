@@ -1,9 +1,9 @@
 import { ChevronRightIcon } from '@chakra-ui/icons';
-import { IconButton, useBreakpointValue } from '@chakra-ui/react';
+import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
+import ServerList from '../pages/servers/ServerList';
 import ServerOverview from '../pages/servers/ServerOverview';
-import './MainLayout.scss';
 import NavLayout from './NavLayout';
 
 const smVariant = { navigation: 'drawer', navigationButton: true };
@@ -15,14 +15,22 @@ const MainLayout: FC = () => {
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
     return (
-        <>
+        <Flex>
             {variants?.navigationButton ? (
                 <IconButton
                     icon={<ChevronRightIcon w={8} h={8} />}
                     colorScheme="blackAlpha"
                     variant="outline"
                     onClick={() => toggleSidebar()}
+                    position="fixed"
+                    top="12px"
+                    left="12px"
                     aria-label=""
+                    zIndex="100"
+                    background="white"
+                    _hover={{
+                        background: 'white'
+                    }}
                 />
             ) : null}
             <NavLayout
@@ -31,13 +39,19 @@ const MainLayout: FC = () => {
                 onClose={toggleSidebar}
             ></NavLayout>
 
-            <Switch>
-                <Route
-                    path="/server/:id"
-                    render={(props) => <ServerOverview {...props} />}
-                />
-            </Switch>
-        </>
+            <Box flex="1" padding="24px">
+                <Switch>
+                    <Route
+                        path="/servers"
+                        render={(props) => <ServerList {...props} />}
+                    />
+                    <Route
+                        path="/server/:id"
+                        render={(props) => <ServerOverview {...props} />}
+                    />
+                </Switch>
+            </Box>
+        </Flex>
     );
 };
 

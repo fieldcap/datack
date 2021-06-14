@@ -1,82 +1,63 @@
-import { format } from 'date-fns';
-import React, { FC, useMemo } from 'react';
-import { Column, useTable } from 'react-table';
+import axios from 'axios';
+import React, { FC, useEffect, useState } from 'react';
+import DataTable from 'react-data-table-component';
+import { useHistory } from 'react-router-dom';
+import { Job } from '../../models/job';
 import { Server } from '../../models/server';
-import './ServerOverview.scss';
+import Jobs from '../../services/jobs';
 
 type Props = {
     server: Server;
 };
 
 const ServerJobsTab: FC<Props> = (props) => {
-    interface Data {
-        date: Date;
-        objectCount: number;
-        size: number;
-    }
+    const [jobs, setJobs] = useState<Job[]>([]);
 
-    const memoColumns: Column<Data>[] = useMemo(
-        () => [
-            {
-                Header: 'Date',
-                accessor: (d) => format(d.date, 'MM/dd/yyyy'),
-            },
-            {
-                Header: 'Backup Objects',
-                accessor: 'objectCount',
-            },
-            {
-                Header: 'Archive Size',
-                accessor: 'size',
-            },
-        ],
-        []
-    );
+    const history = useHistory();
 
-    const memoData: Data[] = useMemo(
-        () => [
-            {
-                date: new Date(),
-                objectCount: 100,
-                size: 1024,
-            },
-        ],
-        []
-    );
+    useEffect(() => {
+        if (!props.server) {
+            return;
+        }
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<Data>({ columns: memoColumns, data: memoData });
+        const cancelToken = axios.CancelToken.source();
+
+        (async () => {
+            const jobs = await Jobs.getForServer(
+                props.server.serverId,
+                cancelToken
+            );
+
+            setJobs(jobs);
+        })();
+
+        return () => {
+            cancelToken.cancel();
+        };
+    }, [props.server]);
+
+    const rowClick = (serverId: string): void => {
+        history.push(`/server/${serverId}`);
+    };
+
+    const columns = [
+        {
+            name: 'Job Name',
+            selector: 'name',
+            sortable: true,
+        },
+    ];
 
     return (
-        <table {...getTableProps()} className="table">
-            <thead>
-                {headerGroups.map((headerGroup) => (
-                    <tr {...headerGroup.getHeaderGroupProps()}>
-                        {headerGroup.headers.map((column) => (
-                            <th {...column.getHeaderProps()}>
-                                {column.render('Header')}
-                            </th>
-                        ))}
-                    </tr>
-                ))}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-                {rows.map((row) => {
-                    prepareRow(row);
-                    return (
-                        <tr {...row.getRowProps()}>
-                            {row.cells.map((cell) => {
-                                return (
-                                    <td {...cell.getCellProps()}>
-                                        {cell.render('Cell')}
-                                    </td>
-                                );
-                            })}
-                        </tr>
-                    );
-                })}
-            </tbody>
-        </table>
+        <DataTable
+            keyField="jobId"
+            columns={columns}
+            data={jobs}
+            onRowClicked={(row) => rowClick(row.jobId)}
+            pointerOnHover={true}
+            highlightOnHover={true}
+            noHeader={true}
+        />
     );
 };
 

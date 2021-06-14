@@ -3,8 +3,11 @@ import { Server, ServerDbSettings } from '../models/server';
 import { ErrorHelper } from './error';
 
 export namespace Servers {
-    export const getList = async (): Promise<Server[]> => {
-        const result = await axios.get<Server[]>(`/api/Servers/List`);
+    export const getList = async (
+        cancelToken: CancelTokenSource
+    ): Promise<Server[]> => {
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.get<Server[]>(`/api/Servers/List`, config);
         return result.data;
     };
 

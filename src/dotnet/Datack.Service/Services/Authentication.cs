@@ -22,16 +22,12 @@ namespace Datack.Service.Services
         {
             var user = new IdentityUser(userName);
 
-            var result = await _userManager.CreateAsync(user, password);
-
-            return result;
+            return await _userManager.CreateAsync(user, password);
         }
 
-        public async Task<SignInResult> Login(String userName, String password)
+        public async Task<SignInResult> Login(String userName, String password, Boolean isPersistent)
         {
-            var result = await _signInManager.PasswordSignInAsync(userName, password, true, false);
-
-            return result;
+            return await _signInManager.PasswordSignInAsync(userName, password, isPersistent, false);
         }
 
         public async Task<IdentityUser> GetUser()

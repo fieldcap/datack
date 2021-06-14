@@ -8,8 +8,7 @@ using Datack.Service.Services;
 
 namespace Datack.Web.Controllers
 {
-    //[Authorize]
-    [AllowAnonymous]
+    [Authorize]
     [Route("Api/Servers")]
     public class ServersController : Controller
     {
