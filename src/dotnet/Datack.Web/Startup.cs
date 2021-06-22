@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -13,6 +14,7 @@ using Datack.Data.Data;
 using Datack.Data.Models.Internal;
 using Datack.Service.Middleware;
 using Datack.Service.Services;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 
 namespace Datack.Web
 {
@@ -130,6 +132,9 @@ namespace Datack.Web
                     spa.Options.DefaultPage = "/index.html";
                 });
             });
+
+            var serverAddressesFeature = app.ServerFeatures.Get<IServerAddressesFeature>();
+            logger.LogInformation("Listening on the following addresses: " + String.Join(", ", serverAddressesFeature.Addresses));
         }
     }
 }

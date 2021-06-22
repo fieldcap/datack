@@ -2,8 +2,10 @@ import { ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
+import JobOverview from '../pages/jobs/JobOverview';
 import ServerList from '../pages/servers/ServerList';
 import ServerOverview from '../pages/servers/ServerOverview';
+import StepEditor from '../pages/steps/StepEditor';
 import NavLayout from './NavLayout';
 
 const smVariant = { navigation: 'drawer', navigationButton: true };
@@ -29,7 +31,7 @@ const MainLayout: FC = () => {
                     zIndex="100"
                     background="white"
                     _hover={{
-                        background: 'white'
+                        background: 'white',
                     }}
                 />
             ) : null}
@@ -48,6 +50,14 @@ const MainLayout: FC = () => {
                     <Route
                         path="/server/:id"
                         render={(props) => <ServerOverview {...props} />}
+                    />
+                    <Route
+                        path="/job/:id"
+                        render={(props) => <JobOverview {...props} />}
+                    />
+                    <Route
+                        path="/step/:id"
+                        render={(props) => <StepEditor {...props} />}
                     />
                 </Switch>
             </Box>

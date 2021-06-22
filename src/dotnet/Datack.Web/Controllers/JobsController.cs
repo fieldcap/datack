@@ -25,5 +25,19 @@ namespace Datack.Web.Controllers
             var result = await _jobs.GetForServer(serverId, cancellationToken);
             return Ok(result);
         }
+        
+        [HttpGet]
+        [Route("GetById/{jobId:guid}")]
+        public async Task<ActionResult> GetById(Guid jobId, CancellationToken cancellationToken)
+        {
+            var server = await _jobs.GetById(jobId, cancellationToken);
+
+            if (server == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(server);
+        }
     }
 }

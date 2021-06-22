@@ -10,6 +10,7 @@ namespace Datack.Data
             services.AddScoped<JobData>();
             services.AddScoped<SettingData>();
             services.AddScoped<ServerData>();
+            services.AddScoped<StepData>();
             services.AddScoped<UserData>();
         }
     }

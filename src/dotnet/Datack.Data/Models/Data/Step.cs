@@ -5,20 +5,24 @@ using Datack.Data.Models.Internal;
 
 namespace Datack.Data.Models.Data
 {
-    public class Job
+    public class Step
     {
         [Key]
+        public Guid StepId { get; set; }
+
         public Guid JobId { get; set; }
 
-        public Guid ServerId { get; set; }
+        [ForeignKey("JobId")]
+        public Job Job { get; set; }
 
-        [ForeignKey("ServerId")]
-        public Server Server { get; set; }
+        public String Type { get; set; }
 
         public String Name { get; set; }
 
         public String Description { get; set; }
-        
-        public JobSettings Settings { get; set; }
+
+        public Int32 Order { get; set; }
+
+        public StepSettings Settings { get; set; }
     }
 }

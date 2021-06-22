@@ -21,5 +21,10 @@ namespace Datack.Data.Data
         {
             return await _dataContext.Jobs.Where(m => m.ServerId == serverId).OrderBy(m => m.Name).ToListAsync(cancellationToken);
         }
+
+        public async Task<Job> GetById(Guid jobId, CancellationToken cancellationToken)
+        {
+            return await _dataContext.Jobs.Include(m => m.Server).FirstOrDefaultAsync(m => m.JobId == jobId, cancellationToken);
+        }
     }
 }

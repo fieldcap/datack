@@ -11,6 +11,8 @@ namespace Datack.Data.Models.Data
 
         public String Name { get; set; }
 
+        public String Description { get; set; }
+        
         public ServerDbSettings DbSettings { get; set; }
 
         public ServerSettings Settings { get; set; }

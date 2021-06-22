@@ -17,6 +17,10 @@ export namespace ErrorHelper {
             return error.data;
         }
 
+        if (error.status) {
+            return error.statusText;
+        }
+
         return error.toString();
     };
 

@@ -20,5 +20,10 @@ namespace Datack.Service.Services
         {
             return await _jobData.GetForServer(serverId, cancellationToken);
         }
+
+        public async Task<Job> GetById(Guid jobId, CancellationToken cancellationToken)
+        {
+            return await _jobData.GetById(jobId, cancellationToken);
+        }
     }
 }

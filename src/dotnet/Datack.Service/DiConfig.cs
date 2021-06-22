@@ -12,6 +12,7 @@ namespace Datack.Service
             services.AddScoped<RemoteService>();
             services.AddScoped<Settings>();
             services.AddScoped<Servers>();
+            services.AddScoped<Steps>();
         }
     }
 }

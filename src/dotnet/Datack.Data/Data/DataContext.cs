@@ -26,6 +26,7 @@ namespace Datack.Data.Data
         public DbSet<Job> Jobs { get; set; }
         public DbSet<Server> Servers { get; set; }
         public DbSet<Setting> Settings { get; set; }
+        public DbSet<Step> Steps { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -60,6 +61,7 @@ namespace Datack.Data.Data
             modelBuilder.ApplyConfiguration(new JobConfiguration());
             modelBuilder.ApplyConfiguration(new ServerConfiguration());
             modelBuilder.ApplyConfiguration(new ServerDbConfiguration());
+            modelBuilder.ApplyConfiguration(new StepDbConfiguration());
         }
 
         public async Task Seed()
@@ -132,6 +134,16 @@ namespace Datack.Data.Data
                 builder.Property(e => e.DbSettings)
                        .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
                                       v => JsonSerializer.Deserialize<ServerDbSettings>(v, SerializerOptions));
+            }
+        }
+        
+        public class StepDbConfiguration : IEntityTypeConfiguration<Step>
+        {
+            public void Configure(EntityTypeBuilder<Step> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<StepSettings>(v, SerializerOptions));
             }
         }
     }

@@ -12,7 +12,7 @@ import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { Server } from '../../models/server';
 import Servers from '../../services/servers';
-import ServerJobsTab from './ServerJobsTab';
+import ServerSummaryTab from './ServerSummaryTab';
 
 type RouteParams = {
     id: string;
@@ -43,21 +43,16 @@ const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             <Heading marginBottom="24px">{server?.name}</Heading>
             <Tabs>
                 <TabList>
-                    <Tab>Overview</Tab>
-                    <Tab>Jobs</Tab>
+                    <Tab>Summary</Tab>
+                    <Tab>Server Settings</Tab>
                     <Tab>Connection Settings</Tab>
                 </TabList>
 
                 <TabPanels>
                     <TabPanel>
-                        <p>one!</p>
+                        <ServerSummaryTab server={server!}></ServerSummaryTab>
                     </TabPanel>
-                    <TabPanel>
-                        <ServerJobsTab server={server!}></ServerJobsTab>
-                    </TabPanel>
-                    <TabPanel>
-                        <p>two!</p>
-                    </TabPanel>
+                    <TabPanel></TabPanel>
                 </TabPanels>
             </Tabs>
         </Skeleton>
