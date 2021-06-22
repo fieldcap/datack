@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Datack.Common.Models.Internal;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Datack.Data.Data;
-using Datack.Data.Models.Internal;
 using Datack.Service.Middleware;
 using Datack.Service.Services;
 using Microsoft.AspNetCore.Hosting.Server.Features;
@@ -116,11 +116,11 @@ namespace Datack.Web
             app.UseAuthentication();
 
             app.UseAuthorization();
-            
+
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<DatackHub>("/hub");
                 endpoints.MapControllers();
+                endpoints.MapHub<DatackHub>("/hub");
             });
 
             app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>

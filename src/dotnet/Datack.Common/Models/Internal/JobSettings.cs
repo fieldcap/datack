@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace Datack.Data.Models.Internal
+namespace Datack.Common.Models.Internal
 {
-    public class ServerSettings
+    public class JobSettings
     {
         [JsonPropertyName("tempPath")]
         public String TempPath { get;set; }

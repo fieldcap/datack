@@ -3,6 +3,7 @@ import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import JobOverview from '../pages/jobs/JobOverview';
+import ServerAdd from '../pages/servers/ServerAdd';
 import ServerList from '../pages/servers/ServerList';
 import ServerOverview from '../pages/servers/ServerOverview';
 import StepEditor from '../pages/steps/StepEditor';
@@ -46,6 +47,10 @@ const MainLayout: FC = () => {
                     <Route
                         path="/servers"
                         render={(props) => <ServerList {...props} />}
+                    />
+                    <Route
+                        path="/server/new"
+                        render={(props) => <ServerAdd {...props} />}
                     />
                     <Route
                         path="/server/:id"

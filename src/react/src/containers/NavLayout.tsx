@@ -78,6 +78,13 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
             >
                 Servers
             </Button>
+            <Button
+                onClick={() => handleNavigate('/jobs')}
+                w="100%"
+                isActive={activeRoute === '/jobs'}
+            >
+                Jobs
+            </Button>
         </VStack>
     );
 

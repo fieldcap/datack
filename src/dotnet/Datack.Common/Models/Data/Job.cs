@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Datack.Data.Models.Internal;
+using Datack.Common.Models.Internal;
 
-namespace Datack.Data.Models.Data
+namespace Datack.Common.Models.Data
 {
     public class Job
     {

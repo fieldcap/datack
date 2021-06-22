@@ -1,6 +1,37 @@
-﻿namespace Datack.Agent.Service.Helpers
+﻿using System;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
+
+namespace Datack.Agent.Service.Helpers
 {
     public static class SqlHelper
     {
+        private static String GetConnectionString(String server, String userName, String password, Int32 timeout = 60000)
+        {
+            return $"Data Source={server};User Id={userName};password={password}";
+        }
+
+        /// <summary>
+        /// Test a databas connection.
+        /// </summary>
+        /// <param name="server">The server to connect to.</param>
+        /// <param name="userName">The username of the connection.</param>
+        /// <param name="password">The password of the connection.</param>
+        /// <returns>NULL if successful, otherwise an error message.</returns>
+        public static async Task<String> TestDatabaseConnection(String server, String userName, String password)
+        {
+            await using var sqlConnection = new SqlConnection(GetConnectionString(server, userName, password, 1000));
+
+            try
+            {
+                sqlConnection.Open();
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
     }
 }

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datack.Common.Models.Data;
 using Datack.Data.Data;
-using Datack.Data.Models.Data;
 
 namespace Datack.Service.Services
 {

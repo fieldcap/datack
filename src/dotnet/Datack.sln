@@ -11,9 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datack.Web", "Datack.Web\Da
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Agent", "Agent", "{D9594E70-B6D7-43AD-AB8B-12F2256F8B42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datack.Agent.Console", "Datack.Agent.Console\Datack.Agent.Console.csproj", "{533FBD9C-EC8D-48A5-BAE2-026F8EA8CADE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datack.Agent.Console", "Datack.Agent.Console\Datack.Agent.Console.csproj", "{533FBD9C-EC8D-48A5-BAE2-026F8EA8CADE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datack.Agent.Service", "Datack.Agent.Service\Datack.Agent.Service.csproj", "{3179F729-5E7F-4916-A14C-E9E0834DE848}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datack.Agent.Service", "Datack.Agent.Service\Datack.Agent.Service.csproj", "{3179F729-5E7F-4916-A14C-E9E0834DE848}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datack.Common", "Datack.Common\Datack.Common.csproj", "{B2DD741D-5164-4F5A-8BFD-AF7EB1F11768}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,10 @@ Global
 		{3179F729-5E7F-4916-A14C-E9E0834DE848}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3179F729-5E7F-4916-A14C-E9E0834DE848}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3179F729-5E7F-4916-A14C-E9E0834DE848}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2DD741D-5164-4F5A-8BFD-AF7EB1F11768}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2DD741D-5164-4F5A-8BFD-AF7EB1F11768}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2DD741D-5164-4F5A-8BFD-AF7EB1F11768}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2DD741D-5164-4F5A-8BFD-AF7EB1F11768}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

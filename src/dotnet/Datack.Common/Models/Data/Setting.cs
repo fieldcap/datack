@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Datack.Data.Models.Data
+namespace Datack.Common.Models.Data
 {
     public class Setting
     {

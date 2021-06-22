@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Data.Models.Internal;
+using Datack.Common.Models.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Datack.Service.Services;
@@ -41,12 +41,30 @@ namespace Datack.Web.Controllers
             return Ok(server);
         }
 
-        [HttpPut]
-        [Route("UpdateDbSettings/{serverId:guid}")]
-        public async Task<ActionResult> UpdateDbSettings(Guid serverId, [FromBody] ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
+        [HttpPost]
+        [Route("Add")]
+        public async Task<ActionResult<Server>> Add([FromBody] Server server, CancellationToken cancellationToken)
         {
-            await _servers.UpdateDbSettings(serverId, serverDbSettings, cancellationToken);
-            
+            var result = await _servers.Add(server, cancellationToken);
+
+            return Ok(result);
+        }
+        
+        [HttpPut]
+        [Route("Update")]
+        public async Task<ActionResult> Update([FromBody] Server server, CancellationToken cancellationToken)
+        {
+            await _servers.Update(server, cancellationToken);
+
+            return Ok();
+        }
+        
+        [HttpPut]
+        [Route("Test")]
+        public async Task<ActionResult> Test([FromBody] Server server, CancellationToken cancellationToken)
+        {
+            await _servers.Test(server, cancellationToken);
+
             return Ok();
         }
     }

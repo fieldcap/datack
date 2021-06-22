@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Datack.Common.Models.Data;
 using Microsoft.EntityFrameworkCore;
-using Datack.Data.Models.Data;
 
 namespace Datack.Data.Data
 {

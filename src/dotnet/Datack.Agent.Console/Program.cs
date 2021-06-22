@@ -1,6 +1,9 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Service;
+using Serilog;
+using Serilog.Exceptions;
 
 namespace Datack.Agent.Console
 {
@@ -10,17 +13,32 @@ namespace Datack.Agent.Console
 
         private static async Task Main()
         {
-            System.Console.WriteLine("Application has started. Ctrl-C to end");
+            const String token = "5026d123-0b7a-4ecc-9b97-4950324f161f";
+
+            Log.Logger = new LoggerConfiguration()
+                         .Enrich.FromLogContext()
+                         .Enrich.WithExceptionDetails()
+                         .WriteTo.Console()
+                         .MinimumLevel.Debug()
+                         .CreateLogger();
+
+            await Task.Delay(5000);
+
+            Log.Information("Application has started. Ctrl-C to end");
 
             System.Console.CancelKeyPress += (_, eventArgs) =>
             {
-                System.Console.WriteLine("Cancel event triggered");
                 CancellationToken.Cancel();
                 eventArgs.Cancel = true;
             };
 
-            var m = new Main();
-            await m.Start(CancellationToken.Token);
+            var m = new Main(Log.Logger, CancellationToken.Token);
+            await m.Start(token);
+
+            while (true)
+            {
+                await Task.Delay(10);
+            }
         }
     }
 }

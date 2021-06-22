@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Data.Models.Data;
+using Datack.Common.Models.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Data.Data

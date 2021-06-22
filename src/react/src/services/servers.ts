@@ -1,5 +1,5 @@
 import axios, { CancelTokenSource } from 'axios';
-import { Server, ServerDbSettings } from '../models/server';
+import { Server } from '../models/server';
 import { ErrorHelper } from './error';
 
 export namespace Servers {
@@ -23,15 +23,29 @@ export namespace Servers {
         return result.data;
     };
 
-    export const updateDbSettings = async (
-        serverId: string,
-        dbSettings: ServerDbSettings
-    ): Promise<void> => {
+    export const add = async (server: Server): Promise<Server> => {
         try {
-            await axios.put(
-                `/api/Servers/UpdateDbSettings/${serverId}`,
-                dbSettings
+            const result = await axios.post<Server>(
+                `/api/Servers/Add/`,
+                server
             );
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
+    export const update = async (server: Server): Promise<void> => {
+        try {
+            await axios.put(`/api/Servers/Update/`, server);
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
+    export const test = async (server: Server): Promise<void> => {
+        try {
+            await axios.post(`/api/Servers/Test/`, server);
         } catch (err) {
             throw ErrorHelper.getError(err);
         }

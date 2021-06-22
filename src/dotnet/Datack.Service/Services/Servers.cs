@@ -2,19 +2,20 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Datack.Common.Models.Data;
 using Datack.Data.Data;
-using Datack.Data.Models.Data;
-using Datack.Data.Models.Internal;
 
 namespace Datack.Service.Services
 {
     public class Servers
     {
         private readonly ServerData _serverData;
+        private readonly RemoteService _remoteService;
 
-        public Servers(ServerData serverData)
+        public Servers(ServerData serverData, RemoteService remoteService)
         {
             _serverData = serverData;
+            _remoteService = remoteService;
         }
 
         public async Task<IList<Server>> GetAll(CancellationToken cancellationToken)
@@ -26,10 +27,22 @@ namespace Datack.Service.Services
         {
             return await _serverData.GetById(serverId, cancellationToken);
         }
-
-        public async Task UpdateDbSettings(Guid serverId, ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
+        
+        public async Task<Server> Add(Server server, CancellationToken cancellationToken)
         {
-            await _serverData.UpdateDbSettings(serverId, serverDbSettings, cancellationToken);
+            var newServerId = await _serverData.Add(server, cancellationToken);
+
+            return await GetById(newServerId, cancellationToken);
+        }
+
+        public async Task Update(Server server, CancellationToken cancellationToken)
+        {
+            await _serverData.Update(server, cancellationToken);
+        }
+
+        public async Task Test(Server server, CancellationToken cancellationToken)
+        {
+            await _remoteService.TestSqlServer(server.Key, server.DbSettings, cancellationToken);
         }
     }
 }

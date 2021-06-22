@@ -7,11 +7,12 @@
 
   <ItemGroup>
     <PackageReference Include="Serilog" Version="2.10.0" />
-    <PackageReference Include="Serilog.Exceptions" Version="6.1.0" />
+    <PackageReference Include="Serilog.Exceptions" Version="7.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="4.1.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Datack.Common\Datack.Common.csproj" />
     <ProjectReference Include="..\Datack.Data\Datack.Data.csproj" />
   </ItemGroup>
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Datack.Common.Models.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Datack.Data.Models.Data;
 using Datack.Service.Services;
 using Serilog.Events;
 

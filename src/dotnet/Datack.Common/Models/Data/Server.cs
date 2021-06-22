@@ -1,8 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Datack.Data.Models.Internal;
+using Datack.Common.Models.Internal;
 
-namespace Datack.Data.Models.Data
+namespace Datack.Common.Models.Data
 {
     public class Server
     {
@@ -12,6 +12,8 @@ namespace Datack.Data.Models.Data
         public String Name { get; set; }
 
         public String Description { get; set; }
+
+        public String Key { get; set; }
         
         public ServerDbSettings DbSettings { get; set; }
 

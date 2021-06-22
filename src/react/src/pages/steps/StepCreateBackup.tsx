@@ -19,7 +19,7 @@ const StepCreateBackup: FC<Props> = (props) => {
     }, [props.settings]);
 
     const onChange = (settings: StepCreateBackupSettings) => {
-        props.onSettingsChanged({ ... { createBackup: settings } });
+        props.onSettingsChanged({ ...{ createBackup: settings } });
     };
 
     const handleBackupAllNonSystemDatabases = (checked: boolean) => {

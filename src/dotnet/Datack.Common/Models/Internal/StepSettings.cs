@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace Datack.Data.Models.Internal
+namespace Datack.Common.Models.Internal
 {
     public class StepSettings
     {

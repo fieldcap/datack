@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Datack.Data.Models.Internal
+namespace Datack.Common.Models.Internal
 {
     public class AppSettings
     {

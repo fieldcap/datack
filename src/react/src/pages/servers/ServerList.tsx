@@ -42,6 +42,10 @@ const ServerList: FC<RouteComponentProps> = () => {
         history.push(`/server/${serverId}`);
     };
 
+    const handleAddNewServerClick = () => {
+        history.push(`/server/new`);
+    }
+
     const columns = React.useMemo(() => {
         const columns: Column<Server>[] = [
             {
@@ -100,7 +104,7 @@ const ServerList: FC<RouteComponentProps> = () => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px">Add new server</Button>
+            <Button marginTop="24px" onClick={handleAddNewServerClick}>Add new server</Button>
         </Skeleton>
     );
 };

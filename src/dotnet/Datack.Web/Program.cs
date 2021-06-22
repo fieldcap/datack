@@ -1,13 +1,14 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Datack.Common.Models.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Datack.Data.Data;
-using Datack.Data.Models.Internal;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -46,7 +47,7 @@ namespace Datack.Web
                         logLevel = LogEventLevel.Warning;
                     }
 
-                    LoggingLevelSwitch.MinimumLevel = logLevel;
+                    //LoggingLevelSwitch.MinimumLevel = logLevel;
                 }
                 
                 await host.RunAsync();
@@ -99,6 +100,11 @@ namespace Datack.Web
             });
 
             return Host.CreateDefaultBuilder(args)
+                       .ConfigureLogging(logging =>
+                       {
+                           logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
+                           logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug);
+                       })
                        .ConfigureWebHostDefaults(webBuilder =>
                        {
                            webBuilder.UseUrls(appSettings.HostUrl)

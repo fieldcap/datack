@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Data.Models.Data;
-using Datack.Data.Models.Internal;
+using Datack.Common.Models.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Data.Data
@@ -28,16 +27,34 @@ namespace Datack.Data.Data
             return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
         }
 
-        public async Task UpdateDbSettings(Guid serverId, ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
+        public async Task<Server> GetByKey(String key)
         {
-            var dbServer = await _dataContext.Servers.FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
+            return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.Key == key);
+        }
+
+        public async Task<Guid> Add(Server server, CancellationToken cancellationToken)
+        {
+            server.ServerId = Guid.NewGuid();
+                
+            await _dataContext.Servers.AddAsync(server, cancellationToken);
+            await _dataContext.SaveChangesAsync(cancellationToken);
+
+            return server.ServerId;
+        }
+
+        public async Task Update(Server server, CancellationToken cancellationToken)
+        {
+            var dbServer = await _dataContext.Servers.FirstOrDefaultAsync(m => m.ServerId == server.ServerId, cancellationToken);
 
             if (dbServer == null)
             {
-                throw new Exception($"Server with ID {serverId} not found");
+                throw new Exception($"Server with ID {server.ServerId} not found");
             }
 
-            dbServer.DbSettings = serverDbSettings;
+            dbServer.Name = server.Name;
+            dbServer.Description = server.Description;
+            dbServer.Settings = server.Settings;
+            dbServer.DbSettings = server.DbSettings;
 
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
