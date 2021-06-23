@@ -3,10 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Service.Helpers;
 using Datack.Common.Models.Internal;
-using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Logging;
 using Serilog;
-using Serilog.Extensions.Logging;
 using ILogger = Serilog.ILogger;
 
 namespace Datack.Agent.Service
@@ -14,10 +11,7 @@ namespace Datack.Agent.Service
     public class Main
     {
         private readonly CancellationToken _cancellationToken;
-
-        private HubConnection _connection;
-
-        private String _token;
+        private RpcService _rpcService;
 
         public Main(ILogger logger, CancellationToken cancellationToken)
         {
@@ -27,65 +21,22 @@ namespace Datack.Agent.Service
 
         public async Task Start(String token)
         {
-            _token = token ?? throw new Exception($"Token cannot be null");
-
-            await StartConnection();
-        }
-
-        private async Task StartConnection()
-        {
-            _connection = new HubConnectionBuilder()
-                          .WithUrl("http://localhost:3001/hub")
-                          .ConfigureLogging(logging => 
-                          {
-                              logging.AddProvider(new SerilogLoggerProvider());
-                              logging.SetMinimumLevel(LogLevel.Debug);
-                              logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
-                              logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug);
-                          })
-                          .Build();
-
-            _connection.Closed += _ => Connect();
-
-            _connection.On<ServerDbSettings>("TestSqlServer", HandleTestSqlServer);
-
-            await Task.Run(Connect, _cancellationToken);
-        }
-
-        private async Task Connect()
-        {
-            while (true)
+            if (String.IsNullOrWhiteSpace(token))
             {
-                try
-                {
-                    await _connection.StartAsync(_cancellationToken);
-                    break;
-                }
-                catch when (_cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-                catch
-                {
-                    if (_connection.State == HubConnectionState.Disconnected)
-                    {
-                        await Task.Delay(1000, _cancellationToken);
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                throw new Exception($"Token cannot be null");
             }
 
-            await _connection.SendAsync("Connect", _token, _cancellationToken);
+            _rpcService = new RpcService(_cancellationToken, token, this);
+
+            await _rpcService.StartConnection();
         }
-
-        private void HandleTestSqlServer(ServerDbSettings serverDbSettings)
+        
+        // ReSharper disable once UnusedMember.Local, used in RpcService
+        private async Task<String> TestSqlServer(ServerDbSettings serverDbSettings)
         {
-            var result = SqlHelper.TestDatabaseConnection(serverDbSettings.Server, serverDbSettings.UserName, serverDbSettings.Password);
+            var result = await SqlHelper.TestDatabaseConnection(serverDbSettings.Server, serverDbSettings.UserName, serverDbSettings.Password);
 
-            _connection.SendAsync("TestSqlServerResponse", result);
+            return result;
         }
     }
 }

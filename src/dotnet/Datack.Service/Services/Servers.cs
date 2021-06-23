@@ -40,9 +40,9 @@ namespace Datack.Service.Services
             await _serverData.Update(server, cancellationToken);
         }
 
-        public async Task Test(Server server, CancellationToken cancellationToken)
+        public async Task<String> Test(Server server, CancellationToken cancellationToken)
         {
-            await _remoteService.TestSqlServer(server.Key, server.DbSettings, cancellationToken);
+            return await _remoteService.TestSqlServer(server.Key, server.DbSettings, cancellationToken);
         }
     }
 }

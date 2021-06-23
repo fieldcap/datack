@@ -22,7 +22,7 @@ namespace Datack.Agent.Console
                          .MinimumLevel.Debug()
                          .CreateLogger();
 
-            await Task.Delay(5000);
+            await Task.Delay(2000);
 
             Log.Information("Application has started. Ctrl-C to end");
 

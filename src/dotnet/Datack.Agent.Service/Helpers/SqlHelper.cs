@@ -8,7 +8,7 @@ namespace Datack.Agent.Service.Helpers
     {
         private static String GetConnectionString(String server, String userName, String password, Int32 timeout = 60000)
         {
-            return $"Data Source={server};User Id={userName};password={password}";
+            return $"Server={server};User Id={userName};Password={password}";
         }
 
         /// <summary>
@@ -26,7 +26,7 @@ namespace Datack.Agent.Service.Helpers
             {
                 sqlConnection.Open();
 
-                return null;
+                return "Success";
             }
             catch (Exception ex)
             {

@@ -59,13 +59,13 @@ namespace Datack.Web.Controllers
             return Ok();
         }
         
-        [HttpPut]
+        [HttpPost]
         [Route("Test")]
-        public async Task<ActionResult> Test([FromBody] Server server, CancellationToken cancellationToken)
+        public async Task<ActionResult<String>> Test([FromBody] Server server, CancellationToken cancellationToken)
         {
-            await _servers.Test(server, cancellationToken);
+            var result = await _servers.Test(server, cancellationToken);
 
-            return Ok();
+            return Ok(result);
         }
     }
 }

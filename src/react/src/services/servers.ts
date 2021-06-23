@@ -43,9 +43,10 @@ export namespace Servers {
         }
     };
 
-    export const test = async (server: Server): Promise<void> => {
+    export const test = async (server: Server): Promise<string> => {
         try {
-            await axios.post(`/api/Servers/Test/`, server);
+            const result = await axios.post<string>(`/api/Servers/Test/`, server);
+            return result.data;
         } catch (err) {
             throw ErrorHelper.getError(err);
         }

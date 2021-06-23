@@ -44,12 +44,14 @@ const ServerSettingsTab: FC<Props> = (props) => {
     );
 
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsSaving(true);
         setError(null);
+        setSuccess(null);
 
         try {
             const newServer: Server = {
@@ -79,6 +81,9 @@ const ServerSettingsTab: FC<Props> = (props) => {
         event: React.FormEvent<HTMLButtonElement>
     ) => {
         event.preventDefault();
+        setIsSaving(true);
+        setError(null);
+        setSuccess(null);
 
         try {
             const newServer: Server = {
@@ -96,7 +101,9 @@ const ServerSettingsTab: FC<Props> = (props) => {
                 },
             };
 
-            await Servers.test(newServer);
+            const testResult = await Servers.test(newServer);
+
+            setSuccess(testResult);
             setIsSaving(false);
         } catch (err) {
             setError(err);
@@ -197,6 +204,12 @@ const ServerSettingsTab: FC<Props> = (props) => {
                     <Alert marginTop="24px" status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                ) : null}
+                {success != null ? (
+                    <Alert marginTop="24px" status="success">
+                        <AlertIcon />
+                        <AlertDescription>{success}</AlertDescription>
                     </Alert>
                 ) : null}
                 <HStack marginTop="24px">

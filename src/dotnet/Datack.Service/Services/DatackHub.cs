@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Datack.Common.Models.RPC;
 using Datack.Data.Data;
 using Microsoft.AspNetCore.SignalR;
 
@@ -16,10 +17,19 @@ namespace Datack.Service.Services
         }
 
         public static readonly ConcurrentDictionary<String, String> Users = new ConcurrentDictionary<String, String>();
+        public static readonly ConcurrentDictionary<Guid, RpcResult> Transactions = new ConcurrentDictionary<Guid, RpcResult>();
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            Users.TryRemove(Context.ConnectionId, out _);
+            foreach (var (key, value) in Users)
+            {
+                if (value == Context.ConnectionId)
+                {
+                    Users.TryRemove(key, out _);
+                    break;
+                }
+            }
+            
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -32,7 +42,12 @@ namespace Datack.Service.Services
                 throw new Exception($"Server with key {key} was not found");
             }
 
-            Users.TryAdd(Context.ConnectionId, key);
+            Users.TryAdd(key, Context.ConnectionId);
+        }
+
+        public void Response(RpcResult rpcResult)
+        {
+            Transactions.TryAdd(rpcResult.TransactionId, rpcResult);
         }
     }
 }
