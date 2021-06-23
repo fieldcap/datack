@@ -1,8 +1,16 @@
 import axios, { CancelTokenSource } from 'axios';
-import { Job, JobSettings } from '../models/job';
+import { Job } from '../models/job';
 import { ErrorHelper } from './error';
 
 export namespace Jobs {
+    export const getList = async (
+        cancelToken: CancelTokenSource
+    ): Promise<Job[]> => {
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.get<Job[]>(`/api/Jobs/List`, config);
+        return result.data;
+    };
+
     export const getForServer = async (
         serverId: string,
         cancelToken: CancelTokenSource
@@ -27,12 +35,21 @@ export namespace Jobs {
         return result.data;
     };
 
-    export const updateSettings = async (
-        jobId: string,
-        settings: JobSettings
-    ): Promise<void> => {
+    export const add = async (job: Job): Promise<Job> => {
         try {
-            await axios.put(`/api/Jobs/UpdateSettings/${jobId}`, settings);
+            const result = await axios.post<Job>(
+                `/api/Jobs/Add/`,
+                job
+            );
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
+    export const update = async (job: Job): Promise<void> => {
+        try {
+            await axios.put(`/api/Jobs/Update/`, job);
         } catch (err) {
             throw ErrorHelper.getError(err);
         }

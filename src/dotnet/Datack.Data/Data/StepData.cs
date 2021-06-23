@@ -24,7 +24,20 @@ namespace Datack.Data.Data
 
         public async Task<Step> GetById(Guid stepId, CancellationToken cancellationToken)
         {
-            return await _dataContext.Steps.Include(m => m.Job).ThenInclude(m => m.Server).FirstOrDefaultAsync(m => m.StepId == stepId, cancellationToken);
+            return await _dataContext.Steps.FirstOrDefaultAsync(m => m.StepId == stepId, cancellationToken);
+        }
+
+        public async Task<Guid> Add(Step step)
+        {
+            step.StepId = Guid.NewGuid();
+
+            var jobStepCount = await _dataContext.Steps.CountAsync(m => m.JobId == step.JobId);
+            step.Order = jobStepCount;
+
+            await _dataContext.Steps.AddAsync(step);
+            await _dataContext.SaveChangesAsync();
+
+            return step.StepId;
         }
 
         public async Task Update(Step step)
@@ -41,6 +54,7 @@ namespace Datack.Data.Data
             dbStep.Order = step.Order;
             dbStep.Type = step.Type;
             dbStep.Settings = step.Settings;
+            dbStep.ServerId = step.ServerId;
 
             await _dataContext.SaveChangesAsync();
         }

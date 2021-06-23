@@ -43,9 +43,27 @@ export namespace Servers {
         }
     };
 
-    export const test = async (server: Server): Promise<string> => {
+    export const testSqlServerConnection = async (
+        server: Server
+    ): Promise<string> => {
         try {
-            const result = await axios.post<string>(`/api/Servers/Test/`, server);
+            const result = await axios.post<string>(
+                `/api/Servers/TestSqlServerConnection/`,
+                server
+            );
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
+    export const getDatabaseList = async (
+        serverId: string
+    ): Promise<string[]> => {
+        try {
+            const result = await axios.post<string[]>(
+                `/api/Servers/GetDatabaseList/${serverId}`
+            );
             return result.data;
         } catch (err) {
             throw ErrorHelper.getError(err);

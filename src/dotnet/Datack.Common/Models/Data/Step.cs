@@ -24,5 +24,10 @@ namespace Datack.Common.Models.Data
         public Int32 Order { get; set; }
 
         public StepSettings Settings { get; set; }
+
+        public Guid ServerId { get; set; }
+
+        [ForeignKey("ServerId")]
+        public Server Server { get; set; }
     }
 }

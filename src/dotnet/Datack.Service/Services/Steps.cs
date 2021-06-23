@@ -26,6 +26,11 @@ namespace Datack.Service.Services
             return await _stepData.GetById(stepId, cancellationToken);
         }
 
+        public async Task<Guid> Add(Step step)
+        {
+            return await _stepData.Add(step);
+        }
+
         public async Task Update(Step step)
         {
             if (String.IsNullOrWhiteSpace(step.Name))

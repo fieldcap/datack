@@ -35,7 +35,7 @@ namespace Datack.Data.Data
         public async Task<Guid> Add(Server server, CancellationToken cancellationToken)
         {
             server.ServerId = Guid.NewGuid();
-                
+
             await _dataContext.Servers.AddAsync(server, cancellationToken);
             await _dataContext.SaveChangesAsync(cancellationToken);
 

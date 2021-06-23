@@ -1,8 +1,6 @@
 import {
     Box,
-    Heading,
-    Link,
-    Skeleton,
+    Heading, Skeleton,
     Tab,
     TabList,
     TabPanel,
@@ -14,6 +12,7 @@ import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
+import JobSettingsTab from './JobSettingsTab';
 import JobStepsTab from './JobStepsTab';
 
 type RouteParams = {
@@ -43,20 +42,24 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         <Skeleton isLoaded={job != null}>
             <Box marginBottom="24px">
                 <Heading>{job?.name}</Heading>
-                <Link href={`/#/server/${job?.serverId}`}>
+                {/* <Link href={`/#/server/${job?.serverId}`}>
                     {job?.server?.name}
-                </Link>
+                </Link> */}
             </Box>
             <Tabs>
                 <TabList>
                     <Tab>History</Tab>
                     <Tab>Steps</Tab>
+                    <Tab>Configuration</Tab>
                 </TabList>
 
                 <TabPanels>
                     <TabPanel></TabPanel>
                     <TabPanel>
                         <JobStepsTab job={job}></JobStepsTab>
+                    </TabPanel>
+                    <TabPanel>
+                        <JobSettingsTab job={job}></JobSettingsTab>
                     </TabPanel>
                 </TabPanels>
             </Tabs>

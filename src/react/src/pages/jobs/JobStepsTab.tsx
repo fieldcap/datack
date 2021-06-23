@@ -14,7 +14,6 @@ import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useExpanded, useSortBy, useTable } from 'react-table';
-import { v4 } from 'uuid';
 import { Job } from '../../models/job';
 import { Step } from '../../models/step';
 import Steps from '../../services/steps';
@@ -55,24 +54,11 @@ const JobStepsTab: FC<JobStepsTabProps> = (props) => {
             return;
         }
 
-        const newStep: Step = {
-            stepId: v4(),
-            jobId: props.job.jobId,
-            name: 'New Step',
-            description: '',
-            type: '',
-            job: props.job,
-            order: 0,
-            settings: {},
-
-            forceExpandRow: true,
-        };
-
-        setSteps([...steps, newStep]);
+        history.push(`/job/${props.job?.jobId}/step/add`);
     };
 
-    const rowClick = (jobId: string): void => {
-        history.push(`/step/${jobId}`);
+    const rowClick = (stepId: string): void => {
+        history.push(`/job/${props.job?.jobId}/step/${stepId}`);
     };
 
     const columns = React.useMemo(() => {

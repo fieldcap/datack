@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
@@ -80,7 +81,11 @@ namespace Datack.Agent.Service
                 }
             }
 
-            await _connection.SendAsync("Connect", _token, _cancellationToken);
+            var result = await _connection.InvokeAsync<ServerDbSettings>("connect", _token, _cancellationToken);
+
+            var methodInfo = _requestMethods["RpcConnect"];
+
+            methodInfo.Invoke(_main, new []{ result });
         }
 
         private async Task HandleRequest(RpcRequest rpcRequest)

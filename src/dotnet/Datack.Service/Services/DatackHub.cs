@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
 using Datack.Data.Data;
 using Microsoft.AspNetCore.SignalR;
@@ -33,7 +34,7 @@ namespace Datack.Service.Services
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task Connect(String key)
+        public async Task<ServerDbSettings> Connect(String key)
         {
             var server = await _serverData.GetByKey(key);
 
@@ -43,6 +44,8 @@ namespace Datack.Service.Services
             }
 
             Users.TryAdd(key, Context.ConnectionId);
+
+            return server.DbSettings;
         }
 
         public void Response(RpcResult rpcResult)

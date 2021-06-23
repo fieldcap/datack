@@ -1,4 +1,5 @@
 import { Job } from './job';
+import { Server } from './server';
 
 export type Step = {
     stepId: string;
@@ -8,9 +9,9 @@ export type Step = {
     description: string;
     order: number;
     settings: StepSettings;
-    job: Job;
-
-    forceExpandRow: boolean;
+    job?: Job;
+    serverId: string;
+    server?: Server;
 };
 
 export type StepSettings = {
@@ -18,5 +19,10 @@ export type StepSettings = {
 };
 
 export type StepCreateBackupSettings = {
-    backupAllNonSystemDatabases: boolean;
+    backupDefaultExclude: boolean;
+    backupIncludeRegex: string;
+    backupExcludeRegex: string;
+    backupExcludeSystemDatabases: boolean;
+    backupIncludeManual: string;
+    backupExcludeManual: string;
 };

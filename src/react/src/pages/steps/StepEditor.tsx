@@ -9,7 +9,6 @@ import {
     Heading,
     HStack,
     Input,
-    Link,
     Select,
     Skeleton,
     Textarea
@@ -17,21 +16,30 @@ import {
 import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { v4 } from 'uuid';
+import { Server } from '../../models/server';
 import { Step, StepSettings } from '../../models/step';
+import Servers from '../../services/servers';
 import Steps from '../../services/steps';
 import StepCreateBackup from './StepCreateBackup';
 
 type RouteParams = {
-    id: string;
+    id?: string;
+    jobId: string;
 };
 
 const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [step, setStep] = React.useState<Step | null>(null);
+    const [step, setStep] = React.useState<Step | null>(null);
+
+    const [isAdd, setIsAdd] = useState<boolean>(false);
+
+    const [servers, setServers] = useState<Server[]>([]);
 
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [type, setType] = useState<string>('');
-    const [settings, setSettings] = useState<StepSettings>({});
+    const [settings, setSettings] = useState<StepSettings | null>(null);
+    const [serverId, setServerId] = useState<string>('');
 
     const [error, setError] = useState<string | null>(null);
 
@@ -42,16 +50,28 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     useEffect(() => {
         const getByIdCancelToken = axios.CancelToken.source();
 
+        if (props.match.params.id == null) {
+            setIsAdd(true);
+        }
+
+        if (props.match.params.id != null) {
+            (async () => {
+                const result = await Steps.getById(
+                    props.match.params.id!,
+                    getByIdCancelToken
+                );
+                setStep(result);
+                setName(result.name || '');
+                setDescription(result.description || '');
+                setType(result.type || '');
+                setSettings(result.settings);
+                setServerId(result.serverId || '');
+            })();
+        }
+
         (async () => {
-            const result = await Steps.getById(
-                props.match.params.id,
-                getByIdCancelToken
-            );
-            setStep(result);
-            setName(result.name || '');
-            setDescription(result.description || '');
-            setType(result.type || '');
-            setSettings(result.settings || {});
+            const servers = await Servers.getList(getByIdCancelToken);
+            setServers(servers);
         })();
 
         return () => {
@@ -62,19 +82,33 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     const save = async () => {
         setIsSaving(true);
 
-        if (step == null) {
-            return null;
-        }
-
-        step.name = name;
-        step.description = description;
-        step.type = type;
-        step.settings = settings;
-
         try {
-            await Steps.update(step);
+            if (isAdd) {
+                const newStep: Step = {
+                    stepId: v4(),
+                    jobId: props.match.params.jobId,
+                    name: name,
+                    description: description,
+                    type: type,
+                    order: 0,
+                    settings: settings || {},
+                    serverId: serverId,
+                };
 
-            history.push(`/job/${step?.jobId}`);
+                const result = await Steps.add(newStep);
+
+                history.push(`/job/${result}`);
+            } else if (step != null) {
+                step.name = name;
+                step.description = description;
+                step.type = type;
+                step.settings = settings || {};
+                step.serverId = serverId;
+
+                await Steps.update(step);
+
+                history.push(`/job/${step.jobId}`);
+            }
         } catch (err) {
             setIsSaving(false);
             setError(err);
@@ -86,17 +120,22 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     const getStepType = () => {
-        if (!type) {
+        if (type == null || settings == null) {
             return null;
         }
+
         switch (type) {
             case 'create_backup':
                 return (
                     <StepCreateBackup
-                        settings={settings || {}}
-                        onSettingsChanged={(newSettings) =>
-                            setSettings(newSettings)
-                        }
+                        settings={settings.createBackup}
+                        serverId={serverId}
+                        onSettingsChanged={(newSettings) => {
+                            setSettings({
+                                ...settings,
+                                createBackup: newSettings,
+                            });
+                        }}
                     ></StepCreateBackup>
                 );
             default:
@@ -105,14 +144,18 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     return (
-        <Skeleton isLoaded={step != null}>
+        <Skeleton isLoaded={step != null || isAdd}>
             <Box marginBottom="24px">
-                <Heading>Edit step</Heading>
-                <Link href={`/#/job/${step?.jobId}`}>{step?.job?.name}</Link>
-                <br />
-                <Link href={`/#/server/${step?.job?.serverId}`}>
+                {isAdd ? (
+                    <Heading>Add step</Heading>
+                ) : (
+                    <Heading>Edit step</Heading>
+                )}
+                {/* <Link href={`/#/job/${step?.jobId}`}>{step?.job?.name}</Link>
+                <br /> */}
+                {/* <Link href={`/#/server/${step?.job?.serverId}`}>
                     {step?.job?.server?.name}
-                </Link>
+                </Link> */}
             </Box>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
@@ -131,6 +174,23 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
+                </FormControl>
+                <FormControl id="type" isRequired marginBottom={4}>
+                    <FormLabel>Server</FormLabel>
+                    <Select
+                        placeholder="Select a server"
+                        value={serverId}
+                        onChange={(e) => setServerId(e.target.value)}
+                    >
+                        {servers.map((server) => (
+                            <option
+                                value={server.serverId}
+                                key={server.serverId}
+                            >
+                                {server.name}
+                            </option>
+                        ))}
+                    </Select>
                 </FormControl>
                 <FormControl id="type" isRequired marginBottom={4}>
                     <FormLabel>Type</FormLabel>
@@ -160,13 +220,15 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     >
                         Cancel
                     </Button>
-                    <Button
-                        onClick={() => cancel()}
-                        isLoading={isSaving}
-                        colorScheme="red"
-                    >
-                        Delete step
-                    </Button>
+                    {!isAdd ? (
+                        <Button
+                            onClick={() => cancel()}
+                            isLoading={isSaving}
+                            colorScheme="red"
+                        >
+                            Delete step
+                        </Button>
+                    ) : null}
                 </HStack>
             </form>
         </Skeleton>

@@ -2,6 +2,8 @@ import { ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
+import JobAdd from '../pages/jobs/JobAdd';
+import JobList from '../pages/jobs/JobList';
 import JobOverview from '../pages/jobs/JobOverview';
 import ServerAdd from '../pages/servers/ServerAdd';
 import ServerList from '../pages/servers/ServerList';
@@ -18,7 +20,7 @@ const MainLayout: FC = () => {
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
     return (
-        <Flex>
+        <Flex height="100%">
             {variants?.navigationButton ? (
                 <IconButton
                     icon={<ChevronRightIcon w={8} h={8} />}
@@ -57,12 +59,24 @@ const MainLayout: FC = () => {
                         render={(props) => <ServerOverview {...props} />}
                     />
                     <Route
-                        path="/job/:id"
-                        render={(props) => <JobOverview {...props} />}
+                        path="/jobs"
+                        render={(props) => <JobList {...props} />}
                     />
                     <Route
-                        path="/step/:id"
+                        path="/job/new"
+                        render={(props) => <JobAdd {...props} />}
+                    />
+                    <Route
+                        path="/job/:jobId/step/add"
                         render={(props) => <StepEditor {...props} />}
+                    />
+                    <Route
+                        path="/job/:jobId/step/:id"
+                        render={(props) => <StepEditor {...props} />}
+                    />
+                    <Route
+                        path="/job/:id"
+                        render={(props) => <JobOverview {...props} />}
                     />
                 </Switch>
             </Box>

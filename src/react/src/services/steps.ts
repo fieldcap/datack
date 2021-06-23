@@ -1,5 +1,5 @@
 import axios, { CancelTokenSource } from 'axios';
-import { Step } from '../models/step';
+import { Step, StepCreateBackupSettings } from '../models/step';
 import { ErrorHelper } from './error';
 
 export namespace Steps {
@@ -27,6 +27,15 @@ export namespace Steps {
         return result.data;
     };
 
+    export const add = async (step: Step): Promise<Step> => {
+        try {
+            const result = await axios.post<Step>(`/api/Steps/Add/`, step);
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
     export const update = async (step: Step): Promise<void> => {
         try {
             await axios.put(`/api/Steps/Update/`, step);
@@ -34,6 +43,32 @@ export namespace Steps {
             throw ErrorHelper.getError(err);
         }
     };
+
+    export const testDatabaseRegex = async (
+        settings: StepCreateBackupSettings,
+        databases: string[]
+    ): Promise<TestDatabaseRegexResponse> => {
+        try {
+            const result = await axios.post<TestDatabaseRegexResponse>(
+                `/api/Steps/TestDatabaseRegex/`,
+                {
+                    settings,
+                    databases,
+                }
+            );
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
 }
+
+export type TestDatabaseRegexResponse = {
+    systemList: string[];
+    includeRegexList: string[];
+    excludeRegexList: string[];
+    includeManualList: string[];
+    excludeManualList: string[];
+};
 
 export default Steps;

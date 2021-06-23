@@ -2,7 +2,6 @@
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
 using Microsoft.AspNetCore.SignalR;
 
@@ -17,7 +16,7 @@ namespace Datack.Service.Services
             _hub = hub;
         }
 
-        public async Task<String> TestSqlServer(String key, ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
+        public async Task<T> Send<T>(String key, String method, Object payload, CancellationToken cancellationToken)
         {
             var hasConnection = DatackHub.Users.TryGetValue(key, out var connectionId);
 
@@ -26,16 +25,16 @@ namespace Datack.Service.Services
                 throw new Exception($"No connection found for server {key}");
             }
 
-            return await Send<String>(connectionId, "TestSqlServer", serverDbSettings, cancellationToken);
+            return await SendWithConnection<T>(connectionId, method, payload, cancellationToken);
         }
 
-        private async Task<T> Send<T>(String connectionId, String method, Object args, CancellationToken cancellationToken)
+        private async Task<T> SendWithConnection<T>(String connectionId, String method, Object payload, CancellationToken cancellationToken)
         {
             var request = new RpcRequest
             {
                 TransactionId = Guid.NewGuid(),
                 Request = method,
-                Payload = JsonSerializer.Serialize(args)
+                Payload = JsonSerializer.Serialize(payload)
             };
 
             var sendArgs = new[]

@@ -101,7 +101,7 @@ const ServerSettingsTab: FC<Props> = (props) => {
                 },
             };
 
-            const testResult = await Servers.test(newServer);
+            const testResult = await Servers.testSqlServerConnection(newServer);
 
             setSuccess(testResult);
             setIsSaving(false);

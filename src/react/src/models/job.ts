@@ -1,11 +1,9 @@
-import { Server } from './server';
 
 export type Job = {
     jobId: string;
     name: string;
+    description: string;
     settings: JobSettings;
-    serverId: string;
-    server: Server;
 };
 
 export type JobSettings = {};

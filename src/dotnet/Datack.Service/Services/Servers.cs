@@ -40,9 +40,21 @@ namespace Datack.Service.Services
             await _serverData.Update(server, cancellationToken);
         }
 
-        public async Task<String> Test(Server server, CancellationToken cancellationToken)
+        public async Task<String> TestSqlServerConnection(Server server, CancellationToken cancellationToken)
         {
-            return await _remoteService.TestSqlServer(server.Key, server.DbSettings, cancellationToken);
+            return await _remoteService.Send<String>(server.Key, "TestSqlServer", server.DbSettings, cancellationToken);
+        }
+
+        public async Task<IList<String>> GetDatabaseList(Guid serverId, CancellationToken cancellationToken)
+        {
+            var server = await _serverData.GetById(serverId, cancellationToken);
+
+            if (server == null)
+            {
+                throw new Exception($"Server with ID {serverId} not found");
+            }
+
+            return await _remoteService.Send<List<String>>(server.Key, "GetDatabaseList", null, cancellationToken);
         }
     }
 }
