@@ -37,10 +37,7 @@ export namespace Jobs {
 
     export const add = async (job: Job): Promise<Job> => {
         try {
-            const result = await axios.post<Job>(
-                `/api/Jobs/Add/`,
-                job
-            );
+            const result = await axios.post<Job>(`/api/Jobs/Add/`, job);
             return result.data;
         } catch (err) {
             throw ErrorHelper.getError(err);
@@ -54,6 +51,37 @@ export namespace Jobs {
             throw ErrorHelper.getError(err);
         }
     };
+
+    export const testCrons = async (
+        cronFull: string,
+        cronDiff: string,
+        cronLog: string
+    ) => {
+        try {
+            const result = await axios.post<TestCronResult>(
+                `/api/Jobs/ParseCron/`,
+                {
+                    cronFull,
+                    cronDiff,
+                    cronLog,
+                }
+            );
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
 }
+
+export type TestCronResult = {
+    resultFull: CronDescriptor;
+    resultDiff: CronDescriptor;
+    resultLog: CronDescriptor;
+};
+
+export type CronDescriptor = {
+    description: string;
+    next: string[];
+};
 
 export default Jobs;

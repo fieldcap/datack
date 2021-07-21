@@ -5,7 +5,13 @@ namespace Datack.Common.Models.Internal
 {
     public class JobSettings
     {
-        [JsonPropertyName("tempPath")]
-        public String TempPath { get;set; }
+        [JsonPropertyName("cronFull")]
+        public String CronFull { get;set; }
+
+        [JsonPropertyName("cronDiff")]
+        public String CronDiff { get;set; }
+
+        [JsonPropertyName("cronLog")]
+        public String CronLog { get;set; }
     }
 }

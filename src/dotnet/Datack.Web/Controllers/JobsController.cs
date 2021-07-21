@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -66,5 +67,28 @@ namespace Datack.Web.Controllers
 
             return Ok();
         }
+
+        [Route("ParseCron")]
+        [HttpPost]
+        public ActionResult ParseCron([FromBody] JobsParseCronRequest request)
+        {
+            var resultFull = CronHelper.ParseCron(request.CronFull);
+            var resultDiff = CronHelper.ParseCron(request.CronDiff);
+            var resultLog = CronHelper.ParseCron(request.CronLog);
+
+            return Ok(new
+            {
+                resultFull, resultDiff, resultLog
+            });
+        }
     }
+
+    public class JobsParseCronRequest
+    {
+        public String CronFull { get; set; }
+        public String CronDiff { get; set; }
+        public String CronLog { get; set; }
+    }
+
+
 }
