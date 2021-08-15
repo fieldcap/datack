@@ -27,9 +27,9 @@ namespace Datack.Data.Data
             return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
         }
 
-        public async Task<Server> GetByKey(String key)
+        public async Task<Server> GetByKey(String key, CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.Key == key);
+            return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.Key == key, cancellationToken);
         }
 
         public async Task<Guid> Add(Server server, CancellationToken cancellationToken)

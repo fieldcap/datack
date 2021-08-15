@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
@@ -11,10 +12,12 @@ namespace Datack.Service.Services
     public class DatackHub : Hub
     {
         private readonly ServerData _serverData;
+        private readonly JobData _jobData;
 
-        public DatackHub(ServerData serverData)
+        public DatackHub(ServerData serverData, JobData jobData)
         {
             _serverData = serverData;
+            _jobData = jobData;
         }
 
         public static readonly ConcurrentDictionary<String, String> Users = new ConcurrentDictionary<String, String>();
@@ -34,9 +37,9 @@ namespace Datack.Service.Services
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task<ServerDbSettings> Connect(String key)
+        public async Task Connect(String key)
         {
-            var server = await _serverData.GetByKey(key);
+            var server = await _serverData.GetByKey(key, CancellationToken.None);
 
             if (server == null)
             {
@@ -44,13 +47,23 @@ namespace Datack.Service.Services
             }
 
             Users.TryAdd(key, Context.ConnectionId);
-
-            return server.DbSettings;
         }
 
         public void Response(RpcResult rpcResult)
         {
             Transactions.TryAdd(rpcResult.TransactionId, rpcResult);
+        }
+
+        public async Task<RpcUpdate> RpcUpdate(String key)
+        {
+            var server = await _serverData.GetByKey(key, CancellationToken.None);
+            var jobs = await _jobData.GetForServer(server.ServerId, CancellationToken.None);
+
+            return new RpcUpdate
+            {
+                Server = server,
+                Jobs = jobs
+            };
         }
     }
 }

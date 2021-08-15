@@ -1,13 +1,13 @@
 ﻿using System;
 
-namespace Datack.Common.Models.Internal
+namespace Datack.Agent.Models
 {
     public class AppSettings
     {
+        public String Token { get; set; }
+
         public AppSettingsLogging Logging { get; set; }
         public AppSettingsDatabase Database { get; set; }
-        
-        public String HostUrl { get; set; }
     }
 
     public class AppSettingsLogging

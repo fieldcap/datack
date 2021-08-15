@@ -24,7 +24,7 @@ namespace Datack.Data.Data
 
         public async Task<IList<Job>> GetForServer(Guid serverId, CancellationToken cancellationToken)
         {
-            return await _dataContext.Jobs.Where(m => m.Steps.Any(s => s.ServerId == serverId)).OrderBy(m => m.Name).ToListAsync(cancellationToken);
+            return await _dataContext.Jobs.Include(m => m.Steps).Where(m => m.Steps.Any(s => s.ServerId == serverId)).OrderBy(m => m.Name).ToListAsync(cancellationToken);
         }
 
         public async Task<Job> GetById(Guid jobId, CancellationToken cancellationToken)

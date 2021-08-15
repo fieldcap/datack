@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Datack.Common.Models.Internal;
 using Dapper;
+using Datack.Common.Models.Internal;
 
-namespace Datack.Agent.Service.Helpers
+namespace Datack.Agent.Helpers
 {
     public static class SqlHelper
     {

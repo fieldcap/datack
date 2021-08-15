@@ -40,50 +40,50 @@ const JobSettingsTab: FC<Props> = (props) => {
     const [cronLog, setCronLog] = useState<string>(
         props.job?.settings.cronLog ?? ''
     );
-    const [cronOccurences, setCronOccurences] = useState<
+    const [cronOccurrences, setCronOccurrences] = useState<
         { date: Date; type: string }[]
     >([]);
 
     const [testResult, setTestResult] = useState<TestCronResult | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
-    const [occurencesMax, setOccurencesMax] = useState<number>(20);
+    const [occurrencesMax, setOccurrencesMax] = useState<number>(20);
 
-    const occurenceList = useRef(null);
+    const occurrenceList = useRef(null);
 
     useEffect(() => {
         handleChangeCrons();
     }, [props.job]);
 
     useEffect(() => {
-        let occurences: { date: Date; type: string }[] = [];
+        let occurrences: { date: Date; type: string }[] = [];
 
         if (testResult == null) {
             return;
         }
 
         testResult.next.forEach((d) => {
-            occurences.push({ date: parseISO(d.dateTime), type: d.backupType });
+            occurrences.push({ date: parseISO(d.dateTime), type: d.backupType });
         });
 
-        occurences = _.orderBy(occurences, (m) => m.date);
+        occurrences = _.orderBy(occurrences, (m) => m.date);
 
-        occurences = _.take(occurences, occurencesMax);
+        occurrences = _.take(occurrences, occurrencesMax);
 
-        setCronOccurences(occurences);
-    }, [testResult, occurencesMax]);
+        setCronOccurrences(occurrences);
+    }, [testResult, occurrencesMax]);
 
     useEffect(() => {
-        (occurenceList.current as any)?.scrollIntoView({ behavior: 'smooth' });
-    }, [cronOccurences]);
+        (occurrenceList.current as any)?.scrollIntoView({ behavior: 'smooth' });
+    }, [cronOccurrences]);
 
     const handleChangeCrons = async () => {
         const result = await Jobs.testCrons(cronFull, cronDiff, cronLog);
         setTestResult(result);
     };
 
-    const showMoreOccurences = () => {
-        setOccurencesMax((value) => (value += 20));
+    const showMoreOccurrences = () => {
+        setOccurrencesMax((value) => (value += 20));
     };
 
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
@@ -177,17 +177,17 @@ const JobSettingsTab: FC<Props> = (props) => {
                         </FormControl>
                     </Box>
                     <Box flex="1">
-                        <FormLabel>Occurences for next 2 weeks</FormLabel>
+                        <FormLabel>Occurrences for next 2 weeks</FormLabel>
                         <UnorderedList overflowY="scroll" maxHeight="262px">
-                            {cronOccurences.map((m) => (
+                            {cronOccurrences.map((m) => (
                                 <ListItem key={`${m.date}${m.type}`}>
                                     {format(m.date, 'd MMMM yyyy HH:mm xxx')} (
                                     {m.type})
                                 </ListItem>
                             ))}
-                            <div ref={occurenceList}></div>
+                            <div ref={occurrenceList}></div>
                         </UnorderedList>
-                        <Button onClick={() => showMoreOccurences()}>
+                        <Button onClick={() => showMoreOccurrences()}>
                             More
                         </Button>
                     </Box>

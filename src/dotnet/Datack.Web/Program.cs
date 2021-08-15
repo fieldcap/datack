@@ -1,13 +1,13 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Datack.Common.Models.Internal;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Datack.Data.Data;
+using Datack.Service.Models;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;

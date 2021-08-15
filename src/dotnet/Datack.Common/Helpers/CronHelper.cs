@@ -32,55 +32,55 @@ namespace Datack.Common.Helpers
             }
         }
 
-        public static IList<CronOccurence> GetNextOccurrences(String fullCron, String diffCron, String logCron, TimeSpan timeSpan)
+        public static IList<CronOccurrence> GetNextOccurrences(String fullCron, String diffCron, String logCron, TimeSpan timeSpan)
         {
-            var fullOccurences = GetNextOccurrences(fullCron, timeSpan);
-            var diffOccurences = GetNextOccurrences(diffCron, timeSpan);
-            var logOccurences = GetNextOccurrences(logCron, timeSpan);
+            var fullOccurrences = GetNextOccurrences(fullCron, timeSpan);
+            var diffOccurrences = GetNextOccurrences(diffCron, timeSpan);
+            var logOccurrences = GetNextOccurrences(logCron, timeSpan);
 
-            var result = new List<CronOccurence>();
+            var result = new List<CronOccurrence>();
 
-            foreach (var occurence in logOccurences)
+            foreach (var occurrence in logOccurrences)
             {
-                result.Add(new CronOccurence
+                result.Add(new CronOccurrence
                 {
                     BackupType = BackupType.Log,
-                    DateTime = occurence
+                    DateTime = occurrence
                 });
             }
 
-            foreach (var occurence in diffOccurences)
+            foreach (var occurrence in diffOccurrences)
             {
-                var existingOccurence = result.FirstOrDefault(m => m.DateTime == occurence);
+                var existingOccurrence = result.FirstOrDefault(m => m.DateTime == occurrence);
 
-                if (existingOccurence != null)
+                if (existingOccurrence != null)
                 {
-                    existingOccurence.BackupType = BackupType.Diff;
+                    existingOccurrence.BackupType = BackupType.Diff;
                 }
                 else
                 {
-                    result.Add(new CronOccurence
+                    result.Add(new CronOccurrence
                     {
                         BackupType = BackupType.Diff,
-                        DateTime = occurence
+                        DateTime = occurrence
                     });
                 }
             }
 
-            foreach (var occurence in fullOccurences)
+            foreach (var occurrence in fullOccurrences)
             {
-                var existingOccurence = result.FirstOrDefault(m => m.DateTime == occurence);
+                var existingOccurrence = result.FirstOrDefault(m => m.DateTime == occurrence);
 
-                if (existingOccurence != null)
+                if (existingOccurrence != null)
                 {
-                    existingOccurence.BackupType = BackupType.Full;
+                    existingOccurrence.BackupType = BackupType.Full;
                 }
                 else
                 {
-                    result.Add(new CronOccurence
+                    result.Add(new CronOccurrence
                     {
                         BackupType = BackupType.Full,
-                        DateTime = occurence
+                        DateTime = occurrence
                     });
                 }
             }
@@ -102,9 +102,9 @@ namespace Datack.Common.Helpers
                 var to = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.BaseUtcOffset).Add(timeSpan);
 
                 var parsedExpression = CronExpression.Parse(cron);
-                var occurences = parsedExpression.GetOccurrences(from, to, TimeZoneInfo.Local, true, true);
+                var occurrences = parsedExpression.GetOccurrences(from, to, TimeZoneInfo.Local, true, true);
 
-                return occurences.ToList();
+                return occurrences.ToList();
             }
             catch
             {

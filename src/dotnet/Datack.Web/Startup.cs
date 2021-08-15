@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Datack.Common.Models.Internal;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,8 +13,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Datack.Data.Data;
 using Datack.Service.Middleware;
+using Datack.Service.Models;
 using Datack.Service.Services;
 using Microsoft.AspNetCore.Hosting.Server.Features;
+using Newtonsoft.Json;
 
 namespace Datack.Web
 {
@@ -49,7 +50,7 @@ namespace Datack.Web
             services.AddSignalR(options =>
             {
                 options.EnableDetailedErrors = true;
-            });
+            }).AddNewtonsoftJsonProtocol(m => m.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
             
             services.AddHttpContextAccessor();
 
