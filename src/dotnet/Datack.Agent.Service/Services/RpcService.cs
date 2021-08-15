@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace Datack.Agent.Services
 
         private HubConnection _connection;
 
-        private readonly Dictionary<String, Func<Object, Task>> _requestMethods = new();
+        private readonly Dictionary<String, Expression<Func<Object, Task>>> _requestMethods = new();
 
         public RpcService(AppSettings appSettings)
         {
@@ -55,7 +56,7 @@ namespace Datack.Agent.Services
             }
         }
 
-        public void Subscribe(String methodName, Func<Object, Task> method)
+        public void Subscribe(String methodName, Expression<Func<Object, Task>> method)
         {
             _requestMethods.Add(methodName, method);
         }
@@ -95,7 +96,7 @@ namespace Datack.Agent.Services
 
             if (_requestMethods.TryGetValue("Connect", out var onConnect))
             {
-                await onConnect(null);
+                await onConnect.Compile()(null);
             }
         }
 
@@ -111,13 +112,17 @@ namespace Datack.Agent.Services
 
                 var methodInfo = _requestMethods[rpcRequest.Request];
 
-                Object parameter = null;
-                if (!String.IsNullOrWhiteSpace(rpcRequest.Payload))
+                var methodCallExpression = methodInfo.Body as MethodCallExpression;
+                var method = methodCallExpression.Method;
+                var parameters = method.GetParameters();
+
+                Object invokationParameter = null;
+                if (parameters.Length == 1 && rpcRequest.Payload != null)
                 {
-                    parameter = JsonSerializer.Deserialize<Object>(rpcRequest.Payload);
+                    invokationParameter = JsonSerializer.Deserialize(rpcRequest.Payload, parameters[0].ParameterType);
                 }
                 
-                var methodResult = methodInfo.Invoke(parameter);
+                var methodResult = methodInfo.Compile().Invoke(invokationParameter);
 
                 Object invokationResult;
                 if (methodResult is Task task)
