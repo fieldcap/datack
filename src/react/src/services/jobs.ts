@@ -74,14 +74,10 @@ export namespace Jobs {
 }
 
 export type TestCronResult = {
-    resultFull: CronDescriptor;
-    resultDiff: CronDescriptor;
-    resultLog: CronDescriptor;
-};
-
-export type CronDescriptor = {
-    description: string;
-    next: string[];
+    resultFull: string;
+    resultDiff: string;
+    resultLog: string;
+    next: { dateTime: string; backupType: string }[];
 };
 
 export default Jobs;

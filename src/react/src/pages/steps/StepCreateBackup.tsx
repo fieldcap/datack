@@ -51,6 +51,8 @@ const StepCreateBackup: FC<Props> = (props) => {
                 backupIncludeManual: '',
                 backupExcludeManual: '',
             });
+        } else {
+            handleChangeRegex();
         }
     }, [props.settings, onSettingsChanged]);
 

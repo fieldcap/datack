@@ -1,4 +1,5 @@
 using System;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Datack.Common.Models.Internal;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -37,7 +38,11 @@ namespace Datack.Web
             var connectionString = $"Data Source={appSettings.Database.Path}";
             services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
 
-            services.AddControllers();
+            services.AddControllers()
+                    .AddJsonOptions(opts =>
+                    {
+                        opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    });
 
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "wwwroot"; });
 

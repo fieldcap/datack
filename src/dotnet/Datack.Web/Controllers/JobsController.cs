@@ -72,13 +72,15 @@ namespace Datack.Web.Controllers
         [HttpPost]
         public ActionResult ParseCron([FromBody] JobsParseCronRequest request)
         {
-            var resultFull = CronHelper.ParseCron(request.CronFull);
-            var resultDiff = CronHelper.ParseCron(request.CronDiff);
-            var resultLog = CronHelper.ParseCron(request.CronLog);
+            var descriptionFull = CronHelper.ParseCron(request.CronFull);
+            var descriptionDiff = CronHelper.ParseCron(request.CronDiff);
+            var descriptionLog = CronHelper.ParseCron(request.CronLog);
 
+            var next = CronHelper.GetNextOccurrences(request.CronFull, request.CronDiff, request.CronLog, TimeSpan.FromDays(7));
+            
             return Ok(new
             {
-                resultFull, resultDiff, resultLog
+                resultFull = descriptionFull, resultDiff = descriptionDiff, resultLog = descriptionLog, next
             });
         }
     }
@@ -89,6 +91,4 @@ namespace Datack.Web.Controllers
         public String CronDiff { get; set; }
         public String CronLog { get; set; }
     }
-
-
 }
