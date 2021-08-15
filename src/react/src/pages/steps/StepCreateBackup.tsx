@@ -11,12 +11,11 @@ import {
     Tr,
     VStack
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { FaMinus, FaPlus } from 'react-icons/fa';
+import { DatabaseListTestResult } from '../../models/database-list-test-result';
 import { StepCreateBackupSettings } from '../../models/step';
-import Servers from '../../services/servers';
-import Steps, { TestDatabaseRegexResponse } from '../../services/steps';
+import Steps from '../../services/steps';
 
 type Props = {
     serverId: string;
@@ -27,19 +26,16 @@ type Props = {
 const StepCreateBackup: FC<Props> = (props) => {
     const { onSettingsChanged } = props;
 
-    const [databases, setDatabases] = useState<string[]>([]);
-
-    const [testResult, setTestResult] =
-        useState<TestDatabaseRegexResponse | null>(null);
+    const [testResult, setTestResult] = useState<DatabaseListTestResult[]>([]);
 
     const handleChangeRegex = useCallback(async () => {
-        if (props.settings == null) {
+        if (props.settings == null || !props.serverId) {
             return;
         }
 
-        const result = await Steps.testDatabaseRegex(props.settings, databases);
+        const result = await Steps.testDatabaseRegex(props.settings, props.serverId);
         setTestResult(result);
-    }, [props.settings, databases]);
+    }, [props.serverId]);
 
     useEffect(() => {
         if (props.settings == null) {
@@ -57,37 +53,16 @@ const StepCreateBackup: FC<Props> = (props) => {
     }, [props.settings, onSettingsChanged]);
 
     useEffect(() => {
-        if (!props.serverId) {
-            return;
-        }
-
-        const getByIdCancelToken = axios.CancelToken.source();
-        (async () => {
-            var databases = await Servers.getDatabaseList(props.serverId);
-            setDatabases(databases);
-        })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
-    }, [props.serverId]);
-
-    useEffect(() => {
-        if (props.settings?.backupExcludeSystemDatabases != null) {
-            (async () => {
-                await handleChangeRegex();
-            })();
-        }
+        handleChangeRegex();
         // eslint-disable-next-line
     }, [
         props.settings?.backupDefaultExclude,
         props.settings?.backupExcludeSystemDatabases,
         props.settings?.backupExcludeManual,
         props.settings?.backupIncludeManual,
-        databases,
     ]);
 
-    const handleBackupDefaultExclude = async (checked: boolean) => {
+    const handleBackupDefaultExclude = (checked: boolean) => {
         if (props.settings == null) {
             return;
         }
@@ -97,7 +72,7 @@ const StepCreateBackup: FC<Props> = (props) => {
         });
     };
 
-    const handleBackupExcludeSystemDatabases = async (checked: boolean) => {
+    const handleBackupExcludeSystemDatabases = (checked: boolean) => {
         if (props.settings == null) {
             return;
         }
@@ -201,62 +176,44 @@ const StepCreateBackup: FC<Props> = (props) => {
         });
     };
 
-    const getDatabaseName = (name: string) => {
-        if (testResult == null) {
-            return null;
-        }
-        if (testResult.excludeManualList.indexOf(name) > -1) {
+    const getDatabaseTestResult = (database: DatabaseListTestResult) => {
+        if (
+            database.hasNoAccess ||
+            database.isManualExcluded ||
+            database.isRegexExcluded ||
+            database.isSystemDatabase ||
+            database.isBackupDefaultExcluded
+        ) {
             return (
-                <span style={{ textDecoration: 'line-through' }}>{name}</span>
-            );
-        }
-        if (testResult.includeManualList.indexOf(name) > -1) {
-            return <span>{name}</span>;
-        }
-        if (testResult.systemList.indexOf(name) > -1) {
-            return (
-                <span style={{ textDecoration: 'line-through' }}>{name}</span>
-            );
-        }
-        if (testResult.excludeRegexList.indexOf(name) > -1) {
-            return (
-                <span style={{ textDecoration: 'line-through' }}>{name}</span>
-            );
-        }
-        if (testResult.includeRegexList.indexOf(name) > -1) {
-            return <span>{name}</span>;
-        }
-
-        if (props.settings?.backupDefaultExclude) {
-            return (
-                <span style={{ textDecoration: 'line-through' }}>{name}</span>
+                <span style={{ textDecoration: 'line-through' }}>
+                    {database.databaseName}
+                </span>
             );
         }
 
-        return <span>{name}</span>;
+        return <span>{database.databaseName}</span>;
     };
 
-    const getDatabaseStatus = (name: string) => {
-        if (testResult == null) {
-            return null;
+    const getDatabaseTestResult2 = (database: DatabaseListTestResult) => {
+        if (database.hasNoAccess) {
+            return 'Excluded because user has no access to database';
         }
-        if (testResult.excludeManualList.indexOf(name) > -1) {
+        if (database.isManualExcluded) {
             return 'Excluded because database is manually excluded';
         }
-        if (testResult.includeManualList.indexOf(name) > -1) {
+        if (database.isManualIncluded) {
             return 'Included because database is manually included';
         }
-        if (testResult.systemList.indexOf(name) > -1) {
+        if (database.isSystemDatabase) {
             return 'Excluded because database is a system database';
         }
-        if (testResult.excludeRegexList.indexOf(name) > -1) {
+        if (database.isRegexExcluded) {
             return 'Excluded because database matches "Exclude Regex"';
         }
-        if (testResult.includeRegexList.indexOf(name) > -1) {
+        if (database.isRegexIncluded) {
             return 'Included because database matches "Include Regex"';
         }
-
-        if (props.settings?.backupDefaultExclude) {
+        if (database.isBackupDefaultExcluded) {
             return 'Excluded because database does not match any rules"';
         }
         return 'Included because database does not match any rules';
@@ -310,7 +267,7 @@ const StepCreateBackup: FC<Props> = (props) => {
                     onBlur={() => handleChangeRegex()}
                 ></Input>
             </FormControl>
-            <Table width="50%">
+            <Table width="100%">
                 <Thead>
                     <Tr>
                         <Td>Database</Td>
@@ -320,15 +277,17 @@ const StepCreateBackup: FC<Props> = (props) => {
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {databases.map((m) => (
-                        <Tr key={m}>
-                            <Td>{getDatabaseName(m)}</Td>
+                    {testResult.map((m) => (
+                        <Tr key={m.databaseName}>
+                            <Td>{getDatabaseTestResult(m)}</Td>
                             <Td>
                                 <Checkbox
-                                    isChecked={getCheckBoxIncludeValue(m)}
+                                    isChecked={getCheckBoxIncludeValue(
+                                        m.databaseName
+                                    )}
                                     onChange={(e) =>
                                         onCheckBoxIncludeChange(
-                                            m,
+                                            m.databaseName,
                                             e.currentTarget.checked
                                         )
                                     }
@@ -338,10 +297,12 @@ const StepCreateBackup: FC<Props> = (props) => {
                             </Td>
                             <Td>
                                 <Checkbox
-                                    isChecked={getCheckBoxExcludeValue(m)}
+                                    isChecked={getCheckBoxExcludeValue(
+                                        m.databaseName
+                                    )}
                                     onChange={(e) =>
                                         onCheckBoxExcludeChange(
-                                            m,
+                                            m.databaseName,
                                             e.currentTarget.checked
                                         )
                                     }
@@ -349,7 +310,7 @@ const StepCreateBackup: FC<Props> = (props) => {
                                     <FaMinus></FaMinus>
                                 </Checkbox>
                             </Td>
-                            <Td>{getDatabaseStatus(m)}</Td>
+                            <Td>{getDatabaseTestResult2(m)}</Td>
                         </Tr>
                     ))}
                 </Tbody>

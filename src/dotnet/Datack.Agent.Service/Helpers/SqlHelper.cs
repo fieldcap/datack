@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Threading.Tasks;
 using Datack.Common.Models.Internal;
+using Dapper;
 
 namespace Datack.Agent.Service.Helpers
 {
@@ -14,7 +16,7 @@ namespace Datack.Agent.Service.Helpers
         }
 
         /// <summary>
-        /// Test a databas connection.
+        /// Test a database connection.
         /// </summary>
         /// <param name="serverDbSettings">The server database settings.</param>
         /// <returns>"Success" if successful, otherwise an error message.</returns>
@@ -34,28 +36,18 @@ namespace Datack.Agent.Service.Helpers
             }
         }
 
-        public static async Task<IList<String>> GetDatabaseList(ServerDbSettings serverDbSettings)
+        /// <summary>
+        /// Get a list of all databases from the connectionstring.
+        /// </summary>
+        /// <param name="serverDbSettings"></param>
+        /// <returns></returns>
+        public static async Task<IList<DatabaseList>> GetDatabaseList(ServerDbSettings serverDbSettings)
         {
-            return await GetSingleResultList<String>("SELECT name from sys.databases", serverDbSettings);
-        }
+            var connection = new SqlConnection(GetConnectionString(serverDbSettings, 1000));
 
-        public static async Task<IList<T>> GetSingleResultList<T>(String query, ServerDbSettings serverDbSettings)
-        {
-            await using var sqlConnection = new SqlConnection(GetConnectionString(serverDbSettings, 1000));
+            var result = await connection.QueryAsync<DatabaseList>("SELECT name as 'DatabaseName', 1 as 'HasAccess' FROM sys.databases");
 
-            await sqlConnection.OpenAsync();
-
-            await using var cmd = new SqlCommand("SELECT name from sys.databases", sqlConnection);
-
-            await using var dr = await cmd.ExecuteReaderAsync();
-
-            var resultList = new List<T>();
-            while (dr.Read())
-            {
-                resultList.Add((T) dr[0]);
-            }
-
-            return resultList;
+            return result.ToList();
         }
     }
 }

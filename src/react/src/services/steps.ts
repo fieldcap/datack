@@ -1,4 +1,5 @@
 import axios, { CancelTokenSource } from 'axios';
+import { DatabaseListTestResult } from '../models/database-list-test-result';
 import { Step, StepCreateBackupSettings } from '../models/step';
 import { ErrorHelper } from './error';
 
@@ -46,14 +47,14 @@ export namespace Steps {
 
     export const testDatabaseRegex = async (
         settings: StepCreateBackupSettings,
-        databases: string[]
-    ): Promise<TestDatabaseRegexResponse> => {
+        serverId: string
+    ): Promise<DatabaseListTestResult[]> => {
         try {
-            const result = await axios.post<TestDatabaseRegexResponse>(
+            const result = await axios.post<DatabaseListTestResult[]>(
                 `/api/Steps/TestDatabaseRegex/`,
                 {
                     settings,
-                    databases,
+                    serverId,
                 }
             );
             return result.data;
@@ -62,13 +63,5 @@ export namespace Steps {
         }
     };
 }
-
-export type TestDatabaseRegexResponse = {
-    systemList: string[];
-    includeRegexList: string[];
-    excludeRegexList: string[];
-    includeManualList: string[];
-    excludeManualList: string[];
-};
 
 export default Steps;

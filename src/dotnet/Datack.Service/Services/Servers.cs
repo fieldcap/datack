@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
+using Datack.Common.Models.Internal;
 using Datack.Data.Data;
 
 namespace Datack.Service.Services
@@ -45,7 +46,7 @@ namespace Datack.Service.Services
             return await _remoteService.Send<String>(server.Key, "TestSqlServer", server.DbSettings, cancellationToken);
         }
 
-        public async Task<IList<String>> GetDatabaseList(Guid serverId, CancellationToken cancellationToken)
+        public async Task<IList<DatabaseList>> GetDatabaseList(Guid serverId, CancellationToken cancellationToken)
         {
             var server = await _serverData.GetById(serverId, cancellationToken);
 
@@ -54,7 +55,7 @@ namespace Datack.Service.Services
                 throw new Exception($"Server with ID {serverId} not found");
             }
 
-            return await _remoteService.Send<List<String>>(server.Key, "GetDatabaseList", null, cancellationToken);
+            return await _remoteService.Send<List<DatabaseList>>(server.Key, "GetDatabaseList", null, cancellationToken);
         }
     }
 }

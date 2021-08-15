@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Helpers
 {
@@ -12,76 +13,71 @@ namespace Datack.Common.Helpers
             "master", "tempdb", "model", "msdb"
         };
 
-        public static (List<String> systemList, List<String> includeRegexList, List<String> excludeRegexList, List<String> includeManualList, List<String> excludeManualList)
-            FilterDatabases(IList<String> databases,
-                            Boolean excludeSystemDatabases,
-                            String includeRegex,
-                            String excludeRegex,
-                            String includeManual,
-                            String excludeManual)
+        public static List<DatabaseListTestResult> FilterDatabases(IList<DatabaseList> databases,
+                                                                   Boolean excludeSystemDatabases,
+                                                                   String includeRegex,
+                                                                   String excludeRegex,
+                                                                   String includeManual,
+                                                                   String excludeManual,
+                                                                   Boolean backupDefaultExclude)
         {
-            databases ??= new List<String>();
+            databases ??= new List<DatabaseList>();
 
-            var systemList = new List<String>();
-            var includeRegexList = new List<String>();
-            var excludeRegexList = new List<String>();
-            var includeManualList = new List<String>();
+            var resultList = new List<DatabaseListTestResult>();
+
             var excludeManualList = new List<String>();
+            var includeManualList = new List<String>();
 
             if (!String.IsNullOrWhiteSpace(includeManual))
             {
-                var m = includeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-                foreach (var database in databases)
-                {
-                    if (m.Contains(database))
-                    {
-                        includeManualList.Add(database);
-                    }
-                }
+                includeManualList = includeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
             }
 
             if (!String.IsNullOrWhiteSpace(excludeManual))
             {
-                var m = excludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-                foreach (var database in databases)
-                {
-                    if (m.Contains(database))
-                    {
-                        excludeManualList.Add(database);
-                    }
-                }
+                excludeManualList = excludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
             }
 
-            if (excludeSystemDatabases)
+            foreach (var database in databases)
             {
-                systemList = databases.Where(m => SystemDatabases.Contains(m)).ToList();
-            }
-
-            if (!String.IsNullOrWhiteSpace(includeRegex))
-            {
-                foreach (var database in databases)
+                var result = new DatabaseListTestResult
                 {
-                    if (Regex.IsMatch(database, includeRegex))
-                    {
-                        includeRegexList.Add(database);
-                    }
-                }
-            }
+                    DatabaseName = database.DatabaseName
+                };
 
-            if (!String.IsNullOrWhiteSpace(excludeRegex))
-            {
-                foreach (var database in databases)
+                if (!database.HasAccess)
                 {
-                    if (Regex.IsMatch(database, excludeRegex))
-                    {
-                        excludeRegexList.Add(database);
-                    }
+                    result.HasNoAccess = true;
                 }
+                else if (includeManualList.Contains(database.DatabaseName))
+                {
+                    result.IsManualIncluded = true;
+                }
+                else if (excludeManualList.Contains(database.DatabaseName))
+                {
+                    result.IsManualExcluded = true;
+                }
+                else if (excludeSystemDatabases && SystemDatabases.Contains(database.DatabaseName))
+                {
+                    result.IsSystemDatabase = true;
+                }
+                else if (!String.IsNullOrWhiteSpace(includeRegex) && Regex.IsMatch(database.DatabaseName, includeRegex))
+                {
+                    result.IsRegexIncluded = true;
+                }
+                else if (!String.IsNullOrWhiteSpace(excludeRegex) && Regex.IsMatch(database.DatabaseName, excludeRegex))
+                {
+                    result.IsRegexExcluded = true;
+                }
+                else if (backupDefaultExclude)
+                {
+                    result.IsBackupDefaultExcluded = true;
+                }
+
+                resultList.Add(result);
             }
 
-            return (systemList, includeRegexList, excludeRegexList, includeManualList, excludeManualList);
+            return resultList;
         }
     }
 }

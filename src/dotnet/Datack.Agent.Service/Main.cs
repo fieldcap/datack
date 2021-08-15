@@ -49,7 +49,7 @@ namespace Datack.Agent.Service
         }
         
         // ReSharper disable once UnusedMember.Local, used in RpcService
-        private async Task<IList<String>> GetDatabaseList()
+        private async Task<IList<DatabaseList>> GetDatabaseList()
         {
             if (_serverDbSettings == null || String.IsNullOrWhiteSpace(_serverDbSettings.Server))
             {

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,10 +16,12 @@ namespace Datack.Web.Controllers
     public class StepsController : Controller
     {
         private readonly Steps _steps;
+        private readonly Servers _servers;
 
-        public StepsController(Steps steps)
+        public StepsController(Steps steps, Servers servers)
         {
             _steps = steps;
+            _servers = servers;
         }
 
         [HttpGet]
@@ -74,29 +75,25 @@ namespace Datack.Web.Controllers
 
         [HttpPost]
         [Route("TestDatabaseRegex")]
-        public ActionResult TestDatabaseRegex([FromBody] StepsTestDatabaseRegexRequest request)
+        public async Task<ActionResult> TestDatabaseRegex([FromBody] StepsTestDatabaseRegexRequest request, CancellationToken cancellationToken)
         {
-            var result = DatabaseHelper.FilterDatabases(request.Databases,
+            var databases = await _servers.GetDatabaseList(request.ServerId, cancellationToken);
+
+            var result = DatabaseHelper.FilterDatabases(databases,
                                                         request.Settings.BackupExcludeSystemDatabases,
                                                         request.Settings.BackupIncludeRegex,
                                                         request.Settings.BackupExcludeRegex,
                                                         request.Settings.BackupIncludeManual,
-                                                        request.Settings.BackupExcludeManual);
+                                                        request.Settings.BackupExcludeManual,
+                                                        request.Settings.BackupDefaultExclude);
 
-            return Ok(new
-            {
-                result.systemList,
-                result.includeRegexList,
-                result.excludeRegexList,
-                result.includeManualList,
-                result.excludeManualList
-            });
+            return Ok(result);
         }
     }
 
     public class StepsTestDatabaseRegexRequest
     {
         public StepCreateDatabaseSettings Settings { get; set; } 
-        public IList<String> Databases { get; set; }
+        public Guid ServerId { get; set; }
     }
 }

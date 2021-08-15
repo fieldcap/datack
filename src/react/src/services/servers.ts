@@ -56,19 +56,6 @@ export namespace Servers {
             throw ErrorHelper.getError(err);
         }
     };
-
-    export const getDatabaseList = async (
-        serverId: string
-    ): Promise<string[]> => {
-        try {
-            const result = await axios.post<string[]>(
-                `/api/Servers/GetDatabaseList/${serverId}`
-            );
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
-    };
 }
 
 export default Servers;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
@@ -65,15 +64,6 @@ namespace Datack.Web.Controllers
         public async Task<ActionResult<String>> TestSqlServerConnection([FromBody] Server server, CancellationToken cancellationToken)
         {
             var result = await _servers.TestSqlServerConnection(server, cancellationToken);
-
-            return Ok(result);
-        }
-        
-        [HttpPost]
-        [Route("GetDatabaseList/{serverId:guid}")]
-        public async Task<ActionResult<IList<String>>> GetDatabaseList(Guid serverId, CancellationToken cancellationToken)
-        {
-            var result = await _servers.GetDatabaseList(serverId, cancellationToken);
 
             return Ok(result);
         }
