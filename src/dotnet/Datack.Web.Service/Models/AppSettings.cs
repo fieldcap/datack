@@ -1,24 +1,18 @@
 ﻿using System;
 
-namespace Datack.Agent.Models
+namespace Datack.Web.Service.Models
 {
     public class AppSettings
     {
-        public String Token { get; set; }
-
         public AppSettingsLogging Logging { get; set; }
         public AppSettingsDatabase Database { get; set; }
+        
+        public String HostUrl { get; set; }
     }
 
     public class AppSettingsLogging
     {
-        public AppSettingsLoggingLogLevel LogLevel { get; set; }
         public AppSettingsLoggingFile File { get; set; }
-    }
-
-    public class AppSettingsLoggingLogLevel
-    {
-        public String Default { get; set; }
     }
     
     public class AppSettingsLoggingFile

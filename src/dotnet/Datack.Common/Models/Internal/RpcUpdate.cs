@@ -8,5 +8,7 @@ namespace Datack.Common.Models.Internal
         public Server Server { get; set; }
 
         public IList<Job> Jobs { get; set; }
+
+        public IList<Step> Steps { get; set; }
     }
 }

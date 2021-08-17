@@ -3,24 +3,32 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Datack.Agent.Data;
 using Datack.Agent.Models;
 using Datack.Agent.Services;
+using Datack.Agent.Services.DataConnections;
+using Datack.Agent.Services.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Serilog.Exceptions;
 
 namespace Datack.Agent
 {
     public static class Program
     {
+        public static LoggingLevelSwitch LoggingLevelSwitch { get; set; }
+
         public static async Task Start(String[] args)
         {
             try
             {
                 var builder = CreateHostBuilder(args);
-
+                
                 var version = Assembly.GetEntryAssembly()?.GetName().Version;
                 Log.Warning($"Starting host on version {version}");
 
@@ -49,12 +57,20 @@ namespace Datack.Agent
             var appSettings = new AppSettings();
             configuration.Bind(appSettings);
 
+            if (!String.IsNullOrWhiteSpace(appSettings.Logging.LogLevel.Default))
+            {
+                LoggingLevelSwitch = new LoggingLevelSwitch(Enum.Parse<LogEventLevel>(appSettings.Logging.LogLevel.Default));
+            }
+
             Log.Logger = new LoggerConfiguration()
                          .Enrich.FromLogContext()
                          .Enrich.WithExceptionDetails()
-                         .WriteTo.File(appSettings.Logging.File.Path, rollOnFileSizeLimit: true, fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes, retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
-                         //.WriteTo.Console()
-                         //.MinimumLevel.ControlledBy(LoggingLevelSwitch)
+                         .WriteTo.File(appSettings.Logging.File.Path, 
+                                       rollOnFileSizeLimit: true, 
+                                       fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes, 
+                                       retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
+                         .WriteTo.Console()
+                         .MinimumLevel.ControlledBy(LoggingLevelSwitch)
                          .CreateLogger();
 
             Serilog.Debugging.SelfLog.Enable(msg =>
@@ -82,11 +98,25 @@ namespace Datack.Agent
                        })
                        .ConfigureServices((_, services) =>
                        {
+                           var connectionString = $"Data Source={appSettings.Database.Path}";
+                           services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
+
                            services.AddSingleton(appSettings);
 
+                           services.AddSingleton<DatabaseAdapter>();
+                           services.AddSingleton<Jobs>();
+                           services.AddSingleton<JobLogs>();
+                           services.AddSingleton<JobScheduler>();
                            services.AddSingleton<RpcService>();
+                           services.AddSingleton<Servers>();
+                           services.AddSingleton<Steps>();
+                           services.AddSingleton<StepLogs>();
+                           services.AddSingleton<SqlServerConnection>();
 
-                           services.AddHostedService<Agent>();
+                           services.AddSingleton<CreateBackupTask>();
+
+                           services.AddHostedService<StartupHostedService>();
+                           services.AddHostedService<Services.Agent>();
                        })
                        .UseSerilog();
         }

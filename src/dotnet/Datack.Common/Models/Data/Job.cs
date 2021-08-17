@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Datack.Common.Models.Internal;
 
@@ -15,7 +14,5 @@ namespace Datack.Common.Models.Data
         public String Description { get; set; }
         
         public JobSettings Settings { get; set; }
-
-        public ICollection<Step> Steps { get; set; }
     }
 }

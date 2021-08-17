@@ -88,6 +88,30 @@ namespace Datack.Common.Helpers
             return result.OrderBy(m => m.DateTime).ToList();
         }
 
+        public static BackupType? GetNextOccurrence(String fullCron, String diffCron, String logCron, DateTimeOffset dateTime)
+        {
+            var fullOccurrences = GetNextOccurrence(fullCron, dateTime);
+            var diffOccurrences = GetNextOccurrence(diffCron, dateTime);
+            var logOccurrences = GetNextOccurrence(logCron, dateTime);
+
+            if (fullOccurrences == dateTime)
+            {
+                return BackupType.Full;
+            }
+            
+            if (diffOccurrences == dateTime)
+            {
+                return BackupType.Diff;
+            }
+            
+            if (logOccurrences == dateTime)
+            {
+                return BackupType.Log;
+            }
+
+            return null;
+        }
+
         private static IList<DateTimeOffset> GetNextOccurrences(String cron, TimeSpan timeSpan)
         {
             if (String.IsNullOrWhiteSpace(cron))
@@ -97,9 +121,9 @@ namespace Datack.Common.Helpers
 
             try
             {
-                var now = DateTime.UtcNow;
-                var from = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.BaseUtcOffset);
-                var to = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.BaseUtcOffset).Add(timeSpan);
+                var now = DateTime.Now;
+                var from = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
+                var to = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now)).Add(timeSpan);
 
                 var parsedExpression = CronExpression.Parse(cron);
                 var occurrences = parsedExpression.GetOccurrences(from, to, TimeZoneInfo.Local, true, true);
@@ -109,6 +133,26 @@ namespace Datack.Common.Helpers
             catch
             {
                 return new List<DateTimeOffset>();
+            }
+        }
+
+        private static DateTimeOffset? GetNextOccurrence(String cron, DateTimeOffset dateTime)
+        {
+            if (String.IsNullOrWhiteSpace(cron))
+            {
+                return null;
+            }
+
+            try
+            {
+                var parsedExpression = CronExpression.Parse(cron);
+                var result = parsedExpression.GetNextOccurrence(dateTime, TimeZoneInfo.Local, true);
+
+                return result;
+            }
+            catch
+            {
+                return null;
             }
         }
     }

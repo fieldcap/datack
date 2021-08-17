@@ -7,13 +7,12 @@ using System.Threading.Tasks;
 using Datack.Agent.Models;
 using Datack.Common.Models.RPC;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog.Extensions.Logging;
 
 namespace Datack.Agent.Services
 {
-    public class RpcService : IHostedService
+    public class RpcService
     {
         private readonly AppSettings _appSettings;
 
@@ -26,7 +25,7 @@ namespace Datack.Agent.Services
             _appSettings = appSettings;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public void StartAsync(CancellationToken cancellationToken)
         {
             _connection = new HubConnectionBuilder()
                           .WithUrl("http://localhost:3001/hub")
@@ -43,9 +42,7 @@ namespace Datack.Agent.Services
 
             _connection.On<RpcRequest>("request", HandleRequest);
 
-            _ = Task.Run(() => Connect(cancellationToken), cancellationToken);
-
-            return Task.CompletedTask;
+            Task.Run(() => Connect(cancellationToken), cancellationToken);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

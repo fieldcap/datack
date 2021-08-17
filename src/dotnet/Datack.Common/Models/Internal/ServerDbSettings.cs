@@ -13,5 +13,8 @@ namespace Datack.Common.Models.Internal
 
         [JsonPropertyName("password")]
         public String Password { get;set; }
+
+        [JsonPropertyName("connectionTimeout")]
+        public Int32 ConnectionTimeout { get; set; }
     }
 }

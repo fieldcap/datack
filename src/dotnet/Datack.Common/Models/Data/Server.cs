@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Datack.Common.Models.Internal;
 
@@ -19,7 +18,5 @@ namespace Datack.Common.Models.Data
         public ServerDbSettings DbSettings { get; set; }
 
         public ServerSettings Settings { get; set; }
-
-        public ICollection<Step> Steps { get; set; }
     }
 }
