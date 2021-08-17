@@ -16,13 +16,9 @@ namespace Datack.Agent.Services.Tasks
         private Int32 _currentProgress;
         private Int32 _maxProgress;
 
-        public async Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId)
-        {
-            OnProgress(0, 0);
-            return await Run(job, step, backupType, jobLogId);
-        }
+        public abstract Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId);
 
-        protected abstract Task<IList<StepLog>> Run(Job job, Step step, BackupType backupType, Guid jobLogId);
+        public abstract Task Run(List<StepLog> queue);
 
         protected void OnProgress(Int32 progress, Int32 max)
         {

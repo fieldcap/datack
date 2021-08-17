@@ -1,25 +1,30 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Datack.Web.Service.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Datack.Web.Service.Services
 {
     public class StartupHostedService : IHostedService
     {
-        private readonly DataContext _dataContext;
+        private readonly IServiceProvider _serviceProvider;
 
-        public StartupHostedService(DataContext dataContext)
+        public StartupHostedService(IServiceProvider serviceProvider)
         {
-            _dataContext = dataContext;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await _dataContext.Database.EnsureCreatedAsync(cancellationToken);
-            await _dataContext.Database.MigrateAsync(cancellationToken);
-            await _dataContext.Seed();
+            using var serviceScope = _serviceProvider.CreateScope();
+
+            var dataContext = serviceScope.ServiceProvider.GetRequiredService<DataContext>();
+
+            await dataContext.Database.MigrateAsync(cancellationToken);
+            await dataContext.Seed();
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

@@ -30,6 +30,8 @@ namespace Datack.Common.Models.Data
 
         public Int32 Queue { get; set; }
 
+        public String Type { get; set; }
+
         public Boolean IsError { get; set; }
 
         public String Result { get; set; }

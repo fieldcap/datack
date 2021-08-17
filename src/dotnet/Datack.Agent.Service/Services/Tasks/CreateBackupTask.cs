@@ -21,7 +21,7 @@ namespace Datack.Agent.Services.Tasks
             _databaseAdapter = databaseAdapter;
         }
 
-        protected override async Task<IList<StepLog>> Run(Job job, Step step, BackupType backupType, Guid jobLogId)
+        public override async Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId)
         {
             var databases = new List<DatabaseStep>();
 
@@ -77,6 +77,7 @@ namespace Datack.Agent.Services.Tasks
                         JobLogId = jobLogId,
                         DatabaseName = database.DatabaseName,
                         Queue = batchIndex,
+                        Type = step.Type,
                         Settings = step.Settings
                     };
 
@@ -89,6 +90,11 @@ namespace Datack.Agent.Services.Tasks
             return results;
             /*var backupName = $"{database} Full Backup";
             var query = $@"BACKUP DATABASE [{database}] TO  DISK = N'{dbFilePath}' WITH NOFORMAT, INIT,  NAME = N'{backupName}', SKIP, NOREWIND, NOUNLOAD,  STATS = 10";*/
+        }
+
+        public override async Task Run(List<StepLog> queue)
+        {
+            throw new NotImplementedException();
         }
     }
 

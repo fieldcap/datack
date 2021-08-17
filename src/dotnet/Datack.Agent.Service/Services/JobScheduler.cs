@@ -131,10 +131,7 @@ namespace Datack.Agent.Services
             var allStepLogs = new List<StepLog>();
             foreach (var step in steps)
             {
-                if (!_tasks.TryGetValue(step.Type, out var task))
-                {
-                    throw new Exception($"Unknown step type {step.Type}");
-                }
+                var task = GetTask(step.Type);
 
                 var stepLogs = await task.Setup(job, step, backupType, jobLog.JobLogId);
 
@@ -153,6 +150,61 @@ namespace Datack.Agent.Services
             }
 
             await _stepLogs.Create(allStepLogs);
+
+            await RunNext(jobLog.JobLogId);
+        }
+
+        private async Task RunNext(Guid jobLogId)
+        {
+            var jobLog = await _jobLogs.GetById(jobLogId);
+
+            if (jobLog == null)
+            {
+                throw new Exception($"JobLog with ID {jobLogId} not found");
+            }
+
+            if (jobLog.Completed.HasValue)
+            {
+                throw new Exception($"JobLog with ID {jobLogId} is already completed");
+            }
+
+            var stepLogs = await _stepLogs.GetByJobLogId(jobLog.JobLogId);
+
+            stepLogs = stepLogs.Where(m => m.Completed == null).ToList();
+
+            if (!stepLogs.Any())
+            {
+                // Update job log as completed.
+                return;
+            }
+
+            var queue = stepLogs.OrderBy(m => m.Order).ThenBy(m => m.Queue).GroupBy(m => new {m.Order});
+
+            var nextStep = queue.First();
+
+            var task = GetTask(nextStep.First().Type);
+
+            var nextQueue = nextStep.GroupBy(m => m.Queue);
+
+            foreach (var steps in nextQueue)
+            {
+                _ = Task.Run(() => task.Run(steps.ToList()), _cancellationToken);
+            }
+        }
+
+        private BaseTask GetTask(String type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentException("Type cannot be null");
+            }
+
+            if (!_tasks.TryGetValue(type, out var task))
+            {
+                throw new Exception($"Unknown step type {type}");
+            }
+
+            return task;
         }
     }
 }

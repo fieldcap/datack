@@ -32,6 +32,11 @@ namespace Datack.Agent.Services
                          .ToListAsync();
         }
 
+        public async Task<JobLog> GetById(Guid jobLogId)
+        {
+            return await _dataContext.JobLogs.AsNoTracking().FirstOrDefaultAsync(m => m.JobLogId == jobLogId);
+        }
+
         public async Task Update(JobLog jobLog)
         {
             _dataContext.Update(jobLog);

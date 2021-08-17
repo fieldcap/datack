@@ -1,12 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Datack.Web.Service.Data;
 using Datack.Web.Service.Models;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -25,31 +22,6 @@ namespace Datack.Web.Web
             try
             {
                 var host = CreateHostBuilder(args).Build();
-
-                // Perform migrations
-                using (var scope = host.Services.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-                    await dbContext.Database.MigrateAsync();
-                    await dbContext.Seed();
-
-                    var logLevelSettingDb = await dbContext.Settings.FirstOrDefaultAsync(m => m.SettingId == "LogLevel");
-                    
-                    var logLevelSetting = "Warning";
-
-                    if (logLevelSettingDb != null)
-                    {
-                        logLevelSetting = logLevelSettingDb.Value;
-                    }
-
-                    if (!Enum.TryParse<LogEventLevel>(logLevelSetting, out var logLevel))
-                    {
-                        logLevel = LogEventLevel.Warning;
-                    }
-
-                    //LoggingLevelSwitch.MinimumLevel = logLevel;
-                }
-                
                 await host.RunAsync();
             }
             catch (Exception ex)

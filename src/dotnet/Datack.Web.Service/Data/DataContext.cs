@@ -7,6 +7,7 @@ using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
@@ -90,25 +91,70 @@ namespace Datack.Web.Service.Data
                 }
             }
 
-            /*var server = new Server
+#if DEBUG
+            if (!Servers.Any())
             {
-                DbSettings = new ServerDbSettings
+                var server = new Server
                 {
-                    Server = "127.0.0.1",
-                    UserName = "Backup",
-                    Password = "backup"
-                },
-                Settings = new ServerSettings
+                    ServerId = Guid.NewGuid(),
+                    Key = "5026d123-0b7a-4ecc-9b97-4950324f161f",
+                    Name = "Local SQL Server",
+                    Description = "Test Server",
+                    DbSettings = new ServerDbSettings
+                    {
+                        Server = ".",
+                        UserName = "Test",
+                        Password = "test"
+                    },
+                    Settings = new ServerSettings
+                    {
+                        TempPath = @"C:\Temp"
+                    }
+                };
+                
+                var job = new Job
                 {
-                    TempPath = @"C:\Temp"
-                },
-                Name = "Local SQL Server",
-                ServerId = Guid.NewGuid()
-            };
+                    JobId = Guid.NewGuid(),
+                    Description = "Create backup job",
+                    Name = "Create backup",
+                    Settings = new JobSettings
+                    {
+                        CronFull = "5 4 * * *",
+                        CronDiff = "5 * * * *",
+                        CronLog = "*/5 * * * *"
+                    }
+                };
 
-            await Servers.AddAsync(server);
-            await SaveChangesAsync();*/
+                var step = new Step
+                {
+                    StepId= Guid.NewGuid(),
+                    JobId = job.JobId,
+                    ServerId = server.ServerId,
+                    Description = "Creates a backup",
+                    Name = "Create backup",
+                    Order = 0,
+                    Type = "create_backup",
+                    Settings = new StepSettings
+                    {
+                        CreateBackup = new StepCreateDatabaseSettings
+                        {
+                            BackupDefaultExclude = false,
+                            BackupExcludeManual = "",
+                            BackupExcludeRegex = "",
+                            BackupExcludeSystemDatabases = true,
+                            BackupIncludeManual = "",
+                            BackupIncludeRegex = ""
+                        }
+                    }
+                };
 
+                await Servers.AddAsync(server);
+                await Jobs.AddAsync(job);
+                await Steps.AddAsync(step);
+
+                await SaveChangesAsync();
+            }
+#endif
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -176,6 +222,17 @@ namespace Datack.Web.Service.Data
                        .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
                                       v => JsonSerializer.Deserialize<StepSettings>(v, SerializerOptions));
             }
+        }
+    }
+
+    public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
+    {
+        public DataContext CreateDbContext(String[] args)
+        {
+            var builder = new DbContextOptionsBuilder<DataContext>();
+            var connectionString = $"Data Source=test.db";
+            builder.UseSqlite(connectionString);
+            return new DataContext(builder.Options);
         }
     }
 }
