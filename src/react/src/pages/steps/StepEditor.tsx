@@ -109,7 +109,7 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
                 history.push(`/job/${step.jobId}`);
             }
-        } catch (err) {
+        } catch (err: any) {
             setIsSaving(false);
             setError(err);
         }

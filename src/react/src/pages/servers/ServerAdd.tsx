@@ -46,7 +46,7 @@ const ServerAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
             setIsSaving(true);
             const newServer = await Servers.add(server);
             history.push(`/server/${newServer.serverId}`);
-        } catch (err) {
+        } catch (err: any) {
             setIsSaving(false);
             setError(err);
         }

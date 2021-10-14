@@ -23,6 +23,14 @@ namespace Datack.Common.Extensions
 {
     public static class MoreEnumerable
     {
+        public static IEnumerable<List<T>> Split<T>(this List<T> inputList, Int32 size)
+        {        
+            for (var i = 0; i < inputList.Count; i += size) 
+            { 
+                yield return inputList.GetRange(i, Math.Min(size, inputList.Count - i)); 
+            }  
+        } 
+
         /// <summary>
         ///     Batches the source sequence into sized buckets.
         /// </summary>

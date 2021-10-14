@@ -1,6 +1,7 @@
 import {
     Box,
-    Heading, Skeleton,
+    Heading,
+    Skeleton,
     Tab,
     TabList,
     TabPanel,
@@ -12,6 +13,7 @@ import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
+import JobHistoryTab from './JobHistoryTab';
 import JobSettingsTab from './JobSettingsTab';
 import JobStepsTab from './JobStepsTab';
 
@@ -54,7 +56,9 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 </TabList>
 
                 <TabPanels>
-                    <TabPanel></TabPanel>
+                    <TabPanel>
+                        <JobHistoryTab job={job}></JobHistoryTab>
+                    </TabPanel>
                     <TabPanel>
                         <JobStepsTab job={job}></JobStepsTab>
                     </TabPanel>

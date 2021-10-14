@@ -42,7 +42,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
             setIsSaving(true);
             const newJob = await Jobs.add(job);
             history.push(`/job/${newJob.jobId}`);
-        } catch (err) {
+        } catch (err: any) {
             setIsSaving(false);
             setError(err);
         }

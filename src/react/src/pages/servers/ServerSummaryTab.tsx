@@ -1,12 +1,5 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import {
-    chakra, Table,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr
-} from '@chakra-ui/react';
+import { chakra, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';

@@ -32,7 +32,7 @@ namespace Datack.Agent.Services.DataConnections
 
         private static String BuildConnectionString(ServerDbSettings dbSettings)
         {
-            return $"Server={dbSettings};User Id={dbSettings.UserName};Password={dbSettings.Password};Timeout={dbSettings.ConnectionTimeout}";
+            return $"Server={dbSettings.Server};User Id={dbSettings.UserName};Password={dbSettings.Password};Timeout={dbSettings.ConnectionTimeout}";
         }
         
         public async Task Test(ServerDbSettings serverDbSettings)

@@ -71,6 +71,18 @@ export namespace Jobs {
             throw ErrorHelper.getError(err);
         }
     };
+
+    export const run = async (serverId: string, jobId: string, type: string) => {
+        try {
+            await axios.post<void>(`/api/Jobs/Run/`, {
+                serverId,
+                jobId,
+                type,
+            });
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
 }
 
 export type TestCronResult = {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text.Json;
 using System.Threading;
@@ -14,12 +15,14 @@ namespace Datack.Agent.Services
 {
     public class RpcService
     {
+        public event EventHandler OnConnect; 
+
         private readonly AppSettings _appSettings;
 
         private HubConnection _connection;
 
-        private readonly Dictionary<String, Expression<Func<Object, Task>>> _requestMethods = new();
-
+        private readonly Dictionary<String, Expression> _requestMethods = new();
+        
         public RpcService(AppSettings appSettings)
         {
             _appSettings = appSettings;
@@ -53,7 +56,17 @@ namespace Datack.Agent.Services
             }
         }
 
-        public void Subscribe(String methodName, Expression<Func<Object, Task>> method)
+        public void Subscribe(String methodName, Expression<Func<Task>> method)
+        {
+            _requestMethods.Add(methodName, method);
+        }
+
+        public void Subscribe<T>(String methodName, Expression<Func<T, Task>> method)
+        {
+            _requestMethods.Add(methodName, method);
+        }
+
+        public void Subscribe<T1, T2>(String methodName, Expression<Func<T1, T2, Task>> method)
         {
             _requestMethods.Add(methodName, method);
         }
@@ -91,10 +104,7 @@ namespace Datack.Agent.Services
 
             await _connection.SendAsync("Connect", _appSettings.Token, cancellationToken);
 
-            if (_requestMethods.TryGetValue("Connect", out var onConnect))
-            {
-                await onConnect.Compile()(null);
-            }
+            OnConnect?.Invoke(this, null!);
         }
 
         private async Task HandleRequest(RpcRequest rpcRequest)
@@ -109,35 +119,48 @@ namespace Datack.Agent.Services
 
                 var methodInfo = _requestMethods[rpcRequest.Request];
 
-                var methodCallExpression = methodInfo.Body as MethodCallExpression;
-                var method = methodCallExpression.Method;
-                var parameters = method.GetParameters();
+                Task methodResult = null;
 
-                Object invokationParameter = null;
-                if (parameters.Length == 1 && rpcRequest.Payload != null)
+                if (methodInfo is Expression<Func<Task>> methodInfo2)
                 {
-                    invokationParameter = JsonSerializer.Deserialize(rpcRequest.Payload, parameters[0].ParameterType);
+                    methodResult = methodInfo2.Compile().Invoke();
                 }
-                
-                var methodResult = methodInfo.Compile().Invoke(invokationParameter);
-
-                Object invokationResult;
-                if (methodResult is Task task)
+                else if (methodInfo is LambdaExpression lambdaExpression)
                 {
-                    var taskResult = task.GetType().GetProperty("Result");
+                    var payloadParameters = JsonSerializer.Deserialize<JsonElement[]>(rpcRequest.Payload);
 
-                    if (taskResult == null)
+                    var parameters = lambdaExpression.Parameters.ToList();
+
+                    if (payloadParameters == null || payloadParameters.Length != parameters.Count)
                     {
-                        throw new Exception($"Task returned NULL value and cannot be awaited");
+                        throw new Exception($"Parameter count mismatch for {rpcRequest.Request}. Received {payloadParameters?.Length}, expected {parameters.Count}");
                     }
 
-                    invokationResult = taskResult.GetValue(task);
-                }
-                else
-                {
-                    invokationResult = methodResult;
+                    var invokationParameters = new Object[parameters.Count];
+                    for (var i = 0; i < parameters.Count; i++)
+                    {
+                        var payloadParameterRaw = payloadParameters[i].GetRawText();
+                        var payloadParameterObject = JsonSerializer.Deserialize(payloadParameterRaw, parameters[i].Type);
+                        invokationParameters[i] = payloadParameterObject;
+                    }
+                    
+                    methodResult = lambdaExpression.Compile().DynamicInvoke(invokationParameters) as Task;
                 }
 
+                if (methodResult == null)
+                {
+                    throw new Exception($"Unable to invoke request {rpcRequest.Request}");
+                }
+
+                var taskResult = methodResult.GetType().GetProperty("Result");
+
+                if (taskResult == null)
+                {
+                    throw new Exception($"Task returned NULL value and cannot be awaited");
+                }
+
+                var invokationResult = taskResult.GetValue(methodResult);
+                
                 result.Result = JsonSerializer.Serialize(invokationResult);
             }
             catch (Exception ex)
@@ -153,13 +176,6 @@ namespace Datack.Agent.Services
         public async Task<T> Send<T>(String methodName)
         {
             var response = await _connection.InvokeAsync<T>(methodName, _appSettings.Token);
-
-            return response;
-        }
-
-        public async Task<T> Send<T>(String methodName, Object arg1)
-        {
-            var response = await _connection.InvokeAsync<T>(methodName, _appSettings.Token, arg1);
 
             return response;
         }

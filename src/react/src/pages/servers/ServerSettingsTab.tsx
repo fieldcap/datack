@@ -71,7 +71,7 @@ const ServerSettingsTab: FC<Props> = (props) => {
 
             await Servers.update(newServer);
             setIsSaving(false);
-        } catch (err) {
+        } catch (err: any) {
             setError(err);
             setIsSaving(false);
         }
@@ -105,7 +105,7 @@ const ServerSettingsTab: FC<Props> = (props) => {
 
             setSuccess(testResult);
             setIsSaving(false);
-        } catch (err) {
+        } catch (err: any) {
             setError(err);
             setIsSaving(false);
         }

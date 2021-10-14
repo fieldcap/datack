@@ -16,7 +16,7 @@ import {
 } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 import _ from 'lodash';
-import React, { FC, useEffect, useRef, useState } from 'react';
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Job } from '../../models/job';
 import Jobs, { TestCronResult } from '../../services/jobs';
 
@@ -51,9 +51,16 @@ const JobSettingsTab: FC<Props> = (props) => {
 
     const occurrenceList = useRef(null);
 
+    const handleChangeCrons = useCallback(() => {
+        (async () => {
+            const result = await Jobs.testCrons(cronFull, cronDiff, cronLog);
+            setTestResult(result);
+        })();
+    }, [cronFull, cronDiff, cronLog]);
+
     useEffect(() => {
         handleChangeCrons();
-    }, [props.job]);
+    }, [props.job, handleChangeCrons]);
 
     useEffect(() => {
         let occurrences: { date: Date; type: string }[] = [];
@@ -63,7 +70,10 @@ const JobSettingsTab: FC<Props> = (props) => {
         }
 
         testResult.next.forEach((d) => {
-            occurrences.push({ date: parseISO(d.dateTime), type: d.backupType });
+            occurrences.push({
+                date: parseISO(d.dateTime),
+                type: d.backupType,
+            });
         });
 
         occurrences = _.orderBy(occurrences, (m) => m.date);
@@ -76,11 +86,6 @@ const JobSettingsTab: FC<Props> = (props) => {
     useEffect(() => {
         (occurrenceList.current as any)?.scrollIntoView({ behavior: 'smooth' });
     }, [cronOccurrences]);
-
-    const handleChangeCrons = async () => {
-        const result = await Jobs.testCrons(cronFull, cronDiff, cronLog);
-        setTestResult(result);
-    };
 
     const showMoreOccurrences = () => {
         setOccurrencesMax((value) => (value += 20));
@@ -105,7 +110,7 @@ const JobSettingsTab: FC<Props> = (props) => {
 
             await Jobs.update(newJob);
             setIsSaving(false);
-        } catch (err) {
+        } catch (err: any) {
             setError(err);
             setIsSaving(false);
         }

@@ -61,7 +61,7 @@ namespace Datack.Agent.Services.Tasks
 
             OnProgress($"Estimated total size {ByteSize.FromKiloBytes(totalSize)}");
 
-            var batches = databases.Batch(Parallel);
+            var batches = databases.Split(Parallel);
 
             var results = new List<StepLog>();
 

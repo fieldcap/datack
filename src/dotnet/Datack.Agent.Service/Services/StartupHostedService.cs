@@ -20,6 +20,13 @@ namespace Datack.Agent.Services
             await _dataContext.Database.EnsureCreatedAsync(cancellationToken);
             await _dataContext.Database.MigrateAsync(cancellationToken);
             await _dataContext.Seed();
+
+            // Testing
+            _dataContext.StepLogMessages.RemoveRange(_dataContext.StepLogMessages);
+            _dataContext.StepLogs.RemoveRange(_dataContext.StepLogs);
+            _dataContext.JobLogs.RemoveRange(_dataContext.JobLogs);
+
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

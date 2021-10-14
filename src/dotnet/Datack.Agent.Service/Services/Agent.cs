@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
+using Datack.Common.Enums;
 using Datack.Common.Models.Internal;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Datack.Agent.Services
 {
-    public class Agent : IHostedService
+    public class AgentHostedService : IHostedService
     {
         private readonly ILogger _logger;
         private readonly AppSettings _appSettings;
@@ -21,7 +22,7 @@ namespace Datack.Agent.Services
         private readonly JobScheduler _jobScheduler;
         private readonly RpcService _rpcService;
         
-        public Agent(ILogger<Agent> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, Jobs jobs, JobScheduler jobScheduler, Servers servers, Steps steps)
+        public AgentHostedService(ILogger<AgentHostedService> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, Jobs jobs, JobScheduler jobScheduler, Servers servers, Steps steps)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -45,11 +46,11 @@ namespace Datack.Agent.Services
                 throw new Exception($"Token cannot be null");
             }
 
-            _rpcService.Subscribe("Connect", _ => OnConnect());
-            _rpcService.Subscribe("GetDatabaseList", _ => GetDatabaseList());
-            _rpcService.Subscribe("TestSqlServer", result => TestSqlServer(result as ServerDbSettings));
+            _rpcService.OnConnect += (_, _) => Connect();
 
-            _jobScheduler.Start();
+            _rpcService.Subscribe("GetDatabaseList", () => GetDatabaseList());
+            _rpcService.Subscribe<Guid, BackupType>("Run", (jobId, backupType) => Run(jobId, backupType));
+            _rpcService.Subscribe<ServerDbSettings>("TestSqlServer", serverDbSettings => TestSqlServer(serverDbSettings));
 
             _rpcService.StartAsync(cancellationToken);
 
@@ -64,15 +65,24 @@ namespace Datack.Agent.Services
             _jobScheduler.Stop();
         }
 
-        private async Task OnConnect()
+        private async void Connect()
         {
-            _logger.LogTrace("OnConnect");
+            _logger.LogTrace("Connect");
 
             var response = await _rpcService.Send<RpcUpdate>("RpcUpdate");
 
             await _servers.UpdateServer(response.Server);
             await _jobs.UpdateJobs(response.Jobs);
             await _steps.UpdateSteps(response.Steps, response.Server.ServerId);
+
+            _jobScheduler.Start();
+        }
+
+        private async Task<IList<Database>> GetDatabaseList()
+        {
+            _logger.LogTrace("GetDatabaseList");
+
+            return await _databaseAdapter.GetDatabaseList();
         }
 
         private async Task<String> TestSqlServer(ServerDbSettings serverDbSettings)
@@ -81,12 +91,14 @@ namespace Datack.Agent.Services
 
             return await _databaseAdapter.TestConnection(serverDbSettings);
         }
-        
-        private async Task<IList<Database>> GetDatabaseList()
-        {
-            _logger.LogTrace("GetDatabaseList");
 
-            return await _databaseAdapter.GetDatabaseList();
+        private async Task<String> Run(Guid jobId, BackupType backupType)
+        {
+            _logger.LogTrace("Run {jobId} {backupType}", jobId, backupType);
+
+            
+
+            return "Success";
         }
     }
 }

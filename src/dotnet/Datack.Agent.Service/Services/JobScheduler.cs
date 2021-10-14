@@ -71,8 +71,6 @@ namespace Datack.Agent.Services
 
                 foreach (var job in jobs)
                 {
-                    await RunSetup(job, BackupType.Full);
-
                     var backupType = CronHelper.GetNextOccurrence(job.Settings.CronFull, job.Settings.CronDiff, job.Settings.CronLog, now);
 
                     if (backupType != null)
@@ -139,7 +137,7 @@ namespace Datack.Agent.Services
             }
 
             var index = 0;
-            foreach (var stepLogQueue in allStepLogs.GroupBy(m => m.Queue))
+            foreach (var stepLogQueue in allStepLogs.GroupBy(m => m.StepId))
             {
                 foreach (var stepLog in stepLogQueue)
                 {
@@ -170,21 +168,28 @@ namespace Datack.Agent.Services
 
             var stepLogs = await _stepLogs.GetByJobLogId(jobLog.JobLogId);
 
-            stepLogs = stepLogs.Where(m => m.Completed == null).ToList();
+            var queue = stepLogs.Where(m => m.Completed == null)
+                                .OrderBy(m => m.Order)
+                                .ThenBy(m => m.Queue)
+                                .GroupBy(m => m.Order)
+                                .ToList();
 
-            if (!stepLogs.Any())
+            if (!queue.Any())
             {
                 // Update job log as completed.
                 return;
             }
-
-            var queue = stepLogs.OrderBy(m => m.Order).ThenBy(m => m.Queue).GroupBy(m => new {m.Order});
 
             var nextStep = queue.First();
 
             var task = GetTask(nextStep.First().Type);
 
             var nextQueue = nextStep.GroupBy(m => m.Queue);
+
+            task.OnProgressEvent += (_, args) =>
+            {
+                
+            };
 
             foreach (var steps in nextQueue)
             {

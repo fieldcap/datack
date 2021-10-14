@@ -44,7 +44,7 @@ const ServerList: FC<RouteComponentProps> = () => {
 
     const handleAddNewServerClick = () => {
         history.push(`/server/new`);
-    }
+    };
 
     const columns = React.useMemo(() => {
         const columns: Column<Server>[] = [
@@ -92,7 +92,11 @@ const ServerList: FC<RouteComponentProps> = () => {
                     {rows.map((row) => {
                         prepareRow(row);
                         return (
-                            <Tr {...row.getRowProps()} onClick={() => rowClick(row.original.serverId)} style={{ cursor: 'pointer' }}>
+                            <Tr
+                                {...row.getRowProps()}
+                                onClick={() => rowClick(row.original.serverId)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 {row.cells.map((cell) => (
                                     <Td {...cell.getCellProps()}>
                                         {cell.render('Cell')}
@@ -104,7 +108,9 @@ const ServerList: FC<RouteComponentProps> = () => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px" onClick={handleAddNewServerClick}>Add new server</Button>
+            <Button marginTop="24px" onClick={handleAddNewServerClick}>
+                Add new server
+            </Button>
         </Skeleton>
     );
 };

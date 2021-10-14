@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Datack.Common.Enums;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using Datack.Web.Service.Services;
@@ -83,6 +84,15 @@ namespace Datack.Web.Web.Controllers
                 resultFull = descriptionFull, resultDiff = descriptionDiff, resultLog = descriptionLog, next
             });
         }
+
+        [Route("Run")]
+        [HttpPost]
+        public async Task<ActionResult> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
+        {
+            await _jobs.Run(request.ServerId, request.JobId, request.BackupType, cancellationToken);
+
+            return Ok();
+        }
     }
 
     public class JobsParseCronRequest
@@ -90,5 +100,12 @@ namespace Datack.Web.Web.Controllers
         public String CronFull { get; set; }
         public String CronDiff { get; set; }
         public String CronLog { get; set; }
+    }
+
+    public class JobRunRequest
+    {
+        public Guid ServerId { get; set; }
+        public Guid JobId { get; set; }
+        public BackupType BackupType { get; set; }
     }
 }

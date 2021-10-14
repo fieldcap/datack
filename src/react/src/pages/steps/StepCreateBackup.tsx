@@ -28,14 +28,18 @@ const StepCreateBackup: FC<Props> = (props) => {
 
     const [testResult, setTestResult] = useState<DatabaseListTestResult[]>([]);
 
-    const handleChangeRegex = useCallback(async () => {
-        if (props.settings == null || !props.serverId) {
-            return;
-        }
-
-        const result = await Steps.testDatabaseRegex(props.settings, props.serverId);
-        setTestResult(result);
-    }, [props.serverId]);
+    const handleChangeRegex = useCallback(() => {
+        (async () => {
+            if (props.settings == null || !props.serverId) {
+                return;
+            }
+            const result = await Steps.testDatabaseRegex(
+                props.settings,
+                props.serverId
+            );
+            setTestResult(result);
+        })();
+    }, [props.serverId, props.settings]);
 
     useEffect(() => {
         if (props.settings == null) {
@@ -50,7 +54,7 @@ const StepCreateBackup: FC<Props> = (props) => {
         } else {
             handleChangeRegex();
         }
-    }, [props.settings, onSettingsChanged]);
+    }, [props.settings, handleChangeRegex, onSettingsChanged]);
 
     useEffect(() => {
         handleChangeRegex();

@@ -44,7 +44,7 @@ const JobList: FC<RouteComponentProps> = () => {
 
     const handleAddNewJobClick = () => {
         history.push(`/job/new`);
-    }
+    };
 
     const columns = React.useMemo(() => {
         const columns: Column<Job>[] = [
@@ -92,7 +92,11 @@ const JobList: FC<RouteComponentProps> = () => {
                     {rows.map((row) => {
                         prepareRow(row);
                         return (
-                            <Tr {...row.getRowProps()} onClick={() => rowClick(row.original.jobId)} style={{ cursor: 'pointer' }}>
+                            <Tr
+                                {...row.getRowProps()}
+                                onClick={() => rowClick(row.original.jobId)}
+                                style={{ cursor: 'pointer' }}
+                            >
                                 {row.cells.map((cell) => (
                                     <Td {...cell.getCellProps()}>
                                         {cell.render('Cell')}
@@ -104,7 +108,9 @@ const JobList: FC<RouteComponentProps> = () => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px" onClick={handleAddNewJobClick}>Add new job</Button>
+            <Button marginTop="24px" onClick={handleAddNewJobClick}>
+                Add new job
+            </Button>
         </Skeleton>
     );
 };

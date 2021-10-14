@@ -62,7 +62,7 @@ const Login: FC<RouteComponentProps> = () => {
 
             setIsLoggingIn(false);
             setRedirect(true);
-        } catch (err) {
+        } catch (err: any) {
             setError(err);
             setIsLoggingIn(false);
         }

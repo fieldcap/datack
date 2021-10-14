@@ -116,7 +116,7 @@ namespace Datack.Agent
                            services.AddSingleton<CreateBackupTask>();
 
                            services.AddHostedService<StartupHostedService>();
-                           services.AddHostedService<Services.Agent>();
+                           services.AddHostedService<AgentHostedService>();
                        })
                        .UseSerilog();
         }
