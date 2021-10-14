@@ -8,7 +8,6 @@ using Datack.Agent.Models;
 using Datack.Agent.Services;
 using Datack.Agent.Services.DataConnections;
 using Datack.Agent.Services.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -99,11 +98,12 @@ namespace Datack.Agent
                        .ConfigureServices((_, services) =>
                        {
                            var connectionString = $"Data Source={appSettings.Database.Path}";
-                           services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
-
+                           
                            services.AddSingleton(appSettings);
+                           services.AddSingleton(connectionString);
 
                            services.AddSingleton<DatabaseAdapter>();
+                           services.AddSingleton<DataContextFactory>();
                            services.AddSingleton<Jobs>();
                            services.AddSingleton<JobLogs>();
                            services.AddSingleton<JobScheduler>();
@@ -111,6 +111,7 @@ namespace Datack.Agent
                            services.AddSingleton<Servers>();
                            services.AddSingleton<Steps>();
                            services.AddSingleton<StepLogs>();
+                           services.AddSingleton<StepLogMessages>();
                            services.AddSingleton<SqlServerConnection>();
 
                            services.AddSingleton<CreateBackupTask>();

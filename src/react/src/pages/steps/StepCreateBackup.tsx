@@ -44,6 +44,7 @@ const StepCreateBackup: FC<Props> = (props) => {
     useEffect(() => {
         if (props.settings == null) {
             onSettingsChanged({
+                fileName: '',
                 backupDefaultExclude: false,
                 backupExcludeSystemDatabases: true,
                 backupExcludeRegex: '',
@@ -54,17 +55,26 @@ const StepCreateBackup: FC<Props> = (props) => {
         } else {
             handleChangeRegex();
         }
-    }, [props.settings, handleChangeRegex, onSettingsChanged]);
-
-    useEffect(() => {
-        handleChangeRegex();
-        // eslint-disable-next-line
     }, [
         props.settings?.backupDefaultExclude,
         props.settings?.backupExcludeSystemDatabases,
-        props.settings?.backupExcludeManual,
+        props.settings?.backupExcludeRegex,
+        props.settings?.backupIncludeRegex,
         props.settings?.backupIncludeManual,
+        props.settings?.backupExcludeManual,
+        handleChangeRegex,
+        onSettingsChanged,
     ]);
+
+    const handleFilenameChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            fileName: value,
+        });
+    };
 
     const handleBackupDefaultExclude = (checked: boolean) => {
         if (props.settings == null) {
@@ -250,6 +260,14 @@ const StepCreateBackup: FC<Props> = (props) => {
                 </Checkbox>
             </FormControl>
             <FormControl id="backupIncludeRegex" marginBottom={4}>
+                <FormLabel>File name</FormLabel>
+                <Input
+                    type="text"
+                    value={props.settings?.fileName || ''}
+                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                ></Input>
+            </FormControl>
+            <FormControl id="backupIncludeRegex" marginBottom={4}>
                 <FormLabel>Include Regex</FormLabel>
                 <Input
                     type="text"
@@ -257,7 +275,6 @@ const StepCreateBackup: FC<Props> = (props) => {
                     onChange={(evt) =>
                         handleBackupIncludeRegex(evt.target.value)
                     }
-                    onBlur={() => handleChangeRegex()}
                 ></Input>
             </FormControl>
             <FormControl id="backupExcludeRegex" marginBottom={4}>
@@ -268,7 +285,6 @@ const StepCreateBackup: FC<Props> = (props) => {
                     onChange={(evt) =>
                         handleBackupExcludeRegex(evt.target.value)
                     }
-                    onBlur={() => handleChangeRegex()}
                 ></Input>
             </FormControl>
             <Table width="100%">

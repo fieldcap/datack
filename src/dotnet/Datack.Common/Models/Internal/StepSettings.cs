@@ -11,6 +11,9 @@ namespace Datack.Common.Models.Internal
 
     public class StepCreateDatabaseSettings
     {
+        [JsonPropertyName("fileName")]
+        public String FileName { get;set; }
+
         [JsonPropertyName("backupDefaultExclude")]
         public Boolean BackupDefaultExclude{ get;set; }
 

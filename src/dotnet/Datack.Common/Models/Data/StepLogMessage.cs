@@ -10,6 +10,8 @@ namespace Datack.Common.Models.Data
         public Int64 StepLogMessageId { get; set; }
 
         public Guid StepLogId { get; set; }
+        
+        public Int32 Queue { get; set; }
 
         [ForeignKey("StepLogId")]
         public StepLog StepLog { get; set; }

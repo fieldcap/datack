@@ -10,16 +10,18 @@ namespace Datack.Agent.Services
 {
     public class Steps
     {
-        private readonly DataContext _dataContext;
+        private readonly DataContextFactory _dataContextFactory;
 
-        public Steps(DataContext dataContext)
+        public Steps(DataContextFactory dataContextFactory)
         {
-            _dataContext = dataContext;
+            _dataContextFactory = dataContextFactory;
         }
 
         public async Task UpdateSteps(IList<Step> steps, Guid serverId)
         {
-            var dbSteps = await _dataContext.Steps.ToListAsync();
+            await using var context = _dataContextFactory.Create();
+
+            var dbSteps = await context.Steps.ToListAsync();
 
             steps = steps.Where(m => m.ServerId == serverId).ToList();
 
@@ -29,8 +31,8 @@ namespace Datack.Agent.Services
 
                 if (newStep == null)
                 {
-                    _dataContext.Remove(dbStep);
-                    await _dataContext.SaveChangesAsync();
+                    context.Remove(dbStep);
+                    await context.SaveChangesAsync();
                 }
                 else
                 {
@@ -44,14 +46,16 @@ namespace Datack.Agent.Services
 
             foreach (var step in steps)
             {
-                await _dataContext.Steps.AddAsync(step);
-                await _dataContext.SaveChangesAsync();
+                await context.Steps.AddAsync(step);
+                await context.SaveChangesAsync();
             }
         }
 
         public async Task<IList<Step>> GetForJob(Guid jobId)
         {
-            return await _dataContext.Steps.AsNoTracking().Where(m => m.JobId == jobId).ToListAsync();
+            await using var context = _dataContextFactory.Create();
+
+            return await context.Steps.AsNoTracking().Where(m => m.JobId == jobId).ToListAsync();
         }
     }
 }

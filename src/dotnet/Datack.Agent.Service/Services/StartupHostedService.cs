@@ -8,25 +8,26 @@ namespace Datack.Agent.Services
 {
     public class StartupHostedService : IHostedService
     {
-        private readonly DataContext _dataContext;
+        private readonly DataContextFactory _dataContextFactory;
 
-        public StartupHostedService(DataContext dataContext)
+        public StartupHostedService(DataContextFactory dataContextFactory)
         {
-            _dataContext = dataContext;
+            _dataContextFactory = dataContextFactory;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            await _dataContext.Database.EnsureCreatedAsync(cancellationToken);
-            await _dataContext.Database.MigrateAsync(cancellationToken);
-            await _dataContext.Seed();
+            await using var context = _dataContextFactory.Create();
+            
+            await context.Database.MigrateAsync(cancellationToken);
+            await context.Seed();
 
             // Testing
-            _dataContext.StepLogMessages.RemoveRange(_dataContext.StepLogMessages);
-            _dataContext.StepLogs.RemoveRange(_dataContext.StepLogs);
-            _dataContext.JobLogs.RemoveRange(_dataContext.JobLogs);
+            context.StepLogMessages.RemoveRange(context.StepLogMessages);
+            context.StepLogs.RemoveRange(context.StepLogs);
+            context.JobLogs.RemoveRange(context.JobLogs);
 
-            await _dataContext.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

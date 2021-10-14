@@ -82,14 +82,14 @@ namespace Datack.Agent.Services
         {
             _logger.LogTrace("GetDatabaseList");
 
-            return await _databaseAdapter.GetDatabaseList();
+            return await _databaseAdapter.GetDatabaseList(CancellationToken.None);
         }
 
         private async Task<String> TestSqlServer(ServerDbSettings serverDbSettings)
         {
             _logger.LogTrace("TestSqlServer");
 
-            return await _databaseAdapter.TestConnection(serverDbSettings);
+            return await _databaseAdapter.TestConnection(serverDbSettings, CancellationToken.None);
         }
 
         private async Task<String> Run(Guid jobId, BackupType backupType)

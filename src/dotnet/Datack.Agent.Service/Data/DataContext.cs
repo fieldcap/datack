@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
@@ -146,6 +147,17 @@ namespace Datack.Agent.Data
                        .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
                                       v => JsonSerializer.Deserialize<StepSettings>(v, SerializerOptions));
             }
+        }
+    }
+
+    public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<DataContext>
+    {
+        public DataContext CreateDbContext(String[] args)
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<DataContext>();
+            optionsBuilder.UseSqlite("Data Source=Datack.db");
+
+            return new DataContext(optionsBuilder.Options);
         }
     }
 }

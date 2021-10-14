@@ -290,6 +290,7 @@ namespace Datack.Web.Service.Migrations
                     StepLogMessageId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     StepLogId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Queue = table.Column<int>(type: "INTEGER", nullable: false),
                     DateTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     IsError = table.Column<bool>(type: "INTEGER", nullable: false),
                     Message = table.Column<string>(type: "TEXT", nullable: true)

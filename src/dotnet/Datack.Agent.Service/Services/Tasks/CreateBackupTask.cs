@@ -1,19 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using ByteSizeLib;
 using Datack.Common.Enums;
 using Datack.Common.Extensions;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
+using StringTokenFormatter;
 
 namespace Datack.Agent.Services.Tasks
 {
     public class CreateBackupTask : BaseTask
     {
         private const Int32 Parallel = 2;
-
+        
         private readonly DatabaseAdapter _databaseAdapter;
 
         public CreateBackupTask(DatabaseAdapter databaseAdapter)
@@ -21,23 +24,17 @@ namespace Datack.Agent.Services.Tasks
             _databaseAdapter = databaseAdapter;
         }
 
-        public override async Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId)
+        public override async Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId, CancellationToken cancellationToken)
         {
             var databases = new List<DatabaseStep>();
 
-            OnProgress("Getting list of databases");
-
-            var allDatabaseList = await _databaseAdapter.GetDatabaseList();
-
-            OnProgress($"Found total of {allDatabaseList.Count} databases");
+            var allDatabaseList = await _databaseAdapter.GetDatabaseList(cancellationToken);
 
             var filteredDatabaseList = DatabaseHelper.FilterDatabases(allDatabaseList, step.Settings.CreateBackup);
 
             var databaseList = filteredDatabaseList.Where(m => m.Include).ToList();
 
-            OnProgress($"Found total of {databaseList.Count} eligible databases");
-
-            var databaseFileSizeList = await _databaseAdapter.GetFileList();
+            var databaseFileSizeList = await _databaseAdapter.GetFileList(cancellationToken);
 
             foreach (var database in databaseList)
             {
@@ -56,10 +53,6 @@ namespace Datack.Agent.Services.Tasks
                     Size = size
                 });
             }
-
-            var totalSize = (Int64) databases.Sum(m => m.Size);
-
-            OnProgress($"Estimated total size {ByteSize.FromKiloBytes(totalSize)}");
 
             var batches = databases.Split(Parallel);
 
@@ -88,13 +81,102 @@ namespace Datack.Agent.Services.Tasks
             }
 
             return results;
-            /*var backupName = $"{database} Full Backup";
-            var query = $@"BACKUP DATABASE [{database}] TO  DISK = N'{dbFilePath}' WITH NOFORMAT, INIT,  NAME = N'{backupName}', SKIP, NOREWIND, NOUNLOAD,  STATS = 10";*/
         }
 
-        public override async Task Run(List<StepLog> queue)
+        public override async Task Run(List<StepLog> queue, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var index = 0;
+            foreach (var step in queue)
+            {
+                try
+                {
+                    var sw = new Stopwatch();
+                    sw.Start();
+
+                    index++;
+
+                    OnStart(step.StepLogId);
+
+                    OnProgress(step.StepLogId, index, $"Starting backup {step.DatabaseName} {index}/{queue.Count}");
+
+                    if (String.IsNullOrWhiteSpace(step.Settings.CreateBackup.FileName))
+                    {
+                        throw new Exception($"No filename given");
+                    }
+
+                    var tokenValues = new
+                    {
+                        DatabaseName = step.DatabaseName
+                    };
+
+                    var rawFileName = Path.GetFileName(step.Settings.CreateBackup.FileName);
+
+                    if (String.IsNullOrWhiteSpace(rawFileName))
+                    {
+                        throw new Exception($"Invalid filename '{step.Settings.CreateBackup.FileName}'");
+                    }
+
+                    var fileName = rawFileName.FormatToken(tokenValues);
+                    fileName = String.Format(fileName, step.JobLog.Started);
+
+                    var rawFilePath = Path.GetDirectoryName(step.Settings.CreateBackup.FileName);
+
+                    if (String.IsNullOrWhiteSpace(rawFilePath))
+                    {
+                        throw new Exception($"Invalid file path '{step.Settings.CreateBackup.FileName}'");
+                    }
+
+                    var filePath = rawFilePath.FormatToken(tokenValues);
+                    filePath = String.Format(filePath, step.JobLog.Started);
+
+                    var storePath = Path.Combine(filePath, fileName);
+
+                    OnProgress(step.StepLogId, index, $"Testing path {storePath}");
+
+                    if (!Directory.Exists(filePath))
+                    {
+                        Directory.CreateDirectory(filePath);
+                    }
+
+                    if (File.Exists(fileName))
+                    {
+                        throw new Exception($"Cannot create backup, file '{storePath}' already exists");
+                    }
+
+                    try
+                    {
+                        await File.WriteAllTextAsync(storePath, "Test write backup", cancellationToken);
+                    }
+                    finally
+                    {
+                        File.Delete(storePath);
+                    }
+
+                    OnProgress(step.StepLogId, index, $"Creating backup {step.DatabaseName}");
+
+                    await _databaseAdapter.CreateBackup(step.DatabaseName,
+                                                        storePath,
+                                                        evt =>
+                                                        {
+                                                            OnProgress(step.StepLogId, index, evt.Message);
+                                                        },
+                                                        cancellationToken);
+
+                    OnProgress(step.StepLogId, index, $"Completed backup {step.DatabaseName}");
+
+                    sw.Stop();
+                    
+                    var message = $"Operation completed in {sw.Elapsed:g}";
+
+                    OnComplete(step.StepLogId, step.JobLogId, message, false);
+                }
+                catch (Exception ex)
+                {
+                    var message = $"Operation resulted in an error: {ex.Message}";
+
+                    OnComplete(step.StepLogId, step.JobLogId, message, true);
+                }
+            }
         }
     }
 

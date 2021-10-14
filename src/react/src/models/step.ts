@@ -19,6 +19,7 @@ export type StepSettings = {
 };
 
 export type StepCreateBackupSettings = {
+    fileName: string;
     backupDefaultExclude: boolean;
     backupIncludeRegex: string;
     backupExcludeRegex: string;

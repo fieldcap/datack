@@ -18,6 +18,7 @@ namespace Datack.Agent.Services
         private readonly JobLogs _jobLogs;
         private readonly Steps _steps;
         private readonly StepLogs _stepLogs;
+        private readonly StepLogMessages _stepLogMessages;
 
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken _cancellationToken;
@@ -29,6 +30,7 @@ namespace Datack.Agent.Services
                             JobLogs jobLogs,
                             Steps steps,
                             StepLogs stepLogs,
+                            StepLogMessages stepLogMessages,
                             CreateBackupTask createBackupTask)
         {
             _logger = logger;
@@ -36,6 +38,7 @@ namespace Datack.Agent.Services
             _jobLogs = jobLogs;
             _steps = steps;
             _stepLogs = stepLogs;
+            _stepLogMessages = stepLogMessages;
 
             _logger.LogTrace("Constructor");
 
@@ -64,12 +67,12 @@ namespace Datack.Agent.Services
         {
             var job = await _jobs.GetById(jobId);
 
-            if (job != null)
+            if (job == null)
             {
                 throw new Exception($"Job with ID {jobId} not found");
             }
 
-
+            await RunSetup(job, backupType);
         }
 
         private async Task Trigger()
@@ -143,7 +146,7 @@ namespace Datack.Agent.Services
             {
                 var task = GetTask(step.Type);
 
-                var stepLogs = await task.Setup(job, step, backupType, jobLog.JobLogId);
+                var stepLogs = await task.Setup(job, step, backupType, jobLog.JobLogId, _cancellationToken);
 
                 allStepLogs.AddRange(stepLogs);
             }
@@ -188,7 +191,7 @@ namespace Datack.Agent.Services
 
             if (!queue.Any())
             {
-                // Update job log as completed.
+                await _jobLogs.UpdateComplete(jobLogId);
                 return;
             }
 
@@ -198,14 +201,76 @@ namespace Datack.Agent.Services
 
             var nextQueue = nextStep.GroupBy(m => m.Queue);
 
-            task.OnProgressEvent += (_, args) =>
-            {
-                
-            };
+            task.OnProgressEvent += (_, args) => AddStepLogMessage(args.StepLogId, args.Queue, args.Message, args.IsError);
+            task.OnStartEvent += (_, args) => StartStep(args.StepLogId);
+            task.OnCompleteEvent += (_, args) => CompleteStep(args.StepLogId, args.JobLogId, args.Message, args.IsError);
 
             foreach (var steps in nextQueue)
             {
-                _ = Task.Run(() => task.Run(steps.ToList()), _cancellationToken);
+                _ = Task.Run(() => task.Run(steps.ToList(), _cancellationToken), _cancellationToken);
+            }
+        }
+
+        private async void AddStepLogMessage(Guid stepLogId, Int32 queue, String message, Boolean isError)
+        {
+            if (isError)
+            {
+                _logger.LogError($"{stepLogId}: {message}");
+            }
+            else
+            {
+                _logger.LogInformation($"{stepLogId}: {message}");
+            }
+
+            await _stepLogMessages.Add(new StepLogMessage
+            {
+                StepLogId = stepLogId,
+                Queue = queue,
+                DateTime = DateTimeOffset.Now,
+                Message = message,
+                IsError = isError
+            });
+        }
+
+        private async void StartStep(Guid stepLogId)
+        {
+            _logger.LogInformation($"{stepLogId}: Started");
+            
+
+            await _stepLogs.UpdateStarted(stepLogId);
+        }
+
+        private readonly SemaphoreSlim _completeStepLock = new SemaphoreSlim(1, 1);
+        private async void CompleteStep(Guid stepLogId, Guid jobLogId, String message, Boolean isError)
+        {
+            await _completeStepLock.WaitAsync(_cancellationToken);
+
+            try
+            {
+                if (isError)
+                {
+                    _logger.LogError($"{stepLogId}: {message}");
+                }
+                else
+                {
+                    _logger.LogInformation($"{stepLogId}: {message}");
+                }
+
+                var stepsLeft = await _stepLogs.UpdateCompleted(stepLogId, jobLogId, message, isError);
+
+                if (stepsLeft == 0)
+                {
+                    _logger.LogInformation($"{jobLogId} Job complete");
+                    await _jobLogs.UpdateComplete(jobLogId);
+                }
+                else
+                {
+                    _logger.LogInformation($"{jobLogId} Job has {stepsLeft} steps left");
+                }
+            }
+            finally
+            {
+                _completeStepLock.Release();
             }
         }
 

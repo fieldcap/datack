@@ -2,11 +2,11 @@
 
 namespace Datack.Agent.Models
 {
-    public class CompleteEvent
+    public class ProgressEvent
     {
         public Guid StepLogId { get; set; }
-        public Guid JobLogId { get; set; }
-        public String Message { get; set; }
+        public Int32 Queue { get; set; }
         public Boolean IsError { get; set; }
+        public String Message { get; set; }
     }
 }

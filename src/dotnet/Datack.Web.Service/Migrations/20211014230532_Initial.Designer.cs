@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datack.Web.Service.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20210817165610_Initial")]
+    [Migration("20211014230532_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -212,6 +212,9 @@ namespace Datack.Web.Service.Migrations
 
                     b.Property<string>("Message")
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Queue")
+                        .HasColumnType("INTEGER");
 
                     b.Property<Guid>("StepLogId")
                         .HasColumnType("TEXT");

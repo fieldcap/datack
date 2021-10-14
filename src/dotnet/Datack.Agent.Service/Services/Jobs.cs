@@ -10,20 +10,22 @@ namespace Datack.Agent.Services
 {
     public class Jobs
     {
-        private readonly DataContext _dataContext;
+        private readonly DataContextFactory _dataContextFactory;
+
+        public Jobs(DataContextFactory dataContextFactory)
+        {
+            _dataContextFactory = dataContextFactory;
+        }
 
         private static IList<Job> _jobs;
 
-        public Jobs(DataContext dataContext)
-        {
-            _dataContext = dataContext;
-        }
-
         public async Task<IList<Job>> GetJobs()
         {
+            await using var context = _dataContextFactory.Create();
+
             if (_jobs == null)
             {
-                _jobs = await _dataContext.Jobs.ToListAsync();
+                _jobs = await context.Jobs.ToListAsync();
             }
 
             return _jobs;
@@ -31,7 +33,9 @@ namespace Datack.Agent.Services
 
         public async Task UpdateJobs(IList<Job> jobs)
         {
-            var dbJobs = await _dataContext.Jobs.ToListAsync();
+            await using var context = _dataContextFactory.Create();
+
+            var dbJobs = await context.Jobs.ToListAsync();
 
             foreach (var dbJob in dbJobs)
             {
@@ -39,8 +43,8 @@ namespace Datack.Agent.Services
 
                 if (newJob == null)
                 {
-                    _dataContext.Remove(dbJob);
-                    await _dataContext.SaveChangesAsync();
+                    context.Remove(dbJob);
+                    await context.SaveChangesAsync();
                 }
                 else
                 {
@@ -54,8 +58,8 @@ namespace Datack.Agent.Services
 
             foreach (var job in jobs)
             {
-                await _dataContext.Jobs.AddAsync(job);
-                await _dataContext.SaveChangesAsync();
+                await context.Jobs.AddAsync(job);
+                await context.SaveChangesAsync();
             }
 
             _jobs = null;
@@ -63,7 +67,9 @@ namespace Datack.Agent.Services
 
         public async Task<Job> GetById(Guid jobId)
         {
-            return await _dataContext.Jobs.FirstOrDefaultAsync(m => m.JobId == jobId);
+            await using var context = _dataContextFactory.Create();
+
+            return await context.Jobs.FirstOrDefaultAsync(m => m.JobId == jobId);
         }
     }
 }

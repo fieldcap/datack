@@ -138,6 +138,7 @@ namespace Datack.Web.Service.Data
                     {
                         CreateBackup = new StepCreateDatabaseSettings
                         {
+                            FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}",
                             BackupDefaultExclude = false,
                             BackupExcludeManual = "",
                             BackupExcludeRegex = "",
@@ -230,7 +231,7 @@ namespace Datack.Web.Service.Data
         public DataContext CreateDbContext(String[] args)
         {
             var builder = new DbContextOptionsBuilder<DataContext>();
-            var connectionString = $"Data Source=test.db";
+            var connectionString = $"Data Source=DatackAgent.db";
             builder.UseSqlite(connectionString);
             return new DataContext(builder.Options);
         }

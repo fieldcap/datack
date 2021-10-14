@@ -211,6 +211,9 @@ namespace Datack.Web.Service.Migrations
                     b.Property<string>("Message")
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Queue")
+                        .HasColumnType("INTEGER");
+
                     b.Property<Guid>("StepLogId")
                         .HasColumnType("TEXT");
 

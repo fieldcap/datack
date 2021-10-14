@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
 using Datack.Common.Enums;
@@ -9,49 +10,41 @@ namespace Datack.Agent.Services.Tasks
 {
     public abstract class BaseTask
     {
+        public event EventHandler<StartEvent> OnStartEvent;
         public event EventHandler<ProgressEvent> OnProgressEvent;
-        public event EventHandler<TimeSpan> OnCompleteEvent;
-        public event EventHandler<Exception> OnErrorEvent;
+        public event EventHandler<CompleteEvent> OnCompleteEvent;
         
-        private Int32 _currentProgress;
-        private Int32 _maxProgress;
+        public abstract Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId, CancellationToken cancellationToken);
 
-        public abstract Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId);
-
-        public abstract Task Run(List<StepLog> queue);
-
-        protected void OnProgress(Int32 progress, Int32 max)
-        {
-            _currentProgress = progress;
-            _maxProgress = max;
-
-            OnProgressEvent?.Invoke(this, new ProgressEvent
-            {
-                Current = _currentProgress,
-                Max = _maxProgress,
-                Message = null
-            });
-        }
+        public abstract Task Run(List<StepLog> queue, CancellationToken cancellationToken);
         
-        protected void OnProgress(Int32 progress)
+        protected void OnStart(Guid stepLogId)
         {
-            _currentProgress = progress;
-
-            OnProgressEvent?.Invoke(this, new ProgressEvent
+            OnStartEvent?.Invoke(this, new StartEvent
             {
-                Current = _currentProgress,
-                Max = _maxProgress,
-                Message = null
+                StepLogId = stepLogId
             });
         }
 
-        protected void OnProgress(String message)
+        protected void OnProgress(Guid stepLogId, Int32 queue, String message)
         {
             OnProgressEvent?.Invoke(this, new ProgressEvent
             {
-                Current = _currentProgress,
-                Max = _maxProgress,
-                Message = message
+                StepLogId = stepLogId,
+                Queue = queue,
+                Message = message,
+                IsError = false
+            });
+        }
+        
+        protected void OnComplete(Guid stepLogId, Guid jobLogId, String message, Boolean isError)
+        {
+            OnCompleteEvent?.Invoke(this, new CompleteEvent
+            {
+                StepLogId = stepLogId,
+                JobLogId = jobLogId,
+                Message = message,
+                IsError = isError
             });
         }
     }

@@ -8,20 +8,21 @@ namespace Datack.Agent.Services
 {
     public class Servers
     {
-        private readonly DataContext _dataContext;
-
+        private readonly DataContextFactory _dataContextFactory;
         private static Server _server;
 
-        public Servers(DataContext dataContext)
+        public Servers(DataContextFactory dataContextFactory)
         {
-            _dataContext = dataContext;
+            _dataContextFactory = dataContextFactory;
         }
 
         public async Task<Server> GetServer()
         {
+            await using var context = _dataContextFactory.Create();
+
             if (_server == null)
             {
-                _server = await _dataContext.Servers.FirstOrDefaultAsync();
+                _server = await context.Servers.FirstOrDefaultAsync();
             }
 
             return _server;
@@ -29,20 +30,22 @@ namespace Datack.Agent.Services
 
         public async Task UpdateServer(Server server)
         {
-            var dbServers = await _dataContext.Servers.ToListAsync();
+            await using var context = _dataContextFactory.Create();
+
+            var dbServers = await context.Servers.ToListAsync();
 
             var otherServers = dbServers.Where(m => m.Key != server.Key).ToList();
 
             if (otherServers.Count > 0)
             {
-                _dataContext.RemoveRange(otherServers);
-                await _dataContext.SaveChangesAsync();
+                context.RemoveRange(otherServers);
+                await context.SaveChangesAsync();
             }
 
             if (dbServers.Count == 0)
             {
-                await _dataContext.Servers.AddAsync(server);
-                await _dataContext.SaveChangesAsync();
+                await context.Servers.AddAsync(server);
+                await context.SaveChangesAsync();
             }
             else
             {
@@ -52,7 +55,7 @@ namespace Datack.Agent.Services
                 dbServer.DbSettings = server.DbSettings;
                 dbServer.Settings = server.Settings;
 
-                await _dataContext.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
 
             _server = null;
