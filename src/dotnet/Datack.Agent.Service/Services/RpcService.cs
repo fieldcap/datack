@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -110,6 +111,7 @@ namespace Datack.Agent.Services
         private async Task HandleRequest(RpcRequest rpcRequest)
         {
             var result = new RpcResult(rpcRequest.TransactionId);
+
             try
             {
                 if (!_requestMethods.ContainsKey(rpcRequest.Request))
@@ -137,13 +139,14 @@ namespace Datack.Agent.Services
                     }
 
                     var invokationParameters = new Object[parameters.Count];
+
                     for (var i = 0; i < parameters.Count; i++)
                     {
                         var payloadParameterRaw = payloadParameters[i].GetRawText();
                         var payloadParameterObject = JsonSerializer.Deserialize(payloadParameterRaw, parameters[i].Type);
                         invokationParameters[i] = payloadParameterObject;
                     }
-                    
+
                     methodResult = lambdaExpression.Compile().DynamicInvoke(invokationParameters) as Task;
                 }
 
@@ -160,12 +163,13 @@ namespace Datack.Agent.Services
                 }
 
                 var invokationResult = taskResult.GetValue(methodResult);
-                
+
                 result.Result = JsonSerializer.Serialize(invokationResult);
             }
             catch (Exception ex)
             {
-                result.Error = JsonSerializer.Serialize(ex);
+                var rpcException = ex.ToRpcException();
+                result.Error = JsonSerializer.Serialize(rpcException);
             }
             finally
             {

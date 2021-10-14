@@ -74,6 +74,12 @@ namespace Datack.Web.Service.Services
 
                 if (DatackHub.Transactions.TryGetValue(request.TransactionId, out var rpcResult))
                 {
+                    if (rpcResult.Error != null)
+                    {
+                        var agentException = JsonSerializer.Deserialize<RpcException>(rpcResult.Error);
+
+                        throw new Exception($"Agent threw an exception: {agentException}");
+                    }
                     return JsonSerializer.Deserialize<T>(rpcResult.Result);
                 }
 

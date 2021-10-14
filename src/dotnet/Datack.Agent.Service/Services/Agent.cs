@@ -96,7 +96,7 @@ namespace Datack.Agent.Services
         {
             _logger.LogTrace("Run {jobId} {backupType}", jobId, backupType);
 
-            
+            await _jobScheduler.Run(jobId, backupType);
 
             return "Success";
         }

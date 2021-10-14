@@ -60,6 +60,18 @@ namespace Datack.Agent.Services
             _cancellationTokenSource.Cancel();
         }
 
+        public async Task Run(Guid jobId, BackupType backupType)
+        {
+            var job = await _jobs.GetById(jobId);
+
+            if (job != null)
+            {
+                throw new Exception($"Job with ID {jobId} not found");
+            }
+
+
+        }
+
         private async Task Trigger()
         {
             while (!_cancellationToken.IsCancellationRequested)

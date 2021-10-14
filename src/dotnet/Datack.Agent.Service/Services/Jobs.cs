@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Datack.Agent.Data;
@@ -58,6 +59,11 @@ namespace Datack.Agent.Services
             }
 
             _jobs = null;
+        }
+
+        public async Task<Job> GetById(Guid jobId)
+        {
+            return await _dataContext.Jobs.FirstOrDefaultAsync(m => m.JobId == jobId);
         }
     }
 }
