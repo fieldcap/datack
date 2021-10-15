@@ -13,7 +13,13 @@ namespace Datack.Common.Helpers
             "master", "tempdb", "model", "msdb"
         };
 
-        public static List<DatabaseTestResult> FilterDatabases(IList<Database> databases, StepCreateDatabaseSettings settings)
+        public static List<DatabaseTestResult> FilterDatabases(IList<Database> databases,
+                                                               Boolean backupDefaultExclude,
+                                                               Boolean backupExcludeSystemDatabases,
+                                                               String backupIncludeRegex,
+                                                               String backupExcludeRegex,
+                                                               String backupIncludeManual,
+                                                               String backupExcludeManual)
         {
             databases ??= new List<Database>();
 
@@ -22,14 +28,14 @@ namespace Datack.Common.Helpers
             var excludeManualList = new List<String>();
             var includeManualList = new List<String>();
 
-            if (!String.IsNullOrWhiteSpace(settings.BackupIncludeManual))
+            if (!String.IsNullOrWhiteSpace(backupIncludeManual))
             {
-                includeManualList = settings.BackupIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                includeManualList = backupIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
             }
 
-            if (!String.IsNullOrWhiteSpace(settings.BackupExcludeManual))
+            if (!String.IsNullOrWhiteSpace(backupExcludeManual))
             {
-                excludeManualList = settings.BackupExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+                excludeManualList = backupExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
             }
 
             foreach (var database in databases)
@@ -51,19 +57,19 @@ namespace Datack.Common.Helpers
                 {
                     result.IsManualExcluded = true;
                 }
-                else if (settings.BackupExcludeSystemDatabases && SystemDatabases.Contains(database.DatabaseName))
+                else if (backupExcludeSystemDatabases && SystemDatabases.Contains(database.DatabaseName))
                 {
                     result.IsSystemDatabase = true;
                 }
-                else if (!String.IsNullOrWhiteSpace(settings.BackupIncludeRegex) && Regex.IsMatch(database.DatabaseName, settings.BackupIncludeRegex))
+                else if (!String.IsNullOrWhiteSpace(backupIncludeRegex) && Regex.IsMatch(database.DatabaseName, backupIncludeRegex))
                 {
                     result.IsRegexIncluded = true;
                 }
-                else if (!String.IsNullOrWhiteSpace(settings.BackupExcludeRegex) && Regex.IsMatch(database.DatabaseName, settings.BackupExcludeRegex))
+                else if (!String.IsNullOrWhiteSpace(backupExcludeRegex) && Regex.IsMatch(database.DatabaseName, backupExcludeRegex))
                 {
                     result.IsRegexExcluded = true;
                 }
-                else if (settings.BackupDefaultExclude)
+                else if (backupDefaultExclude)
                 {
                     result.IsBackupDefaultExcluded = true;
                 }

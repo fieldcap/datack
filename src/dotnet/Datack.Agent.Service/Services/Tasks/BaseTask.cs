@@ -14,35 +14,34 @@ namespace Datack.Agent.Services.Tasks
         public event EventHandler<ProgressEvent> OnProgressEvent;
         public event EventHandler<CompleteEvent> OnCompleteEvent;
         
-        public abstract Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId, CancellationToken cancellationToken);
+        public abstract Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken);
 
-        public abstract Task Run(List<StepLog> queue, CancellationToken cancellationToken);
+        public abstract Task Run(JobRunTask jobRunTask, CancellationToken cancellationToken);
         
-        protected void OnStart(Guid stepLogId)
+        protected void OnStart(Guid jobRunTaskId)
         {
             OnStartEvent?.Invoke(this, new StartEvent
             {
-                StepLogId = stepLogId
+                JobRunTaskId = jobRunTaskId
             });
         }
 
-        protected void OnProgress(Guid stepLogId, Int32 queue, String message)
+        protected void OnProgress(Guid jobRunTaskId, String message)
         {
             OnProgressEvent?.Invoke(this, new ProgressEvent
             {
-                StepLogId = stepLogId,
-                Queue = queue,
+                JobRunTaskId = jobRunTaskId,
                 Message = message,
                 IsError = false
             });
         }
         
-        protected void OnComplete(Guid stepLogId, Guid jobLogId, String message, Boolean isError)
+        protected void OnComplete(Guid jobRunTaskId, Guid jobRunId, String message, Boolean isError)
         {
             OnCompleteEvent?.Invoke(this, new CompleteEvent
             {
-                StepLogId = stepLogId,
-                JobLogId = jobLogId,
+                JobRunTaskId = jobRunTaskId,
+                JobRunId = jobRunId,
                 Message = message,
                 IsError = isError
             });

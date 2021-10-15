@@ -17,19 +17,19 @@ import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { v4 } from 'uuid';
+import { JobTask, JobTaskSettings } from '../../models/job-task';
 import { Server } from '../../models/server';
-import { Step, StepSettings } from '../../models/step';
+import JobTasks from '../../services/jobTasks';
 import Servers from '../../services/servers';
-import Steps from '../../services/steps';
-import StepCreateBackup from './StepCreateBackup';
+import JobTaskCreateBackup from './JobTaskCreateBackup';
 
 type RouteParams = {
     id?: string;
     jobId: string;
 };
 
-const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
-    const [step, setStep] = React.useState<Step | null>(null);
+const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
+    const [jobTask, setJobTask] = React.useState<JobTask | null>(null);
 
     const [isAdd, setIsAdd] = useState<boolean>(false);
 
@@ -38,7 +38,8 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [type, setType] = useState<string>('');
-    const [settings, setSettings] = useState<StepSettings | null>(null);
+    const [parallel, setParallel] = useState<number>(1);
+    const [settings, setSettings] = useState<JobTaskSettings | null>(null);
     const [serverId, setServerId] = useState<string>('');
 
     const [error, setError] = useState<string | null>(null);
@@ -56,14 +57,15 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         if (props.match.params.id != null) {
             (async () => {
-                const result = await Steps.getById(
+                const result = await JobTasks.getById(
                     props.match.params.id!,
                     getByIdCancelToken
                 );
-                setStep(result);
+                setJobTask(result);
                 setName(result.name || '');
                 setDescription(result.description || '');
                 setType(result.type || '');
+                setParallel(result.parallel);
                 setSettings(result.settings);
                 setServerId(result.serverId || '');
             })();
@@ -84,30 +86,32 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         try {
             if (isAdd) {
-                const newStep: Step = {
-                    stepId: v4(),
+                const newJobTask: JobTask = {
+                    jobTaskId: v4(),
                     jobId: props.match.params.jobId,
                     name: name,
                     description: description,
                     type: type,
+                    parallel: parallel,
                     order: 0,
                     settings: settings || {},
                     serverId: serverId,
                 };
 
-                const result = await Steps.add(newStep);
+                const result = await JobTasks.add(newJobTask);
 
                 history.push(`/job/${result}`);
-            } else if (step != null) {
-                step.name = name;
-                step.description = description;
-                step.type = type;
-                step.settings = settings || {};
-                step.serverId = serverId;
+            } else if (jobTask != null) {
+                jobTask.name = name;
+                jobTask.description = description;
+                jobTask.type = type;
+                jobTask.settings = settings || {};
+                jobTask.serverId = serverId;
+                jobTask.parallel = parallel;
 
-                await Steps.update(step);
+                await JobTasks.update(jobTask);
 
-                history.push(`/job/${step.jobId}`);
+                history.push(`/job/${jobTask.jobId}`);
             }
         } catch (err: any) {
             setIsSaving(false);
@@ -116,10 +120,10 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     const cancel = () => {
-        history.push(`/job/${step?.jobId}`);
+        history.push(`/job/${jobTask?.jobId}`);
     };
 
-    const getStepType = () => {
+    const getTaskType = () => {
         if (type == null || settings == null) {
             return null;
         }
@@ -127,7 +131,7 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         switch (type) {
             case 'create_backup':
                 return (
-                    <StepCreateBackup
+                    <JobTaskCreateBackup
                         settings={settings.createBackup}
                         serverId={serverId}
                         onSettingsChanged={(newSettings) => {
@@ -136,7 +140,7 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                                 createBackup: newSettings,
                             });
                         }}
-                    ></StepCreateBackup>
+                    ></JobTaskCreateBackup>
                 );
             default:
                 return <Alert>Unkown type {type}</Alert>;
@@ -144,22 +148,22 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     return (
-        <Skeleton isLoaded={step != null || isAdd}>
+        <Skeleton isLoaded={jobTask != null || isAdd}>
             <Box marginBottom="24px">
                 {isAdd ? (
-                    <Heading>Add step</Heading>
+                    <Heading>Add task</Heading>
                 ) : (
-                    <Heading>Edit step</Heading>
+                    <Heading>Edit task</Heading>
                 )}
-                {/* <Link href={`/#/job/${step?.jobId}`}>{step?.job?.name}</Link>
+                {/* <Link href={`/#/job/${jobTask?.jobId}`}>{jobTask?.job?.name}</Link>
                 <br /> */}
-                {/* <Link href={`/#/server/${step?.job?.serverId}`}>
-                    {step?.job?.server?.name}
+                {/* <Link href={`/#/server/${jobTask?.job?.serverId}`}>
+                    {jobTask?.job?.server?.name}
                 </Link> */}
             </Box>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
-                    <FormLabel>Step Name</FormLabel>
+                    <FormLabel>Task Name</FormLabel>
                     <Input
                         type="text"
                         maxLength={100}
@@ -202,7 +206,19 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <option value="create_backup">Create Backup</option>
                     </Select>
                 </FormControl>
-                {getStepType()}
+                <FormControl id="type" isRequired marginBottom={4}>
+                    <FormLabel>Parallel execution</FormLabel>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={99}
+                        value={parallel}
+                        onChange={(e) => {
+                            setParallel(Number(e.target.value));
+                        }}
+                    />
+                </FormControl>
+                {getTaskType()}
                 {error != null ? (
                     <Alert marginTop="24px" status="error">
                         <AlertIcon />
@@ -226,7 +242,7 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             isLoading={isSaving}
                             colorScheme="red"
                         >
-                            Delete step
+                            Delete task
                         </Button>
                     ) : null}
                 </HStack>
@@ -235,4 +251,4 @@ const StepEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     );
 };
 
-export default StepEditor;
+export default JobTaskEditor;

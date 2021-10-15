@@ -15,7 +15,7 @@ import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
 import JobHistoryTab from './JobHistoryTab';
 import JobSettingsTab from './JobSettingsTab';
-import JobStepsTab from './JobStepsTab';
+import JobTasksTab from './JobTasksTab';
 
 type RouteParams = {
     id: string;
@@ -51,7 +51,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             <Tabs>
                 <TabList>
                     <Tab>History</Tab>
-                    <Tab>Steps</Tab>
+                    <Tab>Tasks</Tab>
                     <Tab>Configuration</Tab>
                 </TabList>
 
@@ -60,7 +60,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <JobHistoryTab job={job}></JobHistoryTab>
                     </TabPanel>
                     <TabPanel>
-                        <JobStepsTab job={job}></JobStepsTab>
+                        <JobTasksTab job={job}></JobTasksTab>
                     </TabPanel>
                     <TabPanel>
                         <JobSettingsTab job={job}></JobSettingsTab>

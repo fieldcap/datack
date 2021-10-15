@@ -25,10 +25,17 @@ namespace Datack.Agent.Services
 
             if (_jobs == null)
             {
-                _jobs = await context.Jobs.ToListAsync();
+                _jobs = await context.Jobs.AsNoTracking().ToListAsync();
             }
 
             return _jobs;
+        }
+
+        public async Task<Job> GetById(Guid jobId)
+        {
+            await using var context = _dataContextFactory.Create();
+
+            return await context.Jobs.AsNoTracking().FirstOrDefaultAsync(m => m.JobId == jobId);
         }
 
         public async Task UpdateJobs(IList<Job> jobs)
@@ -63,13 +70,6 @@ namespace Datack.Agent.Services
             }
 
             _jobs = null;
-        }
-
-        public async Task<Job> GetById(Guid jobId)
-        {
-            await using var context = _dataContextFactory.Create();
-
-            return await context.Jobs.FirstOrDefaultAsync(m => m.JobId == jobId);
         }
     }
 }

@@ -4,17 +4,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Datack.Common.Models.Data
 {
-    public class StepLogMessage
+    public class JobRunTaskLog
     {
         [Key]
-        public Int64 StepLogMessageId { get; set; }
+        public Int64 JobRunTaskLogId { get; set; }
 
-        public Guid StepLogId { get; set; }
+        public Guid JobRunTaskId { get; set; }
         
-        public Int32 Queue { get; set; }
-
-        [ForeignKey("StepLogId")]
-        public StepLog StepLog { get; set; }
+        [ForeignKey("JobRunTaskId")]
+        public JobRunTask JobRunTask { get; set; }
 
         public DateTimeOffset DateTime { get; set; }
 

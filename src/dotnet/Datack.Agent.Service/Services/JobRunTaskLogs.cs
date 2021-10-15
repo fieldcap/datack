@@ -4,20 +4,20 @@ using Datack.Common.Models.Data;
 
 namespace Datack.Agent.Services
 {
-    public class StepLogMessages
+    public class JobRunTaskLogs
     {
         private readonly DataContextFactory _dataContextFactory;
 
-        public StepLogMessages(DataContextFactory dataContextFactory)
+        public JobRunTaskLogs(DataContextFactory dataContextFactory)
         {
             _dataContextFactory = dataContextFactory;
         }
 
-        public async Task Add(StepLogMessage message)
+        public async Task Add(JobRunTaskLog message)
         {
             await using var context = _dataContextFactory.Create();
 
-            await context.StepLogMessages.AddAsync(message);
+            await context.JobRunTaskLogs.AddAsync(message);
             await context.SaveChangesAsync();
         }
     }

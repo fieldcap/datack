@@ -12,13 +12,13 @@ namespace Datack.Web.Service.Services
     {
         private readonly Servers _servers;
         private readonly Jobs _jobs;
-        private readonly Steps _steps;
+        private readonly JobTasks _jobTasks;
 
-        public DatackHub(Servers servers, Jobs jobs, Steps steps)
+        public DatackHub(Servers servers, Jobs jobs, JobTasks jobTasks)
         {
             _servers = servers;
             _jobs = jobs;
-            _steps = steps;
+            _jobTasks = jobTasks;
         }
 
         public static readonly ConcurrentDictionary<String, String> Users = new();
@@ -59,13 +59,13 @@ namespace Datack.Web.Service.Services
         {
             var server = await _servers.GetByKey(key, CancellationToken.None);
             var jobs = await _jobs.GetForServer(server.ServerId, CancellationToken.None);
-            var steps = await _steps.GetForServer(server.ServerId, CancellationToken.None);
+            var jobTasks = await _jobTasks.GetForServer(server.ServerId, CancellationToken.None);
 
             return new RpcUpdate
             {
                 Server = server,
                 Jobs = jobs,
-                Steps = steps
+                JobTasks = jobTasks
             };
         }
     }

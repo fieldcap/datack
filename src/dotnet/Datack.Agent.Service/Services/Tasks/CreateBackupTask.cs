@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Enums;
-using Datack.Common.Extensions;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
@@ -15,8 +14,6 @@ namespace Datack.Agent.Services.Tasks
 {
     public class CreateBackupTask : BaseTask
     {
-        private const Int32 Parallel = 2;
-        
         private readonly DatabaseAdapter _databaseAdapter;
 
         public CreateBackupTask(DatabaseAdapter databaseAdapter)
@@ -24,165 +21,122 @@ namespace Datack.Agent.Services.Tasks
             _databaseAdapter = databaseAdapter;
         }
 
-        public override async Task<IList<StepLog>> Setup(Job job, Step step, BackupType backupType, Guid jobLogId, CancellationToken cancellationToken)
+        public override async Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
         {
-            var databases = new List<DatabaseStep>();
+            var allDatabases = await _databaseAdapter.GetDatabaseList(cancellationToken);
 
-            var allDatabaseList = await _databaseAdapter.GetDatabaseList(cancellationToken);
+            var filteredDatabases = DatabaseHelper.FilterDatabases(allDatabases, 
+                                                                   jobTask.Settings.CreateBackup.BackupDefaultExclude,
+                                                                   jobTask.Settings.CreateBackup.BackupExcludeSystemDatabases,
+                                                                   jobTask.Settings.CreateBackup.BackupIncludeRegex,
+                                                                   jobTask.Settings.CreateBackup.BackupExcludeRegex,
+                                                                   jobTask.Settings.CreateBackup.BackupIncludeManual,
+                                                                   jobTask.Settings.CreateBackup.BackupExcludeManual);
 
-            var filteredDatabaseList = DatabaseHelper.FilterDatabases(allDatabaseList, step.Settings.CreateBackup);
+            var index = 0;
 
-            var databaseList = filteredDatabaseList.Where(m => m.Include).ToList();
-
-            var databaseFileSizeList = await _databaseAdapter.GetFileList(cancellationToken);
-
-            foreach (var database in databaseList)
-            {
-                var files = databaseFileSizeList.Where(m => m.DatabaseName == database.DatabaseName).ToList();
-
-                Int64 size = 0;
-
-                if (files.Count > 0)
-                {
-                    size = files.Sum(m => m.Size);
-                }
-
-                databases.Add(new DatabaseStep
-                {
-                    DatabaseName = database.DatabaseName,
-                    Size = size
-                });
-            }
-
-            var batches = databases.Split(Parallel);
-
-            var results = new List<StepLog>();
-
-            var batchIndex = 0;
-            foreach (var batch in batches)
-            {
-                foreach (var database in batch)
-                {
-                    var stepLog = new StepLog
-                    {
-                        StepLogId = Guid.NewGuid(),
-                        StepId = step.StepId,
-                        JobLogId = jobLogId,
-                        DatabaseName = database.DatabaseName,
-                        Queue = batchIndex,
-                        Type = step.Type,
-                        Settings = step.Settings
-                    };
-
-                    results.Add(stepLog);
-                }
-
-                batchIndex++;
-            }
-
-            return results;
+            return filteredDatabases.Select(database => new JobRunTask
+                                    {
+                                        JobRunTaskId = Guid.NewGuid(),
+                                        JobTaskId = jobTask.JobTaskId,
+                                        JobRunId = jobRunId,
+                                        Type = jobTask.Type,
+                                        Parallel = jobTask.Parallel,
+                                        ItemName = database.DatabaseName,
+                                        ItemOrder = index++,
+                                        IsError = false,
+                                        Result = null,
+                                        Settings = jobTask.Settings
+                                    })
+                                    .ToList();
         }
 
-        public override async Task Run(List<StepLog> queue, CancellationToken cancellationToken)
+        public override async Task Run(JobRunTask jobRunTask, CancellationToken cancellationToken)
         {
-            var index = 0;
-            foreach (var step in queue)
+            try
             {
+                var sw = new Stopwatch();
+                sw.Start();
+
+                OnStart(jobRunTask.JobRunTaskId);
+
+                OnProgress(jobRunTask.JobRunTaskId, $"Starting backup task for database {jobRunTask.ItemName}");
+
+                if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.FileName))
+                {
+                    throw new Exception($"No filename given");
+                }
+
+                var tokenValues = new
+                {
+                    DatabaseName = jobRunTask.ItemName
+                };
+
+                var rawFileName = Path.GetFileName(jobRunTask.Settings.CreateBackup.FileName);
+
+                if (String.IsNullOrWhiteSpace(rawFileName))
+                {
+                    throw new Exception($"Invalid filename '{jobRunTask.Settings.CreateBackup.FileName}'");
+                }
+
+                var fileName = rawFileName.FormatToken(tokenValues);
+                fileName = String.Format(fileName, jobRunTask.JobRun.Started);
+
+                var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.CreateBackup.FileName);
+
+                if (String.IsNullOrWhiteSpace(rawFilePath))
+                {
+                    throw new Exception($"Invalid file path '{jobRunTask.Settings.CreateBackup.FileName}'");
+                }
+
+                var filePath = rawFilePath.FormatToken(tokenValues);
+                filePath = String.Format(filePath, jobRunTask.JobRun.Started);
+
+                var storePath = Path.Combine(filePath, fileName);
+
+                OnProgress(jobRunTask.JobRunTaskId, $"Testing path {storePath}");
+
+                if (!Directory.Exists(filePath))
+                {
+                    Directory.CreateDirectory(filePath);
+                }
+
+                if (File.Exists(fileName))
+                {
+                    throw new Exception($"Cannot create backup, file '{storePath}' already exists");
+                }
+
                 try
                 {
-                    var sw = new Stopwatch();
-                    sw.Start();
-
-                    index++;
-
-                    OnStart(step.StepLogId);
-
-                    OnProgress(step.StepLogId, index, $"Starting backup {step.DatabaseName} {index}/{queue.Count}");
-
-                    if (String.IsNullOrWhiteSpace(step.Settings.CreateBackup.FileName))
-                    {
-                        throw new Exception($"No filename given");
-                    }
-
-                    var tokenValues = new
-                    {
-                        DatabaseName = step.DatabaseName
-                    };
-
-                    var rawFileName = Path.GetFileName(step.Settings.CreateBackup.FileName);
-
-                    if (String.IsNullOrWhiteSpace(rawFileName))
-                    {
-                        throw new Exception($"Invalid filename '{step.Settings.CreateBackup.FileName}'");
-                    }
-
-                    var fileName = rawFileName.FormatToken(tokenValues);
-                    fileName = String.Format(fileName, step.JobLog.Started);
-
-                    var rawFilePath = Path.GetDirectoryName(step.Settings.CreateBackup.FileName);
-
-                    if (String.IsNullOrWhiteSpace(rawFilePath))
-                    {
-                        throw new Exception($"Invalid file path '{step.Settings.CreateBackup.FileName}'");
-                    }
-
-                    var filePath = rawFilePath.FormatToken(tokenValues);
-                    filePath = String.Format(filePath, step.JobLog.Started);
-
-                    var storePath = Path.Combine(filePath, fileName);
-
-                    OnProgress(step.StepLogId, index, $"Testing path {storePath}");
-
-                    if (!Directory.Exists(filePath))
-                    {
-                        Directory.CreateDirectory(filePath);
-                    }
-
-                    if (File.Exists(fileName))
-                    {
-                        throw new Exception($"Cannot create backup, file '{storePath}' already exists");
-                    }
-
-                    try
-                    {
-                        await File.WriteAllTextAsync(storePath, "Test write backup", cancellationToken);
-                    }
-                    finally
-                    {
-                        File.Delete(storePath);
-                    }
-
-                    OnProgress(step.StepLogId, index, $"Creating backup {step.DatabaseName}");
-
-                    await _databaseAdapter.CreateBackup(step.DatabaseName,
-                                                        storePath,
-                                                        evt =>
-                                                        {
-                                                            OnProgress(step.StepLogId, index, evt.Message);
-                                                        },
-                                                        cancellationToken);
-
-                    OnProgress(step.StepLogId, index, $"Completed backup {step.DatabaseName}");
-
-                    sw.Stop();
-                    
-                    var message = $"Operation completed in {sw.Elapsed:g}";
-
-                    OnComplete(step.StepLogId, step.JobLogId, message, false);
+                    await File.WriteAllTextAsync(storePath, "Test write backup", cancellationToken);
                 }
-                catch (Exception ex)
+                finally
                 {
-                    var message = $"Operation resulted in an error: {ex.Message}";
-
-                    OnComplete(step.StepLogId, step.JobLogId, message, true);
+                    File.Delete(storePath);
                 }
+
+                OnProgress(jobRunTask.JobRunTaskId, $"Creating backup of database {jobRunTask.ItemName}");
+
+                await _databaseAdapter.CreateBackup(jobRunTask.ItemName,
+                                                    storePath,
+                                                    evt =>
+                                                    {
+                                                        OnProgress(jobRunTask.JobRunTaskId, evt.Message);
+                                                    },
+                                                    cancellationToken);
+
+                sw.Stop();
+                
+                var message = $"Completed backup of database {jobRunTask.ItemName} {sw.Elapsed:g}";
+
+                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobTaskId, message, false);
+            }
+            catch (Exception ex)
+            {
+                var message = $"Creation of backup of database {jobRunTask.ItemName} resulted in an error: {ex.Message}";
+
+                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobTaskId, message, true);
             }
         }
-    }
-
-    public class DatabaseStep
-    {
-        public String DatabaseName { get; set; }
-        public Decimal Size { get; set; }
     }
 }

@@ -11,35 +11,22 @@ import {
     Tr,
     VStack
 } from '@chakra-ui/react';
-import React, { FC, useCallback, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { FaMinus, FaPlus } from 'react-icons/fa';
 import { DatabaseListTestResult } from '../../models/database-list-test-result';
-import { StepCreateBackupSettings } from '../../models/step';
-import Steps from '../../services/steps';
+import { JobTaskCreateDatabaseSettings } from '../../models/job-task';
+import JobTasks from '../../services/jobTasks';
 
 type Props = {
     serverId: string;
-    settings: StepCreateBackupSettings | undefined | null;
-    onSettingsChanged: (settings: StepCreateBackupSettings) => void;
+    settings: JobTaskCreateDatabaseSettings | undefined | null;
+    onSettingsChanged: (settings: JobTaskCreateDatabaseSettings) => void;
 };
 
-const StepCreateBackup: FC<Props> = (props) => {
+const JobTaskCreateBackup: FC<Props> = (props) => {
     const { onSettingsChanged } = props;
 
     const [testResult, setTestResult] = useState<DatabaseListTestResult[]>([]);
-
-    const handleChangeRegex = useCallback(() => {
-        (async () => {
-            if (props.settings == null || !props.serverId) {
-                return;
-            }
-            const result = await Steps.testDatabaseRegex(
-                props.settings,
-                props.serverId
-            );
-            setTestResult(result);
-        })();
-    }, [props.serverId, props.settings]);
 
     useEffect(() => {
         if (props.settings == null) {
@@ -52,9 +39,27 @@ const StepCreateBackup: FC<Props> = (props) => {
                 backupIncludeManual: '',
                 backupExcludeManual: '',
             });
-        } else {
-            handleChangeRegex();
         }
+    }, [props.settings, onSettingsChanged]);
+
+    useEffect(() => {
+        if (props.serverId == null || props.serverId === '') {
+            return;
+        }
+
+        (async () => {
+            const result = await JobTasks.testDatabaseRegex(
+                props.settings!.backupDefaultExclude,
+                props.settings!.backupIncludeRegex,
+                props.settings!.backupExcludeRegex,
+                props.settings!.backupExcludeSystemDatabases,
+                props.settings!.backupIncludeManual,
+                props.settings!.backupExcludeManual,
+                props.serverId
+            );
+            setTestResult(result);
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         props.settings?.backupDefaultExclude,
         props.settings?.backupExcludeSystemDatabases,
@@ -62,8 +67,7 @@ const StepCreateBackup: FC<Props> = (props) => {
         props.settings?.backupIncludeRegex,
         props.settings?.backupIncludeManual,
         props.settings?.backupExcludeManual,
-        handleChangeRegex,
-        onSettingsChanged,
+        props.serverId,
     ]);
 
     const handleFilenameChanged = (value: string) => {
@@ -342,4 +346,4 @@ const StepCreateBackup: FC<Props> = (props) => {
     );
 };
 
-export default StepCreateBackup;
+export default JobTaskCreateBackup;

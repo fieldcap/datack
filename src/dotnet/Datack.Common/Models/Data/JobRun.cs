@@ -6,10 +6,10 @@ using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Models.Data
 {
-    public class JobLog
+    public class JobRun
     {
         [Key]
-        public Guid JobLogId { get; set; }
+        public Guid JobRunId { get; set; }
 
         public Guid JobId { get; set; }
 

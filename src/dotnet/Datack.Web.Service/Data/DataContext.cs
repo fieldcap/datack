@@ -25,12 +25,12 @@ namespace Datack.Web.Service.Data
         }
 
         public DbSet<Job> Jobs { get; set; }
-        public DbSet<JobLog> JobLogs { get; set; }
+        public DbSet<JobRun> JobRuns { get; set; }
+        public DbSet<JobRunTask> JobRunTasks { get; set; }
+        public DbSet<JobRunTaskLog> JobRunTaskLogs { get; set; }
+        public DbSet<JobTask> JobTasks { get; set; }
         public DbSet<Server> Servers { get; set; }
         public DbSet<Setting> Settings { get; set; }
-        public DbSet<Step> Steps { get; set; }
-        public DbSet<StepLog> StepLogs { get; set; }
-        public DbSet<StepLogMessage> StepLogMessages { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
@@ -52,26 +52,17 @@ namespace Datack.Web.Service.Data
                                                                        null))
                         .HasParameter("column")
                         .HasStoreType("nvarchar(max)");
-
-            var cascadeFKs = modelBuilder.Model.GetEntityTypes()
-                                         .SelectMany(t => t.GetForeignKeys())
-                                         .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
-
-            foreach (var fk in cascadeFKs)
-            {
-                fk.DeleteBehavior = DeleteBehavior.Restrict;
-            }
-
-            modelBuilder.Entity<StepLogMessage>()
-                        .Property(e => e.StepLogMessageId)
+            
+            modelBuilder.Entity<JobRunTaskLog>()
+                        .Property(e => e.JobRunTaskLogId)
                         .ValueGeneratedOnAdd();
 
             modelBuilder.ApplyConfiguration(new JobConfiguration());
+            modelBuilder.ApplyConfiguration(new JobRunDbConfiguration());
+            modelBuilder.ApplyConfiguration(new JobRunTaskDbConfiguration());
+            modelBuilder.ApplyConfiguration(new JobTaskDbConfiguration());
             modelBuilder.ApplyConfiguration(new ServerConfiguration());
             modelBuilder.ApplyConfiguration(new ServerDbConfiguration());
-            modelBuilder.ApplyConfiguration(new StepDbConfiguration());
-            modelBuilder.ApplyConfiguration(new JobLogDbConfiguration());
-            modelBuilder.ApplyConfiguration(new StepLogDbConfiguration());
         }
 
         public async Task Seed()
@@ -125,18 +116,19 @@ namespace Datack.Web.Service.Data
                     }
                 };
 
-                var step = new Step
+                var jobTask = new JobTask
                 {
-                    StepId= Guid.NewGuid(),
+                    JobTaskId = Guid.NewGuid(),
                     JobId = job.JobId,
                     ServerId = server.ServerId,
                     Description = "Creates a backup",
                     Name = "Create backup",
                     Order = 0,
+                    Parallel = 2,
                     Type = "create_backup",
-                    Settings = new StepSettings
+                    Settings = new JobTaskSettings
                     {
-                        CreateBackup = new StepCreateDatabaseSettings
+                        CreateBackup = new JobTaskCreateDatabaseSettings
                         {
                             FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}",
                             BackupDefaultExclude = false,
@@ -151,7 +143,7 @@ namespace Datack.Web.Service.Data
 
                 await Servers.AddAsync(server);
                 await Jobs.AddAsync(job);
-                await Steps.AddAsync(step);
+                await JobTasks.AddAsync(jobTask);
 
                 await SaveChangesAsync();
             }
@@ -175,6 +167,36 @@ namespace Datack.Web.Service.Data
             }
         }
 
+        public class JobRunDbConfiguration : IEntityTypeConfiguration<JobRun>
+        {
+            public void Configure(EntityTypeBuilder<JobRun> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<JobSettings>(v, SerializerOptions));
+            }
+        }
+
+        public class JobRunTaskDbConfiguration : IEntityTypeConfiguration<JobRunTask>
+        {
+            public void Configure(EntityTypeBuilder<JobRunTask> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<JobTaskSettings>(v, SerializerOptions));
+            }
+        }
+
+        public class JobTaskDbConfiguration : IEntityTypeConfiguration<JobTask>
+        {
+            public void Configure(EntityTypeBuilder<JobTask> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<JobTaskSettings>(v, SerializerOptions));
+            }
+        }
+
         public class ServerConfiguration : IEntityTypeConfiguration<Server>
         {
             public void Configure(EntityTypeBuilder<Server> builder)
@@ -194,36 +216,6 @@ namespace Datack.Web.Service.Data
                                       v => JsonSerializer.Deserialize<ServerDbSettings>(v, SerializerOptions));
             }
         }
-        
-        public class StepDbConfiguration : IEntityTypeConfiguration<Step>
-        {
-            public void Configure(EntityTypeBuilder<Step> builder)
-            {
-                builder.Property(e => e.Settings)
-                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
-                                      v => JsonSerializer.Deserialize<StepSettings>(v, SerializerOptions));
-            }
-        }
-
-        public class JobLogDbConfiguration : IEntityTypeConfiguration<JobLog>
-        {
-            public void Configure(EntityTypeBuilder<JobLog> builder)
-            {
-                builder.Property(e => e.Settings)
-                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
-                                      v => JsonSerializer.Deserialize<JobSettings>(v, SerializerOptions));
-            }
-        }
-        
-        public class StepLogDbConfiguration : IEntityTypeConfiguration<StepLog>
-        {
-            public void Configure(EntityTypeBuilder<StepLog> builder)
-            {
-                builder.Property(e => e.Settings)
-                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
-                                      v => JsonSerializer.Deserialize<StepSettings>(v, SerializerOptions));
-            }
-        }
     }
 
     public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
@@ -231,7 +223,7 @@ namespace Datack.Web.Service.Data
         public DataContext CreateDbContext(String[] args)
         {
             var builder = new DbContextOptionsBuilder<DataContext>();
-            var connectionString = $"Data Source=DatackAgent.db";
+            var connectionString = $"Data Source=Datack.db";
             builder.UseSqlite(connectionString);
             return new DataContext(builder.Options);
         }

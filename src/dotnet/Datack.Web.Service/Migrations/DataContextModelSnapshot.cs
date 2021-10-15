@@ -36,9 +36,9 @@ namespace Datack.Web.Service.Migrations
                     b.ToTable("Jobs");
                 });
 
-            modelBuilder.Entity("Datack.Common.Models.Data.JobLog", b =>
+            modelBuilder.Entity("Datack.Common.Models.Data.JobRun", b =>
                 {
-                    b.Property<Guid>("JobLogId")
+                    b.Property<Guid>("JobRunId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
@@ -63,11 +63,126 @@ namespace Datack.Web.Service.Migrations
                     b.Property<DateTimeOffset>("Started")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("JobLogId");
+                    b.HasKey("JobRunId");
 
                     b.HasIndex("JobId");
 
-                    b.ToTable("JobLogs");
+                    b.ToTable("JobRuns");
+                });
+
+            modelBuilder.Entity("Datack.Common.Models.Data.JobRunTask", b =>
+                {
+                    b.Property<Guid>("JobRunTaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("Completed")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsError")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ItemName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ItemOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("JobRunId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobTaskId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Parallel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Result")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Settings")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTimeOffset?>("Started")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("TaskOrder")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("JobRunTaskId");
+
+                    b.HasIndex("JobRunId");
+
+                    b.HasIndex("JobTaskId");
+
+                    b.ToTable("JobRunTasks");
+                });
+
+            modelBuilder.Entity("Datack.Common.Models.Data.JobRunTaskLog", b =>
+                {
+                    b.Property<long>("JobRunTaskLogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTimeOffset>("DateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsError")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("JobRunTaskId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Message")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("JobRunTaskLogId");
+
+                    b.HasIndex("JobRunTaskId");
+
+                    b.ToTable("JobRunTaskLogs");
+                });
+
+            modelBuilder.Entity("Datack.Common.Models.Data.JobTask", b =>
+                {
+                    b.Property<Guid>("JobTaskId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("JobId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Parallel")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("ServerId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Settings")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Type")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("JobTaskId");
+
+                    b.HasIndex("JobId");
+
+                    b.HasIndex("ServerId");
+
+                    b.ToTable("JobTasks");
                 });
 
             modelBuilder.Entity("Datack.Common.Models.Data.Server", b =>
@@ -110,118 +225,6 @@ namespace Datack.Web.Service.Migrations
                     b.HasKey("SettingId");
 
                     b.ToTable("Settings");
-                });
-
-            modelBuilder.Entity("Datack.Common.Models.Data.Step", b =>
-                {
-                    b.Property<Guid>("StepId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("JobId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("ServerId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Settings")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("StepId");
-
-                    b.HasIndex("JobId");
-
-                    b.HasIndex("ServerId");
-
-                    b.ToTable("Steps");
-                });
-
-            modelBuilder.Entity("Datack.Common.Models.Data.StepLog", b =>
-                {
-                    b.Property<Guid>("StepLogId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset?>("Completed")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DatabaseName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsError")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("JobLogId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Queue")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Result")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Settings")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTimeOffset>("Started")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("StepId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Type")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("StepLogId");
-
-                    b.HasIndex("JobLogId");
-
-                    b.HasIndex("StepId");
-
-                    b.ToTable("StepLogs");
-                });
-
-            modelBuilder.Entity("Datack.Common.Models.Data.StepLogMessage", b =>
-                {
-                    b.Property<long>("StepLogMessageId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTimeOffset>("DateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsError")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Message")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Queue")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<Guid>("StepLogId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("StepLogMessageId");
-
-                    b.HasIndex("StepLogId");
-
-                    b.ToTable("StepLogMessages");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -416,29 +419,59 @@ namespace Datack.Web.Service.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("Datack.Common.Models.Data.JobLog", b =>
+            modelBuilder.Entity("Datack.Common.Models.Data.JobRun", b =>
                 {
                     b.HasOne("Datack.Common.Models.Data.Job", "Job")
                         .WithMany()
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Job");
                 });
 
-            modelBuilder.Entity("Datack.Common.Models.Data.Step", b =>
+            modelBuilder.Entity("Datack.Common.Models.Data.JobRunTask", b =>
+                {
+                    b.HasOne("Datack.Common.Models.Data.JobRun", "JobRun")
+                        .WithMany()
+                        .HasForeignKey("JobRunId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datack.Common.Models.Data.JobTask", "JobTask")
+                        .WithMany()
+                        .HasForeignKey("JobTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobRun");
+
+                    b.Navigation("JobTask");
+                });
+
+            modelBuilder.Entity("Datack.Common.Models.Data.JobRunTaskLog", b =>
+                {
+                    b.HasOne("Datack.Common.Models.Data.JobRunTask", "JobRunTask")
+                        .WithMany()
+                        .HasForeignKey("JobRunTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("JobRunTask");
+                });
+
+            modelBuilder.Entity("Datack.Common.Models.Data.JobTask", b =>
                 {
                     b.HasOne("Datack.Common.Models.Data.Job", "Job")
                         .WithMany()
                         .HasForeignKey("JobId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Datack.Common.Models.Data.Server", "Server")
                         .WithMany()
                         .HasForeignKey("ServerId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Job");
@@ -446,42 +479,12 @@ namespace Datack.Web.Service.Migrations
                     b.Navigation("Server");
                 });
 
-            modelBuilder.Entity("Datack.Common.Models.Data.StepLog", b =>
-                {
-                    b.HasOne("Datack.Common.Models.Data.JobLog", "JobLog")
-                        .WithMany()
-                        .HasForeignKey("JobLogId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Datack.Common.Models.Data.Step", "Step")
-                        .WithMany()
-                        .HasForeignKey("StepId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("JobLog");
-
-                    b.Navigation("Step");
-                });
-
-            modelBuilder.Entity("Datack.Common.Models.Data.StepLogMessage", b =>
-                {
-                    b.HasOne("Datack.Common.Models.Data.StepLog", "StepLog")
-                        .WithMany()
-                        .HasForeignKey("StepLogId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("StepLog");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -490,7 +493,7 @@ namespace Datack.Web.Service.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -499,7 +502,7 @@ namespace Datack.Web.Service.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -508,13 +511,13 @@ namespace Datack.Web.Service.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
@@ -523,7 +526,7 @@ namespace Datack.Web.Service.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 #pragma warning restore 612, 618

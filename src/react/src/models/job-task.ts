@@ -1,24 +1,25 @@
 import { Job } from './job';
 import { Server } from './server';
 
-export type Step = {
-    stepId: string;
+export type JobTask = {
+    jobTaskId: string;
     jobId: string;
+    job?: Job | null;
     type: string;
+    parallel: number;
     name: string;
     description: string;
     order: number;
-    settings: StepSettings;
-    job?: Job;
+    settings: JobTaskSettings;
     serverId: string;
-    server?: Server;
+    server?: Server | null;
 };
 
-export type StepSettings = {
-    createBackup?: StepCreateBackupSettings;
+export type JobTaskSettings = {
+    createBackup?: JobTaskCreateDatabaseSettings;
 };
 
-export type StepCreateBackupSettings = {
+export type JobTaskCreateDatabaseSettings = {
     fileName: string;
     backupDefaultExclude: boolean;
     backupIncludeRegex: string;

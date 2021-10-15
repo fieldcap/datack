@@ -17,12 +17,12 @@ namespace Datack.Agent.Services
         private readonly DatabaseAdapter _databaseAdapter;
         private readonly Jobs _jobs;
         private readonly Servers _servers;
-        private readonly Steps _steps;
+        private readonly JobTasks _jobTasks;
 
         private readonly JobScheduler _jobScheduler;
         private readonly RpcService _rpcService;
         
-        public AgentHostedService(ILogger<AgentHostedService> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, Jobs jobs, JobScheduler jobScheduler, Servers servers, Steps steps)
+        public AgentHostedService(ILogger<AgentHostedService> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, Jobs jobs, JobScheduler jobScheduler, Servers servers, JobTasks jobTasks)
         {
             _logger = logger;
             _appSettings = appSettings;
@@ -30,7 +30,7 @@ namespace Datack.Agent.Services
             _jobs = jobs;
             _jobScheduler = jobScheduler;
             _servers = servers;
-            _steps = steps;
+            _jobTasks = jobTasks;
 
             _rpcService = new RpcService(_appSettings);
 
@@ -73,7 +73,7 @@ namespace Datack.Agent.Services
 
             await _servers.UpdateServer(response.Server);
             await _jobs.UpdateJobs(response.Jobs);
-            await _steps.UpdateSteps(response.Steps, response.Server.ServerId);
+            await _jobTasks.UpdateJobTasks(response.JobTasks, response.Server.ServerId);
 
             _jobScheduler.Start();
         }

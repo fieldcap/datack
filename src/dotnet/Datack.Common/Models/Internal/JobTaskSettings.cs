@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 
 namespace Datack.Common.Models.Internal
 {
-    public class StepSettings
+    public class JobTaskSettings
     {
         [JsonPropertyName("createBackup")]
-        public StepCreateDatabaseSettings CreateBackup { get;set; }
+        public JobTaskCreateDatabaseSettings CreateBackup { get;set; }
     }
 
-    public class StepCreateDatabaseSettings
+    public class JobTaskCreateDatabaseSettings
     {
         [JsonPropertyName("fileName")]
         public String FileName { get;set; }

@@ -23,9 +23,9 @@ namespace Datack.Agent.Services
             await context.Seed();
 
             // Testing
-            context.StepLogMessages.RemoveRange(context.StepLogMessages);
-            context.StepLogs.RemoveRange(context.StepLogs);
-            context.JobLogs.RemoveRange(context.JobLogs);
+            context.JobRunTaskLogs.RemoveRange(context.JobRunTaskLogs);
+            context.JobRunTasks.RemoveRange(context.JobRunTasks);
+            context.JobRuns.RemoveRange(context.JobRuns);
 
             await context.SaveChangesAsync(cancellationToken);
         }

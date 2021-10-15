@@ -105,13 +105,13 @@ namespace Datack.Agent
                            services.AddSingleton<DatabaseAdapter>();
                            services.AddSingleton<DataContextFactory>();
                            services.AddSingleton<Jobs>();
-                           services.AddSingleton<JobLogs>();
+                           services.AddSingleton<JobRuns>();
                            services.AddSingleton<JobScheduler>();
                            services.AddSingleton<RpcService>();
                            services.AddSingleton<Servers>();
-                           services.AddSingleton<Steps>();
-                           services.AddSingleton<StepLogs>();
-                           services.AddSingleton<StepLogMessages>();
+                           services.AddSingleton<JobTasks>();
+                           services.AddSingleton<JobRunTasks>();
+                           services.AddSingleton<JobRunTaskLogs>();
                            services.AddSingleton<SqlServerConnection>();
 
                            services.AddSingleton<CreateBackupTask>();

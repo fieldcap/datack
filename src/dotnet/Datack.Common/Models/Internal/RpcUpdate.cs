@@ -9,6 +9,6 @@ namespace Datack.Common.Models.Internal
 
         public IList<Job> Jobs { get; set; }
 
-        public IList<Step> Steps { get; set; }
+        public IList<JobTask> JobTasks { get; set; }
     }
 }

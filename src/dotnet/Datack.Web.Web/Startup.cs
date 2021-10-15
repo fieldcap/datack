@@ -99,7 +99,7 @@ namespace Datack.Web.Web
             services.AddScoped<RemoteService>();
             services.AddScoped<Settings>();
             services.AddScoped<Servers>();
-            services.AddScoped<Steps>();
+            services.AddScoped<JobTasks>();
 
             services.AddHostedService<StartupHostedService>();
         }

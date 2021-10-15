@@ -23,17 +23,27 @@ namespace Datack.Web.Service.Services
 
         public async Task<IList<Job>> GetList(CancellationToken cancellationToken)
         {
-            return await _dataContext.Jobs.OrderBy(m => m.Name).ToListAsync(cancellationToken);
+            return await _dataContext.Jobs
+                                     .AsNoTracking()
+                                     .OrderBy(m => m.Name)
+                                     .ToListAsync(cancellationToken);
         }
 
         public async Task<IList<Job>> GetForServer(Guid serverId, CancellationToken cancellationToken)
         {
-            return await _dataContext.Steps.Where(m => m.ServerId == serverId).Select(m => m.Job).OrderBy(m => m.Name).ToListAsync(cancellationToken);
+            return await _dataContext.JobTasks
+                                     .AsNoTracking()
+                                     .Where(m => m.ServerId == serverId)
+                                     .Select(m => m.Job)
+                                     .OrderBy(m => m.Name)
+                                     .ToListAsync(cancellationToken);
         }
 
         public async Task<Job> GetById(Guid jobId, CancellationToken cancellationToken)
         {
-            return await _dataContext.Jobs.FirstOrDefaultAsync(m => m.JobId == jobId, cancellationToken);
+            return await _dataContext.Jobs
+                                     .AsNoTracking()
+                                     .FirstOrDefaultAsync(m => m.JobId == jobId, cancellationToken);
         }
 
         public async Task<Guid> Add(Job job, CancellationToken cancellationToken)
@@ -64,14 +74,14 @@ namespace Datack.Web.Service.Services
 
         public async Task Run(Guid serverId, Guid jobId, BackupType backupType, CancellationToken cancellationToken)
         {
-            var server = await _dataContext.Servers.FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
+            var server = await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
 
             if (server == null)
             {
                 throw new Exception($"Server with ID {serverId} not found");
             }
 
-            var job = await _dataContext.Jobs.FirstOrDefaultAsync(m => m.JobId == jobId, cancellationToken);
+            var job = await _dataContext.Jobs.AsNoTracking().FirstOrDefaultAsync(m => m.JobId == jobId, cancellationToken);
 
             if (job == null)
             {

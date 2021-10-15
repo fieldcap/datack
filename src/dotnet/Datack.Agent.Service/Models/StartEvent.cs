@@ -4,7 +4,7 @@ namespace Datack.Agent.Models
 {
     public class StartEvent
     {
-        public Guid StepLogId { get; set; }
+        public Guid JobRunTaskId { get; set; }
         public Boolean IsError { get; set; }
     }
 }

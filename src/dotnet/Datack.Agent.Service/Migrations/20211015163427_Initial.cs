@@ -51,10 +51,10 @@ namespace Datack.Agent.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "JobLogs",
+                name: "JobRuns",
                 columns: table => new
                 {
-                    JobLogId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobRunId = table.Column<Guid>(type: "TEXT", nullable: false),
                     JobId = table.Column<Guid>(type: "TEXT", nullable: false),
                     BackupType = table.Column<int>(type: "INTEGER", nullable: false),
                     Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
@@ -65,9 +65,9 @@ namespace Datack.Agent.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_JobLogs", x => x.JobLogId);
+                    table.PrimaryKey("PK_JobRuns", x => x.JobRunId);
                     table.ForeignKey(
-                        name: "FK_JobLogs_Jobs_JobId",
+                        name: "FK_JobRuns_Jobs_JobId",
                         column: x => x.JobId,
                         principalTable: "Jobs",
                         principalColumn: "JobId",
@@ -75,12 +75,13 @@ namespace Datack.Agent.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Steps",
+                name: "JobTasks",
                 columns: table => new
                 {
-                    StepId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
                     JobId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Type = table.Column<string>(type: "TEXT", nullable: true),
+                    Parallel = table.Column<int>(type: "INTEGER", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     Order = table.Column<int>(type: "INTEGER", nullable: false),
@@ -89,15 +90,15 @@ namespace Datack.Agent.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Steps", x => x.StepId);
+                    table.PrimaryKey("PK_JobTasks", x => x.JobTaskId);
                     table.ForeignKey(
-                        name: "FK_Steps_Jobs_JobId",
+                        name: "FK_JobTasks_Jobs_JobId",
                         column: x => x.JobId,
                         principalTable: "Jobs",
                         principalColumn: "JobId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Steps_Servers_ServerId",
+                        name: "FK_JobTasks_Servers_ServerId",
                         column: x => x.ServerId,
                         principalTable: "Servers",
                         principalColumn: "ServerId",
@@ -105,109 +106,109 @@ namespace Datack.Agent.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StepLogs",
+                name: "JobRunTasks",
                 columns: table => new
                 {
-                    StepLogId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    StepId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    JobLogId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    JobRunTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobRunId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     Completed = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    DatabaseName = table.Column<string>(type: "TEXT", nullable: true),
-                    Order = table.Column<int>(type: "INTEGER", nullable: false),
-                    Queue = table.Column<int>(type: "INTEGER", nullable: false),
                     Type = table.Column<string>(type: "TEXT", nullable: true),
+                    Parallel = table.Column<int>(type: "INTEGER", nullable: false),
+                    ItemName = table.Column<string>(type: "TEXT", nullable: true),
+                    TaskOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    ItemOrder = table.Column<int>(type: "INTEGER", nullable: false),
                     IsError = table.Column<bool>(type: "INTEGER", nullable: false),
                     Result = table.Column<string>(type: "TEXT", nullable: true),
                     Settings = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StepLogs", x => x.StepLogId);
+                    table.PrimaryKey("PK_JobRunTasks", x => x.JobRunTaskId);
                     table.ForeignKey(
-                        name: "FK_StepLogs_JobLogs_JobLogId",
-                        column: x => x.JobLogId,
-                        principalTable: "JobLogs",
-                        principalColumn: "JobLogId",
+                        name: "FK_JobRunTasks_JobRuns_JobRunId",
+                        column: x => x.JobRunId,
+                        principalTable: "JobRuns",
+                        principalColumn: "JobRunId",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_StepLogs_Steps_StepId",
-                        column: x => x.StepId,
-                        principalTable: "Steps",
-                        principalColumn: "StepId",
+                        name: "FK_JobRunTasks_JobTasks_JobTaskId",
+                        column: x => x.JobTaskId,
+                        principalTable: "JobTasks",
+                        principalColumn: "JobTaskId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "StepLogMessages",
+                name: "JobRunTaskLogs",
                 columns: table => new
                 {
-                    StepLogMessageId = table.Column<long>(type: "INTEGER", nullable: false)
+                    JobRunTaskLogId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    StepLogId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Queue = table.Column<int>(type: "INTEGER", nullable: false),
+                    JobRunTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
                     DateTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                     IsError = table.Column<bool>(type: "INTEGER", nullable: false),
                     Message = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StepLogMessages", x => x.StepLogMessageId);
+                    table.PrimaryKey("PK_JobRunTaskLogs", x => x.JobRunTaskLogId);
                     table.ForeignKey(
-                        name: "FK_StepLogMessages_StepLogs_StepLogId",
-                        column: x => x.StepLogId,
-                        principalTable: "StepLogs",
-                        principalColumn: "StepLogId",
+                        name: "FK_JobRunTaskLogs_JobRunTasks_JobRunTaskId",
+                        column: x => x.JobRunTaskId,
+                        principalTable: "JobRunTasks",
+                        principalColumn: "JobRunTaskId",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobLogs_JobId",
-                table: "JobLogs",
+                name: "IX_JobRuns_JobId",
+                table: "JobRuns",
                 column: "JobId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StepLogMessages_StepLogId",
-                table: "StepLogMessages",
-                column: "StepLogId");
+                name: "IX_JobRunTaskLogs_JobRunTaskId",
+                table: "JobRunTaskLogs",
+                column: "JobRunTaskId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StepLogs_JobLogId",
-                table: "StepLogs",
-                column: "JobLogId");
+                name: "IX_JobRunTasks_JobRunId",
+                table: "JobRunTasks",
+                column: "JobRunId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StepLogs_StepId",
-                table: "StepLogs",
-                column: "StepId");
+                name: "IX_JobRunTasks_JobTaskId",
+                table: "JobRunTasks",
+                column: "JobTaskId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Steps_JobId",
-                table: "Steps",
+                name: "IX_JobTasks_JobId",
+                table: "JobTasks",
                 column: "JobId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Steps_ServerId",
-                table: "Steps",
+                name: "IX_JobTasks_ServerId",
+                table: "JobTasks",
                 column: "ServerId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "JobRunTaskLogs");
+
+            migrationBuilder.DropTable(
                 name: "Settings");
 
             migrationBuilder.DropTable(
-                name: "StepLogMessages");
+                name: "JobRunTasks");
 
             migrationBuilder.DropTable(
-                name: "StepLogs");
+                name: "JobRuns");
 
             migrationBuilder.DropTable(
-                name: "JobLogs");
-
-            migrationBuilder.DropTable(
-                name: "Steps");
+                name: "JobTasks");
 
             migrationBuilder.DropTable(
                 name: "Jobs");

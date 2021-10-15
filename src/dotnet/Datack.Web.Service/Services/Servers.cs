@@ -23,17 +23,24 @@ namespace Datack.Web.Service.Services
 
         public async Task<IList<Server>> GetAll(CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers.AsNoTracking().OrderBy(m => m.Name).ToListAsync(cancellationToken);
+            return await _dataContext.Servers
+                                     .AsNoTracking()
+                                     .OrderBy(m => m.Name)
+                                     .ToListAsync(cancellationToken);
         }
 
         public async Task<Server> GetById(Guid serverId, CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
+            return await _dataContext.Servers
+                                     .AsNoTracking()
+                                     .FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
         }
 
         public async Task<Server> GetByKey(String key, CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers.AsNoTracking().FirstOrDefaultAsync(m => m.Key == key, cancellationToken);
+            return await _dataContext.Servers
+                                     .AsNoTracking()
+                                     .FirstOrDefaultAsync(m => m.Key == key, cancellationToken);
         }
         
         public async Task<Guid> Add(Server server, CancellationToken cancellationToken)

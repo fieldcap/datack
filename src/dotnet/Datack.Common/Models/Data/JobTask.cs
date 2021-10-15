@@ -5,10 +5,10 @@ using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Models.Data
 {
-    public class Step
+    public class JobTask
     {
         [Key]
-        public Guid StepId { get; set; }
+        public Guid JobTaskId { get; set; }
 
         public Guid JobId { get; set; }
 
@@ -17,13 +17,15 @@ namespace Datack.Common.Models.Data
 
         public String Type { get; set; }
 
+        public Int32 Parallel { get; set; }
+
         public String Name { get; set; }
 
         public String Description { get; set; }
 
         public Int32 Order { get; set; }
 
-        public StepSettings Settings { get; set; }
+        public JobTaskSettings Settings { get; set; }
 
         public Guid ServerId { get; set; }
 

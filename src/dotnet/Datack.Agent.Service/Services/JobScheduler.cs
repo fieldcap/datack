@@ -15,10 +15,10 @@ namespace Datack.Agent.Services
     {
         private readonly ILogger<JobScheduler> _logger;
         private readonly Jobs _jobs;
-        private readonly JobLogs _jobLogs;
-        private readonly Steps _steps;
-        private readonly StepLogs _stepLogs;
-        private readonly StepLogMessages _stepLogMessages;
+        private readonly JobRuns _jobRuns;
+        private readonly JobTasks _jobTasks;
+        private readonly JobRunTasks _jobRunTasks;
+        private readonly JobRunTaskLogs _jobRunTaskLogs;
 
         private CancellationTokenSource _cancellationTokenSource;
         private CancellationToken _cancellationToken;
@@ -27,18 +27,18 @@ namespace Datack.Agent.Services
 
         public JobScheduler(ILogger<JobScheduler> logger, 
                             Jobs jobs,
-                            JobLogs jobLogs,
-                            Steps steps,
-                            StepLogs stepLogs,
-                            StepLogMessages stepLogMessages,
+                            JobRuns jobRuns,
+                            JobTasks jobTasks,
+                            JobRunTasks jobRunTasks,
+                            JobRunTaskLogs jobRunTaskLogs,
                             CreateBackupTask createBackupTask)
         {
             _logger = logger;
             _jobs = jobs;
-            _jobLogs = jobLogs;
-            _steps = steps;
-            _stepLogs = stepLogs;
-            _stepLogMessages = stepLogMessages;
+            _jobRuns = jobRuns;
+            _jobTasks = jobTasks;
+            _jobRunTasks = jobRunTasks;
+            _jobRunTaskLogs = jobRunTaskLogs;
 
             _logger.LogTrace("Constructor");
 
@@ -72,7 +72,7 @@ namespace Datack.Agent.Services
                 throw new Exception($"Job with ID {jobId} not found");
             }
 
-            await RunSetup(job, backupType);
+            await SetupJobRun(job, backupType);
         }
 
         private async Task Trigger()
@@ -90,7 +90,7 @@ namespace Datack.Agent.Services
 
                     if (backupType != null)
                     {
-                        await RunSetup(job, backupType.Value);
+                        await SetupJobRun(job, backupType.Value);
                     }
                 }
 
@@ -98,180 +98,161 @@ namespace Datack.Agent.Services
             }
         }
 
-        private async Task RunSetup(Job job, BackupType backupType)
+        private readonly SemaphoreSlim _runSetupLock = new SemaphoreSlim(1, 1);
+        private async Task SetupJobRun(Job job, BackupType backupType)
         {
-            var jobLog = new JobLog
+            var receivedLockSuccesfully = await _runSetupLock.WaitAsync(TimeSpan.FromSeconds(30), _cancellationToken);
+
+            if (!receivedLockSuccesfully)
             {
-                JobLogId = Guid.NewGuid(),
-                JobId = job.JobId,
-                BackupType = backupType,
-                Started = DateTimeOffset.Now,
-                IsError = false,
-                Result = null
-            };
-
-            await _jobLogs.Create(jobLog);
-
-            try
-            {
-                var runningTasks = await _jobLogs.GetRunning(job.JobId);
-
-                runningTasks = runningTasks.Where(m => m.JobLogId != jobLog.JobLogId).ToList();
-
-                if (runningTasks.Count > 0)
-                {
-                    throw new Exception($"Job {job.Name} is already running");
-                }
-
-                await CreateSteps(job, backupType, jobLog);
-            }
-            catch (Exception ex)
-            {
-                jobLog.Result = ex.Message;
-                jobLog.IsError = true;
-                jobLog.Completed = DateTimeOffset.Now;
-            }
-            finally
-            {
-                await _jobLogs.Update(jobLog);
-            }
-        }
-
-        private async Task CreateSteps(Job job, BackupType backupType, JobLog jobLog)
-        {
-            var steps = await _steps.GetForJob(job.JobId);
-
-            var allStepLogs = new List<StepLog>();
-            foreach (var step in steps)
-            {
-                var task = GetTask(step.Type);
-
-                var stepLogs = await task.Setup(job, step, backupType, jobLog.JobLogId, _cancellationToken);
-
-                allStepLogs.AddRange(stepLogs);
-            }
-
-            var index = 0;
-            foreach (var stepLogQueue in allStepLogs.GroupBy(m => m.StepId))
-            {
-                foreach (var stepLog in stepLogQueue)
-                {
-                    stepLog.Order = index;
-                }
-
-                index++;
-            }
-
-            await _stepLogs.Create(allStepLogs);
-
-            await RunNext(jobLog.JobLogId);
-        }
-
-        private async Task RunNext(Guid jobLogId)
-        {
-            var jobLog = await _jobLogs.GetById(jobLogId);
-
-            if (jobLog == null)
-            {
-                throw new Exception($"JobLog with ID {jobLogId} not found");
-            }
-
-            if (jobLog.Completed.HasValue)
-            {
-                throw new Exception($"JobLog with ID {jobLogId} is already completed");
-            }
-
-            var stepLogs = await _stepLogs.GetByJobLogId(jobLog.JobLogId);
-
-            var queue = stepLogs.Where(m => m.Completed == null)
-                                .OrderBy(m => m.Order)
-                                .ThenBy(m => m.Queue)
-                                .GroupBy(m => m.Order)
-                                .ToList();
-
-            if (!queue.Any())
-            {
-                await _jobLogs.UpdateComplete(jobLogId);
+                // Lock timed out
                 return;
             }
 
-            var nextStep = queue.First();
-
-            var task = GetTask(nextStep.First().Type);
-
-            var nextQueue = nextStep.GroupBy(m => m.Queue);
-
-            task.OnProgressEvent += (_, args) => AddStepLogMessage(args.StepLogId, args.Queue, args.Message, args.IsError);
-            task.OnStartEvent += (_, args) => StartStep(args.StepLogId);
-            task.OnCompleteEvent += (_, args) => CompleteStep(args.StepLogId, args.JobLogId, args.Message, args.IsError);
-
-            foreach (var steps in nextQueue)
+            try
             {
-                _ = Task.Run(() => task.Run(steps.ToList(), _cancellationToken), _cancellationToken);
+                var jobRun = new JobRun
+                {
+                    JobRunId = Guid.NewGuid(),
+                    JobId = job.JobId,
+                    BackupType = backupType,
+                    Started = DateTimeOffset.Now,
+                    IsError = false,
+                    Result = null
+                };
+
+                await _jobRuns.Create(jobRun);
+
+                try
+                {
+                    var runningTasks = await _jobRuns.GetRunning(job.JobId);
+
+                    runningTasks = runningTasks.Where(m => m.JobRunId != jobRun.JobRunId).ToList();
+
+                    if (runningTasks.Count > 0)
+                    {
+                        throw new Exception($"Cannot start job {job.Name}, there is already another job still running ({runningTasks})");
+                    }
+
+                    var jobTasks = await _jobTasks.GetForJob(job.JobId);
+
+                    var allJobRunTasks = new List<JobRunTask>();
+                    foreach (var jobTask in jobTasks)
+                    {
+                        var task = GetTask(jobTask.Type);
+
+                        var jobRunTasks = await task.Setup(job, jobTask, backupType, jobRun.JobRunId, _cancellationToken);
+
+                        allJobRunTasks.AddRange(jobRunTasks);
+                    }
+
+                    foreach (var jobRunTask in allJobRunTasks)
+                    {
+                        var jobTask = jobTasks.First(m => m.JobTaskId == jobRunTask.JobTaskId);
+
+                        jobRunTask.TaskOrder = jobTask.Order;
+                    }
+
+                    await _jobRunTasks.Create(allJobRunTasks);
+                }
+                catch (Exception ex)
+                {
+                    jobRun.Result = ex.Message;
+                    jobRun.IsError = true;
+                    jobRun.Completed = DateTimeOffset.Now;
+
+                    await ExecuteJobRun(jobRun.JobRunId);
+                }
+                finally
+                {
+                    await _jobRuns.Update(jobRun);
+                }
+            }
+            finally
+            {
+                _runSetupLock.Release();
             }
         }
 
-        private async void AddStepLogMessage(Guid stepLogId, Int32 queue, String message, Boolean isError)
+        private async Task ExecuteJobRun(Guid jobRunId)
+        {
+            var jobRun = await _jobRuns.GetById(jobRunId);
+
+            if (jobRun == null)
+            {
+                return;
+            }
+
+            if (jobRun.Completed.HasValue)
+            {
+                return;
+            }
+
+            var jobRunTasks = await _jobRunTasks.GetByJobRunTaskId(jobRun.JobRunId);
+
+            var pendingJobRunTasks = jobRunTasks.Where(m => m.Completed == null)
+                                                .OrderBy(m => m.TaskOrder)
+                                                .ThenBy(m => m.ItemOrder)
+                                                .ToList();
+
+            if (!pendingJobRunTasks.Any())
+            {
+                await _jobRuns.UpdateComplete(jobRunId);
+                return;
+            }
+
+            var nextJobRunTask = pendingJobRunTasks.First();
+
+            var task = GetTask(nextJobRunTask.Type);
+
+            task.OnProgressEvent += (_, args) => AddTaskMessage(args.JobRunTaskId, args.Message, args.IsError);
+            task.OnStartEvent += (_, args) => StartTask(args.JobRunTaskId);
+            task.OnCompleteEvent += (_, args) => CompleteTask(args.JobRunTaskId, args.JobRunId, args.Message, args.IsError);
+
+            _ = Task.Run(() => task.Run(nextJobRunTask, _cancellationToken), _cancellationToken);
+        }
+
+        private async void AddTaskMessage(Guid jobRunTaskId, String message, Boolean isError)
         {
             if (isError)
             {
-                _logger.LogError($"{stepLogId}: {message}");
+                _logger.LogError($"{jobRunTaskId}: {message}");
             }
             else
             {
-                _logger.LogInformation($"{stepLogId}: {message}");
+                _logger.LogInformation($"{jobRunTaskId}: {message}");
             }
 
-            await _stepLogMessages.Add(new StepLogMessage
+            await _jobRunTaskLogs.Add(new JobRunTaskLog
             {
-                StepLogId = stepLogId,
-                Queue = queue,
+                JobRunTaskId = jobRunTaskId,
                 DateTime = DateTimeOffset.Now,
                 Message = message,
                 IsError = isError
             });
         }
 
-        private async void StartStep(Guid stepLogId)
+        private async void StartTask(Guid jobRunTaskId)
         {
-            _logger.LogInformation($"{stepLogId}: Started");
+            _logger.LogInformation($"{jobRunTaskId}: Started");
             
-
-            await _stepLogs.UpdateStarted(stepLogId);
+            await _jobRunTasks.UpdateStarted(jobRunTaskId);
         }
 
-        private readonly SemaphoreSlim _completeStepLock = new SemaphoreSlim(1, 1);
-        private async void CompleteStep(Guid stepLogId, Guid jobLogId, String message, Boolean isError)
+        private async void CompleteTask(Guid jobRunTaskId, Guid jobRunId, String message, Boolean isError)
         {
-            await _completeStepLock.WaitAsync(_cancellationToken);
-
-            try
+            if (isError)
             {
-                if (isError)
-                {
-                    _logger.LogError($"{stepLogId}: {message}");
-                }
-                else
-                {
-                    _logger.LogInformation($"{stepLogId}: {message}");
-                }
-
-                var stepsLeft = await _stepLogs.UpdateCompleted(stepLogId, jobLogId, message, isError);
-
-                if (stepsLeft == 0)
-                {
-                    _logger.LogInformation($"{jobLogId} Job complete");
-                    await _jobLogs.UpdateComplete(jobLogId);
-                }
-                else
-                {
-                    _logger.LogInformation($"{jobLogId} Job has {stepsLeft} steps left");
-                }
+                _logger.LogError($"{jobRunTaskId}: {message}");
             }
-            finally
+            else
             {
-                _completeStepLock.Release();
+                _logger.LogInformation($"{jobRunTaskId}: {message}");
             }
+
+            await _jobRunTasks.UpdateCompleted(jobRunTaskId, message, isError);
+
+            ExecuteJobRun(jobRunTaskId);
         }
 
         private BaseTask GetTask(String type)
@@ -283,7 +264,7 @@ namespace Datack.Agent.Services
 
             if (!_tasks.TryGetValue(type, out var task))
             {
-                throw new Exception($"Unknown step type {type}");
+                throw new Exception($"Unknown task type {type}");
             }
 
             return task;

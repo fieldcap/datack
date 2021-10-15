@@ -15,15 +15,15 @@ import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useExpanded, useSortBy, useTable } from 'react-table';
 import { Job } from '../../models/job';
-import { Step } from '../../models/step';
-import Steps from '../../services/steps';
+import { JobTask } from '../../models/job-task';
+import JobTasks from '../../services/jobTasks';
 
-type JobStepsTabProps = {
+type JobTasksTabProps = {
     job: Job | null;
 };
 
-const JobStepsTab: FC<JobStepsTabProps> = (props) => {
-    let [steps, setSteps] = useState<Step[]>([]);
+const JobTasksTab: FC<JobTasksTabProps> = (props) => {
+    let [jobTasks, setJobTasks] = useState<JobTask[]>([]);
     let [isLoaded, setIsLoaded] = useState<boolean>(false);
 
     const history = useHistory();
@@ -36,11 +36,11 @@ const JobStepsTab: FC<JobStepsTabProps> = (props) => {
         const getByIdCancelToken = axios.CancelToken.source();
 
         (async () => {
-            const result = await Steps.getForJob(
+            const result = await JobTasks.getForJob(
                 props.job!.jobId,
                 getByIdCancelToken
             );
-            setSteps(result);
+            setJobTasks(result);
             setIsLoaded(true);
         })();
 
@@ -49,20 +49,20 @@ const JobStepsTab: FC<JobStepsTabProps> = (props) => {
         };
     }, [props.job]);
 
-    const handleAddNewStepClick = () => {
+    const handleAddNewJobTaskClick = () => {
         if (props.job == null) {
             return;
         }
 
-        history.push(`/job/${props.job?.jobId}/step/add`);
+        history.push(`/job/${props.job?.jobId}/task/add`);
     };
 
-    const rowClick = (stepId: string): void => {
-        history.push(`/job/${props.job?.jobId}/step/${stepId}`);
+    const rowClick = (jobTaskId: string): void => {
+        history.push(`/job/${props.job?.jobId}/task/${jobTaskId}`);
     };
 
     const columns = React.useMemo(() => {
-        const columns: Column<Step>[] = [
+        const columns: Column<JobTask>[] = [
             {
                 Header: 'Name',
                 accessor: 'name',
@@ -72,7 +72,7 @@ const JobStepsTab: FC<JobStepsTabProps> = (props) => {
     }, []);
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<Step>({ columns, data: steps }, useSortBy, useExpanded);
+        useTable<JobTask>({ columns, data: jobTasks }, useSortBy, useExpanded);
 
     return (
         <>
@@ -109,7 +109,7 @@ const JobStepsTab: FC<JobStepsTabProps> = (props) => {
                                 <Tr
                                     {...row.getRowProps()}
                                     onClick={() =>
-                                        rowClick(row.original.stepId)
+                                        rowClick(row.original.jobTaskId)
                                     }
                                     style={{ cursor: 'pointer' }}
                                 >
@@ -125,13 +125,13 @@ const JobStepsTab: FC<JobStepsTabProps> = (props) => {
                 </Table>
                 <Button
                     marginTop="24px"
-                    onClick={() => handleAddNewStepClick()}
+                    onClick={() => handleAddNewJobTaskClick()}
                 >
-                    Add new step
+                    Add new task
                 </Button>
             </Skeleton>
         </>
     );
 };
 
-export default JobStepsTab;
+export default JobTasksTab;
