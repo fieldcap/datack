@@ -35,20 +35,21 @@ namespace Datack.Agent.Services.Tasks
 
             var index = 0;
 
-            return filteredDatabases.Select(database => new JobRunTask
-                                    {
-                                        JobRunTaskId = Guid.NewGuid(),
-                                        JobTaskId = jobTask.JobTaskId,
-                                        JobRunId = jobRunId,
-                                        Type = jobTask.Type,
-                                        Parallel = jobTask.Parallel,
-                                        ItemName = database.DatabaseName,
-                                        ItemOrder = index++,
-                                        IsError = false,
-                                        Result = null,
-                                        Settings = jobTask.Settings
-                                    })
-                                    .ToList();
+            return filteredDatabases
+                   .Where(m => m.Include)
+                   .Select(database => new JobRunTask
+                   {
+                       JobRunTaskId = Guid.NewGuid(),
+                       JobTaskId = jobTask.JobTaskId,
+                       JobRunId = jobRunId,
+                       Type = jobTask.Type,
+                       ItemName = database.DatabaseName,
+                       ItemOrder = index++,
+                       IsError = false,
+                       Result = null,
+                       Settings = jobTask.Settings
+                   })
+                   .ToList();
         }
 
         public override async Task Run(JobRunTask jobRunTask, CancellationToken cancellationToken)
@@ -57,8 +58,6 @@ namespace Datack.Agent.Services.Tasks
             {
                 var sw = new Stopwatch();
                 sw.Start();
-
-                OnStart(jobRunTask.JobRunTaskId);
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting backup task for database {jobRunTask.ItemName}");
 
@@ -129,13 +128,15 @@ namespace Datack.Agent.Services.Tasks
                 
                 var message = $"Completed backup of database {jobRunTask.ItemName} {sw.Elapsed:g}";
 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobTaskId, message, false);
+                await Task.Delay(10000, cancellationToken);
+
+                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, false);
             }
             catch (Exception ex)
             {
                 var message = $"Creation of backup of database {jobRunTask.ItemName} resulted in an error: {ex.Message}";
 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobTaskId, message, true);
+                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, true);
             }
         }
     }

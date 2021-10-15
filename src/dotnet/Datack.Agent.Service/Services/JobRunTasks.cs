@@ -17,14 +17,17 @@ namespace Datack.Agent.Services
             _dataContextFactory = dataContextFactory;
         }
 
-        public async Task<IList<JobRunTask>> GetByJobRunTaskId(Guid jobRunTaskId)
+        public async Task<IList<JobRunTask>> GetByJobRunId(Guid jobRunId)
         {
             await using var context = _dataContextFactory.Create();
 
             return await context.JobRunTasks
                                 .AsNoTracking()
                                 .Include(m => m.JobTask)
-                                .Where(m => m.JobRunTaskId == jobRunTaskId)
+                                .Include(m => m.JobRun)
+                                .Where(m => m.JobRunId == jobRunId)
+                                .OrderBy(m => m.TaskOrder)
+                                .ThenBy(m => m.ItemOrder)
                                 .ToListAsync();
         }
 

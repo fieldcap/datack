@@ -40,7 +40,7 @@ namespace Datack.Agent.Services
         {
             await using var context = _dataContextFactory.Create();
 
-            return await context.JobRuns.AsNoTracking().FirstOrDefaultAsync(m => m.JobRunId == jobRunId);
+            return await context.JobRuns.AsNoTracking().Include(m => m.Job).FirstOrDefaultAsync(m => m.JobRunId == jobRunId);
         }
 
         public async Task Update(JobRun jobRun)

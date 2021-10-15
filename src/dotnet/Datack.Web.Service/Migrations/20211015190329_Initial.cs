@@ -260,7 +260,6 @@ namespace Datack.Web.Service.Migrations
                     Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     Completed = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     Type = table.Column<string>(type: "TEXT", nullable: true),
-                    Parallel = table.Column<int>(type: "INTEGER", nullable: false),
                     ItemName = table.Column<string>(type: "TEXT", nullable: true),
                     TaskOrder = table.Column<int>(type: "INTEGER", nullable: false),
                     ItemOrder = table.Column<int>(type: "INTEGER", nullable: false),

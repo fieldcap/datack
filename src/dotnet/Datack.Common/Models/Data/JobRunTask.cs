@@ -26,8 +26,6 @@ namespace Datack.Common.Models.Data
 
         public String Type { get; set; }
 
-        public Int32 Parallel { get; set; }
-
         public String ItemName { get; set; }
 
         public Int32 TaskOrder { get; set; }

@@ -10,7 +10,6 @@ namespace Datack.Agent.Services.Tasks
 {
     public abstract class BaseTask
     {
-        public event EventHandler<StartEvent> OnStartEvent;
         public event EventHandler<ProgressEvent> OnProgressEvent;
         public event EventHandler<CompleteEvent> OnCompleteEvent;
         
@@ -18,14 +17,6 @@ namespace Datack.Agent.Services.Tasks
 
         public abstract Task Run(JobRunTask jobRunTask, CancellationToken cancellationToken);
         
-        protected void OnStart(Guid jobRunTaskId)
-        {
-            OnStartEvent?.Invoke(this, new StartEvent
-            {
-                JobRunTaskId = jobRunTaskId
-            });
-        }
-
         protected void OnProgress(Guid jobRunTaskId, String message)
         {
             OnProgressEvent?.Invoke(this, new ProgressEvent

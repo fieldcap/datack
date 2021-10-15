@@ -94,9 +94,6 @@ namespace Datack.Agent.Migrations
                     b.Property<Guid>("JobTaskId")
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Parallel")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Result")
                         .HasColumnType("TEXT");
 
