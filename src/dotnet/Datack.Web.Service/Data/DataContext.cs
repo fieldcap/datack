@@ -110,9 +110,9 @@ namespace Datack.Web.Service.Data
                     Name = "Backup Job",
                     Settings = new JobSettings
                     {
-                        CronFull = "5 4 * * *",
-                        CronDiff = "5 * * * *",
-                        CronLog = "*/5 * * * *"
+                        CronFull = "0 4 * * *",
+                        CronDiff = "0 * * * *",
+                        CronLog = "*/15 * * * *"
                     }
                 };
 
@@ -164,11 +164,36 @@ namespace Datack.Web.Service.Data
                         }
                     }
                 };
+                
+                var jobTask3 = new JobTask
+                {
+                    JobTaskId = Guid.Parse("010B8915-B1B3-4864-B7B2-34DE98F7E535"),
+                    JobId = job.JobId,
+                    ServerId = server.ServerId,
+                    Description = "Upload compressed backup to S3",
+                    Name = "Upload to S3",
+                    Order = 2,
+                    Parallel = 2,
+                    Type = "upload_s3",
+                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
+                    Settings = new JobTaskSettings
+                    {
+                        UploadS3 = new JobTaskUploadS3Settings()
+                        {
+                            FileName = @"{DatabaseName}/{0:yyyyMMddHHmm}.7z",
+                            AccessKey = "",
+                            Region = "",
+                            Bucket = "",
+                            Secret = ""
+                        }
+                    }
+                };
 
                 await Servers.AddAsync(server);
                 await Jobs.AddAsync(job);
                 await JobTasks.AddAsync(jobTask1);
                 await JobTasks.AddAsync(jobTask2);
+                await JobTasks.AddAsync(jobTask3);
 
                 await SaveChangesAsync();
             }

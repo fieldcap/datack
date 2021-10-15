@@ -19,6 +19,7 @@ export type JobTask = {
 export type JobTaskSettings = {
     createBackup?: JobTaskCreateDatabaseSettings;
     compress?: JobTaskCompressSettings;
+    uploadS3?: JobTaskUploadS3Settings;
 };
 
 export type JobTaskCreateDatabaseSettings = {
@@ -37,4 +38,12 @@ export type JobTaskCompressSettings = {
     compressionLevel: string;
     multithreadMode: string;
     password: string | null;
+};
+
+export type JobTaskUploadS3Settings = {
+    fileName: string;
+    region: string;
+    bucket: string;
+    accessKey: string;
+    secret: string;
 };

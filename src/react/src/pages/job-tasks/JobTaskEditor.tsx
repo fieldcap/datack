@@ -23,6 +23,7 @@ import JobTasks from '../../services/jobTasks';
 import Servers from '../../services/servers';
 import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
+import JobTaskUploadS3 from './JobTaskUploadS3';
 
 type RouteParams = {
     id?: string;
@@ -181,6 +182,19 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskCompress>
                 );
+            case 'upload_s3':
+                return (
+                    <JobTaskUploadS3
+                        settings={settings.uploadS3}
+                        serverId={serverId}
+                        onSettingsChanged={(newSettings) => {
+                            setSettings({
+                                ...settings,
+                                uploadS3: newSettings,
+                            });
+                        }}
+                    ></JobTaskUploadS3>
+                );
             default:
                 return <Alert>Unkown type {type}</Alert>;
         }
@@ -243,6 +257,8 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         onChange={(e) => setType(e.target.value)}
                     >
                         <option value="create_backup">Create Backup</option>
+                        <option value="compress">Compress</option>
+                        <option value="upload_s3">Upload to S3</option>
                     </Select>
                 </FormControl>
                 <FormControl id="type" isRequired marginBottom={4}>

@@ -7,7 +7,12 @@ namespace Datack.Common.Models.Internal
     {
         [JsonPropertyName("createBackup")]
         public JobTaskCreateDatabaseSettings CreateBackup { get;set; }
+
+        [JsonPropertyName("compress")]
         public JobTaskCompressSettings Compress { get;set; }
+
+        [JsonPropertyName("uploadS3")]
+        public JobTaskUploadS3Settings UploadS3 { get;set; }
     }
 
     public class JobTaskCreateDatabaseSettings
@@ -50,5 +55,23 @@ namespace Datack.Common.Models.Internal
 
         [JsonPropertyName("password")]
         public String Password { get; set; }
+    }
+
+    public class JobTaskUploadS3Settings
+    {
+        [JsonPropertyName("fileName")]
+        public String FileName { get;set; }
+
+        [JsonPropertyName("region")]
+        public String Region { get;set; }
+
+        [JsonPropertyName("bucket")]
+        public String Bucket { get;set; }
+
+        [JsonPropertyName("accessKey")]
+        public String AccessKey { get;set; }
+
+        [JsonPropertyName("secret")]
+        public String Secret { get;set; }
     }
 }

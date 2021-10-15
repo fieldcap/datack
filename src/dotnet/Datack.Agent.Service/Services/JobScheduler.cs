@@ -38,7 +38,8 @@ namespace Datack.Agent.Services
                             JobRunTasks jobRunTasks,
                             JobRunTaskLogs jobRunTaskLogs,
                             CreateBackupTask createBackupTask,
-                            CompressTask compressTask)
+                            CompressTask compressTask,
+                            UploadS3Task uploadS3Task)
         {
             _logger = logger;
             _jobs = jobs;
@@ -56,6 +57,9 @@ namespace Datack.Agent.Services
                 },
                 {
                     "compress", compressTask
+                },
+                {
+                    "upload_s3", uploadS3Task
                 }
             };
 
