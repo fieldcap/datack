@@ -48,16 +48,16 @@ namespace Datack.Web.Web.Controllers
 
         [HttpPost]
         [Route("Add")]
-        public async Task<ActionResult<Guid>> Add([FromBody] JobTask jobTask)
+        public async Task<ActionResult<Guid>> Add([FromBody] JobTask jobTask, CancellationToken cancellationToken)
         {
-            var result = await _jobTasks.Add(jobTask);
+            var result = await _jobTasks.Add(jobTask, cancellationToken);
 
             return Ok(result);
         }
 
         [HttpPut]
         [Route("Update")]
-        public async Task<ActionResult> Update([FromBody] JobTask jobTask)
+        public async Task<ActionResult> Update([FromBody] JobTask jobTask, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
             {
@@ -68,7 +68,7 @@ namespace Datack.Web.Web.Controllers
                 return BadRequest(errors);
             }
 
-            await _jobTasks.Update(jobTask);
+            await _jobTasks.Update(jobTask, cancellationToken);
 
             return Ok();
         }

@@ -12,6 +12,9 @@ using StringTokenFormatter;
 
 namespace Datack.Agent.Services.Tasks
 {
+    /// <summary>
+    /// This task backs up databases based on the parameters given.
+    /// </summary>
     public class CreateBackupTask : BaseTask
     {
         private readonly DatabaseAdapter _databaseAdapter;
@@ -21,7 +24,7 @@ namespace Datack.Agent.Services.Tasks
             _databaseAdapter = databaseAdapter;
         }
 
-        public override async Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
+        public override async Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
         {
             var allDatabases = await _databaseAdapter.GetDatabaseList(cancellationToken);
 
@@ -52,7 +55,7 @@ namespace Datack.Agent.Services.Tasks
                    .ToList();
         }
 
-        public override async Task Run(JobRunTask jobRunTask, CancellationToken cancellationToken)
+        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {
@@ -93,6 +96,8 @@ namespace Datack.Agent.Services.Tasks
 
                 var storePath = Path.Combine(filePath, fileName);
 
+                var resultArtifact = storePath;
+
                 OnProgress(jobRunTask.JobRunTaskId, $"Testing path {storePath}");
 
                 if (!Directory.Exists(filePath))
@@ -127,16 +132,14 @@ namespace Datack.Agent.Services.Tasks
                 sw.Stop();
                 
                 var message = $"Completed backup of database {jobRunTask.ItemName} {sw.Elapsed:g}";
-
-                await Task.Delay(10000, cancellationToken);
-
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, false);
+                
+                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, false);
             }
             catch (Exception ex)
             {
                 var message = $"Creation of backup of database {jobRunTask.ItemName} resulted in an error: {ex.Message}";
 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, true);
+                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, null, true);
             }
         }
     }

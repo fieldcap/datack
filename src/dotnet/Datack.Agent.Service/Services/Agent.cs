@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
 using Datack.Common.Enums;
+using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -51,6 +52,7 @@ namespace Datack.Agent.Services
             _rpcService.Subscribe("GetDatabaseList", () => GetDatabaseList());
             _rpcService.Subscribe<Guid, BackupType>("Run", (jobId, backupType) => Run(jobId, backupType));
             _rpcService.Subscribe<ServerDbSettings>("TestSqlServer", serverDbSettings => TestSqlServer(serverDbSettings));
+            _rpcService.Subscribe<JobTask>("UpdateJobTask", jobTask => UpdateJobTask(jobTask));
 
             _rpcService.StartAsync(cancellationToken);
 
@@ -73,7 +75,7 @@ namespace Datack.Agent.Services
 
             await _servers.UpdateServer(response.Server);
             await _jobs.UpdateJobs(response.Jobs);
-            await _jobTasks.UpdateJobTasks(response.JobTasks, response.Server.ServerId);
+            await _jobTasks.UpdateJobTasks(response.JobTasks);
 
             _jobScheduler.Start();
         }
@@ -90,6 +92,13 @@ namespace Datack.Agent.Services
             _logger.LogTrace("TestSqlServer");
 
             return await _databaseAdapter.TestConnection(serverDbSettings, CancellationToken.None);
+        }
+
+        private async Task<String> UpdateJobTask(JobTask jobTask)
+        {
+            await _jobTasks.UpdateJobTask(jobTask);
+
+            return "Success";
         }
 
         private async Task<String> Run(Guid jobId, BackupType backupType)

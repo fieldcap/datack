@@ -15,5 +15,6 @@ export type JobRunTask = {
     order: number;
     isError: boolean;
     result: string | null;
+    resultArtifact: string | null;
     settings: JobTaskSettings;
 };

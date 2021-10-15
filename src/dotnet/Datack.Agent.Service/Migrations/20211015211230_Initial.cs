@@ -85,6 +85,7 @@ namespace Datack.Agent.Migrations
                     Name = table.Column<string>(type: "TEXT", nullable: true),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
                     Order = table.Column<int>(type: "INTEGER", nullable: false),
+                    UsePreviousTaskArtifactsFromJobTaskId = table.Column<Guid>(type: "TEXT", nullable: true),
                     Settings = table.Column<string>(type: "TEXT", nullable: true),
                     ServerId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
@@ -97,6 +98,12 @@ namespace Datack.Agent.Migrations
                         principalTable: "Jobs",
                         principalColumn: "JobId",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_JobTasks_JobTasks_UsePreviousTaskArtifactsFromJobTaskId",
+                        column: x => x.UsePreviousTaskArtifactsFromJobTaskId,
+                        principalTable: "JobTasks",
+                        principalColumn: "JobTaskId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_JobTasks_Servers_ServerId",
                         column: x => x.ServerId,
@@ -120,6 +127,7 @@ namespace Datack.Agent.Migrations
                     ItemOrder = table.Column<int>(type: "INTEGER", nullable: false),
                     IsError = table.Column<bool>(type: "INTEGER", nullable: false),
                     Result = table.Column<string>(type: "TEXT", nullable: true),
+                    ResultArtifact = table.Column<string>(type: "TEXT", nullable: true),
                     Settings = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
@@ -190,6 +198,11 @@ namespace Datack.Agent.Migrations
                 name: "IX_JobTasks_ServerId",
                 table: "JobTasks",
                 column: "ServerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_JobTasks_UsePreviousTaskArtifactsFromJobTaskId",
+                table: "JobTasks",
+                column: "UsePreviousTaskArtifactsFromJobTaskId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

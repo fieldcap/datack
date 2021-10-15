@@ -10,6 +10,7 @@ export type JobTask = {
     name: string;
     description: string;
     order: number;
+    usePreviousTaskArtifactsFromJobTaskId: string | null;
     settings: JobTaskSettings;
     serverId: string;
     server?: Server | null;
@@ -17,6 +18,7 @@ export type JobTask = {
 
 export type JobTaskSettings = {
     createBackup?: JobTaskCreateDatabaseSettings;
+    compress?: JobTaskCompressSettings;
 };
 
 export type JobTaskCreateDatabaseSettings = {
@@ -27,4 +29,12 @@ export type JobTaskCreateDatabaseSettings = {
     backupExcludeSystemDatabases: boolean;
     backupIncludeManual: string;
     backupExcludeManual: string;
+};
+
+export type JobTaskCompressSettings = {
+    fileName: string;
+    archiveType: string;
+    compressionLevel: string;
+    multithreadMode: string;
+    password: string | null;
 };

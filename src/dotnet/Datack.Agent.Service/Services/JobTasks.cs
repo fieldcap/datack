@@ -17,13 +17,11 @@ namespace Datack.Agent.Services
             _dataContextFactory = dataContextFactory;
         }
 
-        public async Task UpdateJobTasks(IList<JobTask> jobTasks, Guid serverId)
+        public async Task UpdateJobTasks(IList<JobTask> jobTasks)
         {
             await using var context = _dataContextFactory.Create();
 
             var dbJobTasks = await context.JobTasks.ToListAsync();
-
-            jobTasks = jobTasks.Where(m => m.ServerId == serverId).ToList();
 
             foreach (var dbJobTask in dbJobTasks)
             {
@@ -51,13 +49,39 @@ namespace Datack.Agent.Services
             }
         }
 
+        public async Task UpdateJobTask(JobTask jobTask)
+        {
+            await using var context = _dataContextFactory.Create();
+
+            var dbJobTask = await context.JobTasks.FirstOrDefaultAsync(m => m.JobTaskId == jobTask.JobTaskId);
+
+            if (dbJobTask != null)
+            {
+                dbJobTask.Name = jobTask.Name;
+                dbJobTask.Description = jobTask.Description;
+                dbJobTask.Order = jobTask.Order;
+                dbJobTask.UsePreviousTaskArtifactsFromJobTaskId = jobTask.UsePreviousTaskArtifactsFromJobTaskId;
+                dbJobTask.Type = jobTask.Type;
+                dbJobTask.Parallel = jobTask.Parallel;
+                dbJobTask.Settings = jobTask.Settings;
+            }
+            else
+            {
+                await context.JobTasks.AddAsync(jobTask);
+            }
+
+            await context.SaveChangesAsync();
+        }
+
         public async Task<IList<JobTask>> GetForJob(Guid jobId)
         {
             await using var context = _dataContextFactory.Create();
 
             return await context.JobTasks
                                 .AsNoTracking()
-                                .Where(m => m.JobId == jobId).ToListAsync();
+                                .Where(m => m.JobId == jobId)
+                                .OrderBy(m => m.Order)
+                                .ToListAsync();
         }
     }
 }

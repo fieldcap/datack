@@ -38,4 +38,16 @@
     <ProjectReference Include="..\Datack.Common\Datack.Common.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="7zip\7za.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="7zip\7za.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="7zip\7zxa.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

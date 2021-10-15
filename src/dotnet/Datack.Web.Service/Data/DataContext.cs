@@ -87,7 +87,7 @@ namespace Datack.Web.Service.Data
             {
                 var server = new Server
                 {
-                    ServerId = Guid.NewGuid(),
+                    ServerId = Guid.Parse("FC1005A3-6941-4BC2-A4C1-4A3863F3F7BA"),
                     Key = "5026d123-0b7a-4ecc-9b97-4950324f161f",
                     Name = "Local SQL Server",
                     Description = "Test Server",
@@ -105,9 +105,9 @@ namespace Datack.Web.Service.Data
                 
                 var job = new Job
                 {
-                    JobId = Guid.NewGuid(),
+                    JobId = Guid.Parse("6b9e6002-13ef-454a-92a2-23818a5737ac"),
                     Description = "Create backup job",
-                    Name = "Create backup",
+                    Name = "Backup Job",
                     Settings = new JobSettings
                     {
                         CronFull = "5 4 * * *",
@@ -116,13 +116,13 @@ namespace Datack.Web.Service.Data
                     }
                 };
 
-                var jobTask = new JobTask
+                var jobTask1 = new JobTask
                 {
-                    JobTaskId = Guid.NewGuid(),
+                    JobTaskId = Guid.Parse("FF1F7DFF-12A5-4CAB-8EFC-181805D1BC48"),
                     JobId = job.JobId,
                     ServerId = server.ServerId,
                     Description = "Creates a backup",
-                    Name = "Create backup",
+                    Name = "Create Database Backups",
                     Order = 0,
                     Parallel = 2,
                     Type = "create_backup",
@@ -130,7 +130,7 @@ namespace Datack.Web.Service.Data
                     {
                         CreateBackup = new JobTaskCreateDatabaseSettings
                         {
-                            FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}",
+                            FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}.bak",
                             BackupDefaultExclude = false,
                             BackupExcludeManual = "",
                             BackupExcludeRegex = "",
@@ -141,9 +141,34 @@ namespace Datack.Web.Service.Data
                     }
                 };
 
+                var jobTask2 = new JobTask
+                {
+                    JobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
+                    JobId = job.JobId,
+                    ServerId = server.ServerId,
+                    Description = "Compress the backups with 7z",
+                    Name = "Compress backups",
+                    Order = 1,
+                    Parallel = 2,
+                    Type = "compress",
+                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("FF1F7DFF-12A5-4CAB-8EFC-181805D1BC48"),
+                    Settings = new JobTaskSettings
+                    {
+                        Compress = new JobTaskCompressSettings
+                        {
+                            FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}.7z",
+                            ArchiveType = "7z",
+                            CompressionLevel = "5",
+                            MultithreadMode = "on",
+                            Password = "test"
+                        }
+                    }
+                };
+
                 await Servers.AddAsync(server);
                 await Jobs.AddAsync(job);
-                await JobTasks.AddAsync(jobTask);
+                await JobTasks.AddAsync(jobTask1);
+                await JobTasks.AddAsync(jobTask2);
 
                 await SaveChangesAsync();
             }

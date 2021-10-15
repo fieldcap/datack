@@ -25,6 +25,11 @@ namespace Datack.Common.Models.Data
 
         public Int32 Order { get; set; }
 
+        public Guid? UsePreviousTaskArtifactsFromJobTaskId { get; set; }
+
+        [ForeignKey("UsePreviousTaskArtifactsFromJobTaskId")]
+        public JobTask UsePreviousTaskArtifactsFromJobTask { get; set; }
+
         public JobTaskSettings Settings { get; set; }
 
         public Guid ServerId { get; set; }

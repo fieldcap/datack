@@ -35,6 +35,7 @@ namespace Datack.Web.Service.Services
                                      .AsNoTracking()
                                      .Where(m => m.ServerId == serverId)
                                      .Select(m => m.Job)
+                                     .Distinct()
                                      .OrderBy(m => m.Name)
                                      .ToListAsync(cancellationToken);
         }

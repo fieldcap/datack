@@ -13,9 +13,9 @@ namespace Datack.Agent.Services.Tasks
         public event EventHandler<ProgressEvent> OnProgressEvent;
         public event EventHandler<CompleteEvent> OnCompleteEvent;
         
-        public abstract Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken);
+        public abstract Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> initialJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken);
 
-        public abstract Task Run(JobRunTask jobRunTask, CancellationToken cancellationToken);
+        public abstract Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken);
         
         protected void OnProgress(Guid jobRunTaskId, String message)
         {
@@ -27,13 +27,14 @@ namespace Datack.Agent.Services.Tasks
             });
         }
         
-        protected void OnComplete(Guid jobRunTaskId, Guid jobRunId, String message, Boolean isError)
+        protected void OnComplete(Guid jobRunTaskId, Guid jobRunId, String message, String resultArtifact, Boolean isError)
         {
             OnCompleteEvent?.Invoke(this, new CompleteEvent
             {
                 JobRunTaskId = jobRunTaskId,
                 JobRunId = jobRunId,
                 Message = message,
+                ResultArtifact = resultArtifact,
                 IsError = isError
             });
         }

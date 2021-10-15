@@ -115,6 +115,7 @@ namespace Datack.Agent
                            services.AddSingleton<SqlServerConnection>();
 
                            services.AddSingleton<CreateBackupTask>();
+                           services.AddSingleton<CompressTask>();
 
                            services.AddHostedService<StartupHostedService>();
                            services.AddHostedService<AgentHostedService>();

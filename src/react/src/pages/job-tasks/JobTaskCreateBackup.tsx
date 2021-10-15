@@ -239,6 +239,14 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
 
     return (
         <>
+            <FormControl id="fileName" marginBottom={4}>
+                <FormLabel>File name</FormLabel>
+                <Input
+                    type="text"
+                    value={props.settings?.fileName || ''}
+                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                ></Input>
+            </FormControl>
             <FormControl id="backupDefaultExclude" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.backupDefaultExclude}
@@ -262,14 +270,6 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 >
                     Exclude all system databases
                 </Checkbox>
-            </FormControl>
-            <FormControl id="backupIncludeRegex" marginBottom={4}>
-                <FormLabel>File name</FormLabel>
-                <Input
-                    type="text"
-                    value={props.settings?.fileName || ''}
-                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
-                ></Input>
             </FormControl>
             <FormControl id="backupIncludeRegex" marginBottom={4}>
                 <FormLabel>Include Regex</FormLabel>

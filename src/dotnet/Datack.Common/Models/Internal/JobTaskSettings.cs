@@ -7,6 +7,7 @@ namespace Datack.Common.Models.Internal
     {
         [JsonPropertyName("createBackup")]
         public JobTaskCreateDatabaseSettings CreateBackup { get;set; }
+        public JobTaskCompressSettings Compress { get;set; }
     }
 
     public class JobTaskCreateDatabaseSettings
@@ -31,5 +32,23 @@ namespace Datack.Common.Models.Internal
 
         [JsonPropertyName("backupExcludeManual")]
         public String BackupExcludeManual{ get;set; }
+    }
+
+    public class JobTaskCompressSettings
+    {
+        [JsonPropertyName("fileName")]
+        public String FileName { get;set; }
+
+        [JsonPropertyName("archiveType")]
+        public String ArchiveType { get; set; }
+
+        [JsonPropertyName("compressionLevel")]
+        public String CompressionLevel { get; set; }
+        
+        [JsonPropertyName("multithreadMode")]
+        public String MultithreadMode { get; set; }
+
+        [JsonPropertyName("password")]
+        public String Password { get; set; }
     }
 }

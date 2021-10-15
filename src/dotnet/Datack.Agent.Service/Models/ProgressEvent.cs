@@ -7,6 +7,7 @@ namespace Datack.Agent.Models
         public Guid JobRunTaskId { get; set; }
         public Guid JobRunId { get; set; }
         public String Message { get; set; }
+        public String ResultArtifact { get; set; }
         public Boolean IsError { get; set; }
     }
 }

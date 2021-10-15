@@ -57,7 +57,7 @@ namespace Datack.Agent.Services
             await context.SaveChangesAsync();
         }
 
-        public async Task UpdateCompleted(Guid jobRunTaskId, String result, Boolean isError)
+        public async Task UpdateCompleted(Guid jobRunTaskId, String result, String resultArtifact, Boolean isError)
         {
             await using var context = _dataContextFactory.Create();
 
@@ -70,6 +70,7 @@ namespace Datack.Agent.Services
 
             jobRunTask.Completed = DateTimeOffset.Now;
             jobRunTask.Result = result;
+            jobRunTask.ResultArtifact = resultArtifact;
             jobRunTask.IsError = isError;
 
             await context.SaveChangesAsync();

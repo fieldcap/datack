@@ -21,6 +21,7 @@ import { JobTask, JobTaskSettings } from '../../models/job-task';
 import { Server } from '../../models/server';
 import JobTasks from '../../services/jobTasks';
 import Servers from '../../services/servers';
+import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
 
 type RouteParams = {
@@ -31,6 +32,8 @@ type RouteParams = {
 const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [jobTask, setJobTask] = React.useState<JobTask | null>(null);
 
+    const [allJobTasks, setAllJobTasks] = React.useState<JobTask[]>([]);
+
     const [isAdd, setIsAdd] = useState<boolean>(false);
 
     const [servers, setServers] = useState<Server[]>([]);
@@ -39,6 +42,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [description, setDescription] = useState<string>('');
     const [type, setType] = useState<string>('');
     const [parallel, setParallel] = useState<number>(1);
+    const [usePreviousTaskArtifacts, setUsePreviousTaskArtifacts] = useState<
+        string | null
+    >(null);
     const [settings, setSettings] = useState<JobTaskSettings | null>(null);
     const [serverId, setServerId] = useState<string>('');
 
@@ -50,6 +56,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     useEffect(() => {
         const getByIdCancelToken = axios.CancelToken.source();
+        const getJobTasksCancelToken = axios.CancelToken.source();
 
         if (props.match.params.id == null) {
             setIsAdd(true);
@@ -66,10 +73,21 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 setDescription(result.description || '');
                 setType(result.type || '');
                 setParallel(result.parallel);
+                setUsePreviousTaskArtifacts(
+                    result.usePreviousTaskArtifactsFromJobTaskId
+                );
                 setSettings(result.settings);
                 setServerId(result.serverId || '');
             })();
         }
+
+        (async () => {
+            const result = await JobTasks.getForJob(
+                props.match.params.jobId,
+                getJobTasksCancelToken
+            );
+            setAllJobTasks(result);
+        })();
 
         (async () => {
             const servers = await Servers.getList(getByIdCancelToken);
@@ -79,7 +97,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         return () => {
             getByIdCancelToken.cancel();
         };
-    }, [props.match.params.id]);
+    }, [props.match.params.id, props.match.params.jobId]);
 
     const save = async () => {
         setIsSaving(true);
@@ -94,6 +112,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     type: type,
                     parallel: parallel,
                     order: 0,
+                    usePreviousTaskArtifactsFromJobTaskId: null,
                     settings: settings || {},
                     serverId: serverId,
                 };
@@ -108,6 +127,13 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 jobTask.settings = settings || {};
                 jobTask.serverId = serverId;
                 jobTask.parallel = parallel;
+
+                if (!usePreviousTaskArtifacts) {
+                    jobTask.usePreviousTaskArtifactsFromJobTaskId = null;
+                } else {
+                    jobTask.usePreviousTaskArtifactsFromJobTaskId =
+                        usePreviousTaskArtifacts;
+                }
 
                 await JobTasks.update(jobTask);
 
@@ -141,6 +167,19 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             });
                         }}
                     ></JobTaskCreateBackup>
+                );
+            case 'compress':
+                return (
+                    <JobTaskCompress
+                        settings={settings.compress}
+                        serverId={serverId}
+                        onSettingsChanged={(newSettings) => {
+                            setSettings({
+                                ...settings,
+                                compress: newSettings,
+                            });
+                        }}
+                    ></JobTaskCompress>
                 );
             default:
                 return <Alert>Unkown type {type}</Alert>;
@@ -217,6 +256,26 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             setParallel(Number(e.target.value));
                         }}
                     />
+                </FormControl>
+                <FormControl id="type" marginBottom={4}>
+                    <FormLabel>
+                        Use artifact results from previous task
+                    </FormLabel>
+                    <Select
+                        value={usePreviousTaskArtifacts || ''}
+                        onChange={(e) =>
+                            setUsePreviousTaskArtifacts(e.target.value)
+                        }
+                    >
+                        <option value="">
+                            Don't use artifactes from previous tasks
+                        </option>
+                        {allJobTasks.map((jobTask) => (
+                            <option value={jobTask.jobTaskId}>
+                                Task: {jobTask.name}
+                            </option>
+                        ))}
+                    </Select>
                 </FormControl>
                 {getTaskType()}
                 {error != null ? (

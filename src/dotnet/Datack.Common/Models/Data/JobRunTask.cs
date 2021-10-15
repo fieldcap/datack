@@ -36,6 +36,8 @@ namespace Datack.Common.Models.Data
 
         public String Result { get; set; }
 
+        public String ResultArtifact { get; set; }
+
         public JobTaskSettings Settings { get; set; }
     }
 }

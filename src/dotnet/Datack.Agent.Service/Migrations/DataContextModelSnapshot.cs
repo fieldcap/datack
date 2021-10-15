@@ -97,6 +97,9 @@ namespace Datack.Agent.Migrations
                     b.Property<string>("Result")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("ResultArtifact")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Settings")
                         .HasColumnType("TEXT");
 
@@ -173,11 +176,16 @@ namespace Datack.Agent.Migrations
                     b.Property<string>("Type")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("UsePreviousTaskArtifactsFromJobTaskId")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("JobTaskId");
 
                     b.HasIndex("JobId");
 
                     b.HasIndex("ServerId");
+
+                    b.HasIndex("UsePreviousTaskArtifactsFromJobTaskId");
 
                     b.ToTable("JobTasks");
                 });
@@ -279,9 +287,15 @@ namespace Datack.Agent.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Datack.Common.Models.Data.JobTask", "UsePreviousTaskArtifactsFromJobTask")
+                        .WithMany()
+                        .HasForeignKey("UsePreviousTaskArtifactsFromJobTaskId");
+
                     b.Navigation("Job");
 
                     b.Navigation("Server");
+
+                    b.Navigation("UsePreviousTaskArtifactsFromJobTask");
                 });
 #pragma warning restore 612, 618
         }
