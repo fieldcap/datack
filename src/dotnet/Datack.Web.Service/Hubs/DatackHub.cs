@@ -4,21 +4,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
+using Datack.Web.Service.Services;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Datack.Web.Service.Services
+namespace Datack.Web.Service.Hubs
 {
     public class DatackHub : Hub
     {
         private readonly Servers _servers;
-        private readonly Jobs _jobs;
-        private readonly JobTasks _jobTasks;
+        private readonly JobRunner _jobRunner;
 
-        public DatackHub(Servers servers, Jobs jobs, JobTasks jobTasks)
+        public DatackHub(Servers servers, JobRunner jobRunner)
         {
             _servers = servers;
-            _jobs = jobs;
-            _jobTasks = jobTasks;
+            _jobRunner = jobRunner;
         }
 
         public static readonly ConcurrentDictionary<String, String> Users = new();
@@ -58,15 +57,21 @@ namespace Datack.Web.Service.Services
         public async Task<RpcUpdate> RpcUpdate(String key)
         {
             var server = await _servers.GetByKey(key, CancellationToken.None);
-            var jobs = await _jobs.GetForServer(server.ServerId, CancellationToken.None);
-            var jobTasks = await _jobTasks.GetForServer(server.ServerId, CancellationToken.None);
 
             return new RpcUpdate
             {
-                Server = server,
-                Jobs = jobs,
-                JobTasks = jobTasks
+                Server = server
             };
+        }
+
+        public async Task TaskProgress(RpcProgressEvent progressEvent)
+        {
+            await _jobRunner.ProgressTask(progressEvent.JobRunTaskId, progressEvent.Message, progressEvent.IsError, CancellationToken.None);
+        }
+
+        public async Task TaskComplete(RpcCompleteEvent completeEvent)
+        {
+            await _jobRunner.CompleteTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.ResultArtifact, completeEvent.IsError, CancellationToken.None);
         }
     }
 }

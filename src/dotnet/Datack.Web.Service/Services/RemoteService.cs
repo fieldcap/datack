@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
 using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
+using Datack.Web.Service.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Datack.Web.Service.Services
@@ -30,16 +30,11 @@ namespace Datack.Web.Service.Services
             return await Send<List<Database>>(server.Key, "GetDatabaseList", cancellationToken);
         }
         
-        public async Task Run(Server server, Job job, BackupType backupType, CancellationToken cancellationToken)
+        public async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
-            await Send<String>(server.Key, "Run", cancellationToken, job.JobId, backupType);
+            return await Send<String>(jobRunTask.JobTask.Server.Key, "Run", cancellationToken, jobRunTask, previousTask);
         }
-
-        public async Task UpdateJobTask(Server server, JobTask jobTask, CancellationToken cancellationToken)
-        {
-            await Send<String>(server.Key, "UpdateJobTask", cancellationToken, jobTask);
-        }
-
+        
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
         {
             var hasConnection = DatackHub.Users.TryGetValue(key, out var connectionId);

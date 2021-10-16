@@ -1,10 +1,10 @@
 using System;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Datack.Web.Service.Data;
+using Datack.Web.Data;
+using Datack.Web.Service.Hubs;
 using Datack.Web.Service.Middleware;
 using Datack.Web.Service.Models;
-using Datack.Web.Service.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -16,7 +16,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Datack.Web.Web
 {
@@ -36,8 +35,7 @@ namespace Datack.Web.Web
 
             services.AddSingleton(appSettings);
 
-            var connectionString = $"Data Source={appSettings.Database.Path}";
-            services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
+            services.AddDbContext<DataContext>(options => options.UseSqlServer(appSettings.ConnectionStrings.Datack));
 
             services.AddControllers()
                     .AddJsonOptions(opts =>
@@ -50,7 +48,7 @@ namespace Datack.Web.Web
             services.AddSignalR(options =>
             {
                 options.EnableDetailedErrors = true;
-            }).AddNewtonsoftJsonProtocol(m => m.PayloadSerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
+            });
             
             services.AddHttpContextAccessor();
 
@@ -94,14 +92,10 @@ namespace Datack.Web.Web
                 options.Cookie.Name = "SID";
             });
 
-            services.AddScoped<Authentication>();
-            services.AddScoped<Jobs>();
-            services.AddScoped<RemoteService>();
-            services.AddScoped<Settings>();
-            services.AddScoped<Servers>();
-            services.AddScoped<JobTasks>();
-
-            services.AddHostedService<StartupHostedService>();
+            // ReSharper disable RedundantNameQualifier
+            Datack.Web.Data.DiConfig.Config(services);
+            Datack.Web.Service.DiConfig.Config(services);
+            // ReSharper restore RedundantNameQualifier
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
@@ -135,7 +129,7 @@ namespace Datack.Web.Web
                 endpoints.MapHub<DatackHub>("/hub");
             });
 
-            app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>
+            app.MapWhen(x => x.Request.Path.Value != null && !x.Request.Path.Value.StartsWith("/api"), builder =>
             {
                 builder.UseSpaStaticFiles();
                 builder.UseSpa(spa =>

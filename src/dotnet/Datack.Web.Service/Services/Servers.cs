@@ -1,73 +1,47 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
-using Datack.Web.Service.Data;
-using Microsoft.EntityFrameworkCore;
+using Datack.Web.Data.Repositories;
 
 namespace Datack.Web.Service.Services
 {
     public class Servers
     {
-        private readonly DataContext _dataContext;
+        private readonly ServerRepository _serverRepository;
         private readonly RemoteService _remoteService;
 
-        public Servers(DataContext dataContext, RemoteService remoteService)
+        public Servers(ServerRepository serverRepository, RemoteService remoteService)
         {
-            _dataContext = dataContext;
+            _serverRepository = serverRepository;
             _remoteService = remoteService;
         }
 
         public async Task<IList<Server>> GetAll(CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers
-                                     .AsNoTracking()
-                                     .OrderBy(m => m.Name)
-                                     .ToListAsync(cancellationToken);
+            return await _serverRepository.GetAll(cancellationToken);
         }
 
         public async Task<Server> GetById(Guid serverId, CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers
-                                     .AsNoTracking()
-                                     .FirstOrDefaultAsync(m => m.ServerId == serverId, cancellationToken);
+            return await _serverRepository.GetById(serverId, cancellationToken);
         }
 
         public async Task<Server> GetByKey(String key, CancellationToken cancellationToken)
         {
-            return await _dataContext.Servers
-                                     .AsNoTracking()
-                                     .FirstOrDefaultAsync(m => m.Key == key, cancellationToken);
+            return await _serverRepository.GetByKey(key, cancellationToken);
         }
         
         public async Task<Guid> Add(Server server, CancellationToken cancellationToken)
         {
-            server.ServerId = Guid.NewGuid();
-
-            await _dataContext.Servers.AddAsync(server, cancellationToken);
-            await _dataContext.SaveChangesAsync(cancellationToken);
-
-            return server.ServerId;
+            return await _serverRepository.Add(server, cancellationToken);
         }
 
         public async Task Update(Server server, CancellationToken cancellationToken)
         {
-            var dbServer = await _dataContext.Servers.FirstOrDefaultAsync(m => m.ServerId == server.ServerId, cancellationToken);
-
-            if (dbServer == null)
-            {
-                throw new Exception($"Server with ID {server.ServerId} not found");
-            }
-
-            dbServer.Name = server.Name;
-            dbServer.Description = server.Description;
-            dbServer.Settings = server.Settings;
-            dbServer.DbSettings = server.DbSettings;
-
-            await _dataContext.SaveChangesAsync(cancellationToken);
+            await _serverRepository.Update(server, cancellationToken);
         }
 
         public async Task<String> TestSqlServerConnection(Server server, CancellationToken cancellationToken)

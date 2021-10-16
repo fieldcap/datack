@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Transfer;
-using Datack.Common.Enums;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -20,25 +17,7 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class UploadS3Task : BaseTask
     {
-        public override async Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
-        {
-            return previousJobRunTasks
-                   .Select(m => new JobRunTask
-                   {
-                       JobRunTaskId = Guid.NewGuid(),
-                       JobTaskId = jobTask.JobTaskId,
-                       JobRunId = jobRunId,
-                       Type = jobTask.Type,
-                       ItemName = m.ItemName,
-                       ItemOrder = m.ItemOrder,
-                       IsError = false,
-                       Result = null,
-                       Settings = jobTask.Settings
-                   })
-                   .ToList();
-        }
-
-        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {
@@ -123,13 +102,13 @@ namespace Datack.Agent.Services.Tasks
                 
                 var message = $"Completed uploading of {jobRunTask.ItemName} to s3 in {sw.Elapsed:g}";
                 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, false);
+                OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }
             catch (Exception ex)
             {
                 var message = $"Uploading of {jobRunTask.ItemName} to s3 resulted in an error: {ex.Message}";
 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, null, true);
+                OnComplete(jobRunTask.JobRunTaskId, message, null, true);
             }
         }
     }

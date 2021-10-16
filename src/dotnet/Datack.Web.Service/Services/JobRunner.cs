@@ -3,45 +3,44 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Agent.Services.Tasks;
 using Datack.Common.Enums;
-using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
+using Datack.Web.Service.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace Datack.Agent.Services
+namespace Datack.Web.Service.Services
 {
-    public class JobScheduler
+    public class JobRunner
     {
-        private readonly SemaphoreSlim _executeJobRunLock = new SemaphoreSlim(1, 1);
         private readonly JobRuns _jobRuns;
         private readonly JobRunTaskLogs _jobRunTaskLogs;
         private readonly JobRunTasks _jobRunTasks;
         private readonly Jobs _jobs;
         private readonly JobTasks _jobTasks;
-        private readonly ILogger<JobScheduler> _logger;
+        private readonly ILogger<JobRunner> _logger;
+        private readonly RemoteService _remoteService;
 
-        private readonly SemaphoreSlim _runSetupLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _setupJobRunLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _executeJobRunLock = new SemaphoreSlim(1, 1);
 
-        private readonly Dictionary<String, BaseTask> _tasks;
-        private CancellationToken _cancellationToken;
-
-        private CancellationTokenSource _cancellationTokenSource;
+        private readonly Dictionary<String, IBaseTask> _tasks;
 
         /// <summary>
         ///     Initialize the job scheduler and cache all the tasks, then setup the events for each task.
         /// </summary>
-        public JobScheduler(ILogger<JobScheduler> logger,
-                            Jobs jobs,
-                            JobRuns jobRuns,
-                            JobTasks jobTasks,
-                            JobRunTasks jobRunTasks,
-                            JobRunTaskLogs jobRunTaskLogs,
-                            CreateBackupTask createBackupTask,
-                            CompressTask compressTask,
-                            UploadS3Task uploadS3Task)
+        public JobRunner(ILogger<JobRunner> logger,
+                         RemoteService remoteService,
+                         Jobs jobs,
+                         JobRuns jobRuns,
+                         JobTasks jobTasks,
+                         JobRunTasks jobRunTasks,
+                         JobRunTaskLogs jobRunTaskLogs,
+                         CreateBackupTask createBackupTask,
+                         CompressTask compressTask,
+                         UploadS3Task uploadS3Task)
         {
             _logger = logger;
+            _remoteService = remoteService;
             _jobs = jobs;
             _jobRuns = jobRuns;
             _jobTasks = jobTasks;
@@ -50,7 +49,7 @@ namespace Datack.Agent.Services
 
             _logger.LogTrace("Constructor");
 
-            _tasks = new Dictionary<String, BaseTask>
+            _tasks = new Dictionary<String, IBaseTask>
             {
                 {
                     "create_backup", createBackupTask
@@ -62,33 +61,6 @@ namespace Datack.Agent.Services
                     "upload_s3", uploadS3Task
                 }
             };
-
-            foreach (var (_, task) in _tasks)
-            {
-                task.OnProgressEvent += (_, args) => AddTaskMessage(args.JobRunTaskId, args.Message, args.IsError);
-                task.OnCompleteEvent += (_, args) => CompleteTask(args.JobRunTaskId, args.JobRunId, args.Message, args.ResultArtifact, args.IsError);
-            }
-        }
-
-        /// <summary>
-        ///     Start the job scheduler and run the trigger loop.
-        /// </summary>
-        public void Start()
-        {
-            _logger.LogTrace("Constructor");
-
-            _cancellationTokenSource = new CancellationTokenSource();
-            _cancellationToken = _cancellationTokenSource.Token;
-
-            Task.Run(Trigger, _cancellationToken);
-        }
-
-        /// <summary>
-        ///     Stop the job scheduler, cancel all pending tasks and stop the trigger loop.
-        /// </summary>
-        public void Stop()
-        {
-            _cancellationTokenSource.Cancel();
         }
 
         /// <summary>
@@ -96,53 +68,28 @@ namespace Datack.Agent.Services
         /// </summary>
         /// <param name="jobId">The ID of the Job</param>
         /// <param name="backupType">The backuptype to run for this job.</param>
-        public async Task Run(Guid jobId, BackupType backupType)
+        /// <param name="cancellationToken"></param>
+        public async Task Run(Guid jobId, BackupType backupType, CancellationToken cancellationToken)
         {
-            var job = await _jobs.GetById(jobId);
+            var job = await _jobs.GetById(jobId, cancellationToken);
 
             if (job == null)
             {
                 throw new Exception($"Job with ID {jobId} not found");
             }
 
-            await SetupJobRun(job, backupType);
-        }
-
-        /// <summary>
-        ///     This triggerloop checks every minute if a new job needs to run.
-        /// </summary>
-        private async Task Trigger()
-        {
-            while (!_cancellationToken.IsCancellationRequested)
-            {
-                var now = DateTimeOffset.Now;
-                now = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
-
-                var jobs = await _jobs.GetJobs();
-
-                foreach (var job in jobs)
-                {
-                    var backupType = CronHelper.GetNextOccurrence(job.Settings.CronFull, job.Settings.CronDiff, job.Settings.CronLog, now);
-
-                    if (backupType != null)
-                    {
-                        await SetupJobRun(job, backupType.Value);
-                    }
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(60), _cancellationToken);
-            }
+            await SetupJobRun(job, backupType, cancellationToken);
         }
 
         /// <summary>
         ///     Setup a new job.
         /// </summary>
-        private async Task SetupJobRun(Job job, BackupType backupType)
+        private async Task SetupJobRun(Job job, BackupType backupType, CancellationToken cancellationToken)
         {
             _logger.LogDebug("SetJobRun {jobId} {name} for type {backupType} backup", job.JobId, job.Name, backupType);
 
             // Make sure only 1 process setup a new job otherwise it's possible that a job is duplicated.
-            var receivedLockSuccesfully = await _runSetupLock.WaitAsync(TimeSpan.FromSeconds(30), _cancellationToken);
+            var receivedLockSuccesfully = await _setupJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
             if (!receivedLockSuccesfully)
             {
@@ -167,14 +114,14 @@ namespace Datack.Agent.Services
                     Result = null
                 };
 
-                await _jobRuns.Create(jobRun);
+                await _jobRuns.Create(jobRun, cancellationToken);
 
                 _logger.LogDebug("Created jobRun record {jobRunId} for job {name}", jobRun.JobRunId, job.Name);
 
                 try
                 {
                     // Figure out if this job is already running, if so, stop execution.
-                    var runningTasks = await _jobRuns.GetRunning(job.JobId);
+                    var runningTasks = await _jobRuns.GetRunning(job.JobId, cancellationToken);
 
                     // Filter out itself..
                     runningTasks = runningTasks.Where(m => m.JobRunId != jobRun.JobRunId).ToList();
@@ -184,13 +131,14 @@ namespace Datack.Agent.Services
                     if (runningTasks.Count > 0)
                     {
                         var runningTasksList = String.Join(", ", runningTasks.Select(m => $"{m.JobRunId} (started {m.Started:g})"));
+
                         throw new Exception($"Cannot start job {job.Name}, there is already another job still running ({runningTasksList})");
                     }
 
                     // Get all the tasks for the job and run the through the task Setup procedure.
                     // This will return a list of JobRunTasks, basically a queue for each item.
                     // This queue will be used to run the tasks for each item.
-                    var jobTasks = await _jobTasks.GetForJob(job.JobId);
+                    var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
 
                     _logger.LogDebug("Found {count} job tasks for job {name}", jobTasks.Count, job.Name);
 
@@ -209,7 +157,7 @@ namespace Datack.Agent.Services
                             previousJobRunTasks = allJobRunTasks.Where(m => m.JobTaskId == jobTask.UsePreviousTaskArtifactsFromJobTaskId).ToList();
                         }
 
-                        var jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, backupType, jobRun.JobRunId, _cancellationToken);
+                        var jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, backupType, jobRun.JobRunId, cancellationToken);
 
                         _logger.LogDebug("Received {count} new job run tasks for {type} for job {name}", jobRunTasks.Count, jobTask.Type, job.Name);
 
@@ -227,11 +175,11 @@ namespace Datack.Agent.Services
                     }
 
                     // Add all the run tasks to the database and execute the job.
-                    await _jobRunTasks.Create(allJobRunTasks);
+                    await _jobRunTasks.Create(allJobRunTasks, cancellationToken);
 
                     _logger.LogDebug("Finished setting up job run tasks for job {name}", job.Name);
 
-                    await ExecuteJobRun(jobRun.JobRunId);
+                    await ExecuteJobRun(jobRun.JobRunId, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -239,22 +187,22 @@ namespace Datack.Agent.Services
                     jobRun.IsError = true;
                     jobRun.Completed = DateTimeOffset.Now;
 
-                    await _jobRuns.Update(jobRun);
+                    await _jobRuns.Update(jobRun, cancellationToken);
                 }
             }
             finally
             {
                 _logger.LogDebug("Releasing lock for job {name}", job.Name);
-                _runSetupLock.Release();
+                _setupJobRunLock.Release();
             }
         }
 
-        private async Task ExecuteJobRun(Guid jobRunId)
+        private async Task ExecuteJobRun(Guid jobRunId, CancellationToken cancellationToken)
         {
             _logger.LogDebug("ExecuteJobRun for job run {jobRunId}", jobRunId);
 
             // Make sure only 1 process executes a job run otherwise it might run duplicate tasks.
-            var receivedLockSuccesfully = await _executeJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), _cancellationToken);
+            var receivedLockSuccesfully = await _executeJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
             if (!receivedLockSuccesfully)
             {
@@ -268,7 +216,7 @@ namespace Datack.Agent.Services
 
             try
             {
-                var jobRun = await _jobRuns.GetById(jobRunId);
+                var jobRun = await _jobRuns.GetById(jobRunId, cancellationToken);
 
                 if (jobRun == null)
                 {
@@ -287,7 +235,7 @@ namespace Datack.Agent.Services
                 }
 
                 // Get all the run tasks for the job.
-                var jobRunTasks = await _jobRunTasks.GetByJobRunId(jobRun.JobRunId);
+                var jobRunTasks = await _jobRunTasks.GetByJobRunId(jobRun.JobRunId, cancellationToken);
 
                 // Figure out the Pending, Running and Completed statuses for the run task list.
                 var pendingJobRunTasks = jobRunTasks.Where(m => m.Started == null && m.Completed == null).ToList();
@@ -307,7 +255,7 @@ namespace Datack.Agent.Services
                 {
                     _logger.LogDebug("Marking job run as complete for job {jobRunId} {name}", jobRunId, jobRun.Job.Name);
 
-                    await _jobRuns.UpdateComplete(jobRunId);
+                    await _jobRuns.UpdateComplete(jobRunId, cancellationToken);
 
                     return;
                 }
@@ -327,8 +275,6 @@ namespace Datack.Agent.Services
                             continue;
                         }
                     }
-
-                    var task = GetTask(jobRunTask.Type);
 
                     // Check how many job run tasks are currently in progress for the same task.
                     var taskRunning = runningJobRunTasks.Count(m => m.JobTaskId == jobRunTask.JobTaskId);
@@ -350,26 +296,31 @@ namespace Datack.Agent.Services
 
                         // Find the previous task for this item and pass it down
                         JobRunTask previousTask = null;
+
                         if (jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId != null)
                         {
-                            previousTask = completedJobRunTasks.FirstOrDefault(m => m.ItemName == jobRunTask.ItemName && m.JobTaskId == jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId);
+                            previousTask = completedJobRunTasks.FirstOrDefault(m => m.ItemName == jobRunTask.ItemName &&
+                                                                                    m.JobTaskId == jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId);
                         }
 
                         // Mark the task as started
                         jobRunTask.Started = DateTimeOffset.Now;
-                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId);
-
-                        _ = Task.Run(() => task.Run(jobRunTask, previousTask, _cancellationToken), _cancellationToken);
+                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, cancellationToken);
+                        
+                        _ = Task.Run(async () =>
+                        {
+                            await _remoteService.Run(jobRunTask, previousTask, cancellationToken);
+                        }, cancellationToken);
                     }
                     else
                     {
-                        _logger.LogDebug("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}", 
-                                         jobRunTask.JobRunTaskId, 
+                        _logger.LogDebug("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}",
+                                         jobRunTask.JobRunTaskId,
                                          jobRunTask.ItemName,
                                          jobRunTask.Type,
                                          taskRunning,
                                          jobRunTask.JobTask.Parallel,
-                                         jobRunId, 
+                                         jobRunId,
                                          jobRun.Job.Name);
                     }
                 }
@@ -381,50 +332,7 @@ namespace Datack.Agent.Services
             }
         }
 
-        /// <summary>
-        ///     Store a message that is associated with the job run task.
-        /// </summary>
-        private async void AddTaskMessage(Guid jobRunTaskId, String message, Boolean isError)
-        {
-            if (isError)
-            {
-                _logger.LogError($"{jobRunTaskId}: {message}");
-            }
-            else
-            {
-                _logger.LogInformation($"{jobRunTaskId}: {message}");
-            }
-
-            await _jobRunTaskLogs.Add(new JobRunTaskLog
-            {
-                JobRunTaskId = jobRunTaskId,
-                DateTime = DateTimeOffset.Now,
-                Message = message,
-                IsError = isError
-            });
-        }
-
-        /// <summary>
-        ///     Event callback: Indicate the a task is completed and update the JobRunTask.
-        ///     Will start the next task.
-        /// </summary>
-        private async void CompleteTask(Guid jobRunTaskId, Guid jobRunId, String message, String resultArtifact, Boolean isError)
-        {
-            if (isError)
-            {
-                _logger.LogError($"{jobRunTaskId}: {message}");
-            }
-            else
-            {
-                _logger.LogInformation($"{jobRunTaskId}: {message}");
-            }
-
-            await _jobRunTasks.UpdateCompleted(jobRunTaskId, message, resultArtifact, isError);
-
-            await ExecuteJobRun(jobRunId);
-        }
-
-        private BaseTask GetTask(String type)
+        private IBaseTask GetTask(String type)
         {
             if (type == null)
             {
@@ -437,6 +345,26 @@ namespace Datack.Agent.Services
             }
 
             return task;
+        }
+
+        public async Task ProgressTask(Guid jobRunTaskId, String message, Boolean isError, CancellationToken cancellationToken)
+        {
+            await _jobRunTaskLogs.Add(new JobRunTaskLog
+            {
+                JobRunTaskId = jobRunTaskId,
+                DateTime = DateTimeOffset.Now,
+                Message = message,
+                IsError = isError
+            }, cancellationToken);
+        }
+
+        public async Task CompleteTask(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
+        {
+            await _jobRunTasks.UpdateCompleted(jobRunTaskId, message, resultArtifact, isError, cancellationToken);
+
+            var jobRunTask = await _jobRunTasks.GetById(jobRunTaskId, cancellationToken);
+
+            await ExecuteJobRun(jobRunTask.JobRunId, cancellationToken);
         }
     }
 }

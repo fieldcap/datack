@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Datack.Agent.Models
+namespace Datack.Common.Models.RPC
 {
-    public class CompleteEvent
+    public class RpcCompleteEvent
     {
         public Guid JobRunTaskId { get; set; }
         public String Message { get; set; }

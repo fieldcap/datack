@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
-using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -23,39 +19,8 @@ namespace Datack.Agent.Services.Tasks
         {
             _databaseAdapter = databaseAdapter;
         }
-
-        public override async Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
-        {
-            var allDatabases = await _databaseAdapter.GetDatabaseList(cancellationToken);
-
-            var filteredDatabases = DatabaseHelper.FilterDatabases(allDatabases, 
-                                                                   jobTask.Settings.CreateBackup.BackupDefaultExclude,
-                                                                   jobTask.Settings.CreateBackup.BackupExcludeSystemDatabases,
-                                                                   jobTask.Settings.CreateBackup.BackupIncludeRegex,
-                                                                   jobTask.Settings.CreateBackup.BackupExcludeRegex,
-                                                                   jobTask.Settings.CreateBackup.BackupIncludeManual,
-                                                                   jobTask.Settings.CreateBackup.BackupExcludeManual);
-
-            var index = 0;
-
-            return filteredDatabases
-                   .Where(m => m.Include)
-                   .Select(database => new JobRunTask
-                   {
-                       JobRunTaskId = Guid.NewGuid(),
-                       JobTaskId = jobTask.JobTaskId,
-                       JobRunId = jobRunId,
-                       Type = jobTask.Type,
-                       ItemName = database.DatabaseName,
-                       ItemOrder = index++,
-                       IsError = false,
-                       Result = null,
-                       Settings = jobTask.Settings
-                   })
-                   .ToList();
-        }
-
-        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        
+        public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {
@@ -121,7 +86,8 @@ namespace Datack.Agent.Services.Tasks
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Creating backup of database {jobRunTask.ItemName}");
 
-                await _databaseAdapter.CreateBackup(jobRunTask.ItemName,
+                await _databaseAdapter.CreateBackup(server.DbSettings,
+                                                    jobRunTask.ItemName,
                                                     storePath,
                                                     evt =>
                                                     {
@@ -133,13 +99,13 @@ namespace Datack.Agent.Services.Tasks
                 
                 var message = $"Completed backup of database {jobRunTask.ItemName} {sw.Elapsed:g}";
                 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, false);
+                OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }
             catch (Exception ex)
             {
                 var message = $"Creation of backup of database {jobRunTask.ItemName} resulted in an error: {ex.Message}";
 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, null, true);
+                OnComplete(jobRunTask.JobRunTaskId, message, null, true);
             }
         }
     }

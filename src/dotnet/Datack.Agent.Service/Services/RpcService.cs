@@ -36,8 +36,8 @@ namespace Datack.Agent.Services
                           {
                               logging.AddProvider(new SerilogLoggerProvider());
                               logging.SetMinimumLevel(LogLevel.Debug);
-                              logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
-                              logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug);
+                              logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Trace);
+                              logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Warning);
                           })
                           .Build();
 
@@ -45,7 +45,7 @@ namespace Datack.Agent.Services
 
             _connection.On<RpcRequest>("request", HandleRequest);
 
-            Task.Run(() => Connect(cancellationToken), cancellationToken);
+            Connect(cancellationToken);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -70,41 +70,47 @@ namespace Datack.Agent.Services
         {
             _requestMethods.Add(methodName, method);
         }
-        
-        private async Task Connect(CancellationToken cancellationToken)
+
+        private Task Connect(CancellationToken cancellationToken)
         {
-            while (true)
+            _ = Task.Run(async () =>
             {
-                try
+                while (true)
                 {
-                    await _connection.StartAsync(cancellationToken);
-                    break;
-                }
-                catch when (cancellationToken.IsCancellationRequested)
-                {
-                    break;
-                }
-                catch
-                {
-                    if (_connection.State == HubConnectionState.Disconnected)
+                    try
                     {
-                        await Task.Delay(1000, cancellationToken);
+                        await _connection.StartAsync(cancellationToken);
+
+                        break;
                     }
-                    else
+                    catch when (cancellationToken.IsCancellationRequested)
                     {
-                        throw;
+                        break;
+                    }
+                    catch
+                    {
+                        if (_connection.State == HubConnectionState.Disconnected)
+                        {
+                            await Task.Delay(1000, cancellationToken);
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
                 }
-            }
 
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return;
-            }
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
 
-            await _connection.SendAsync("Connect", _appSettings.Token, cancellationToken);
+                await _connection.SendAsync("Connect", _appSettings.Token, cancellationToken);
 
-            OnConnect?.Invoke(this, null!);
+                OnConnect?.Invoke(this, null!);
+            }, cancellationToken);
+
+            return Task.CompletedTask;
         }
 
         private async Task HandleRequest(RpcRequest rpcRequest)
@@ -181,6 +187,27 @@ namespace Datack.Agent.Services
             var response = await _connection.InvokeAsync<T>(methodName, _appSettings.Token);
 
             return response;
+        }
+
+        public async Task SendProgress(ProgressEvent progressEvent)
+        {
+            await _connection.SendCoreAsync("TaskProgress", new Object[]{ new RpcProgressEvent
+            {
+                IsError = progressEvent.IsError,
+                JobRunTaskId = progressEvent.JobRunTaskId,
+                Message = progressEvent.Message
+            }});
+        }
+
+        public async Task SendComplete(CompleteEvent completeEvent)
+        {
+            await _connection.SendCoreAsync("TaskComplete", new Object[]{ new RpcCompleteEvent
+            {
+                IsError = completeEvent.IsError,
+                JobRunTaskId= completeEvent.JobRunTaskId,
+                Message = completeEvent.Message,
+                ResultArtifact = completeEvent.ResultArtifact
+            }});
         }
     }
 }

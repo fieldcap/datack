@@ -1,10 +1,11 @@
 ﻿using System;
 
-namespace Datack.Agent.Models
+namespace Datack.Common.Models.RPC
 {
-    public class StartEvent
+    public class RpcProgressEvent
     {
         public Guid JobRunTaskId { get; set; }
         public Boolean IsError { get; set; }
+        public String Message { get; set; }
     }
 }

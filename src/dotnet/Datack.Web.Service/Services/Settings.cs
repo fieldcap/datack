@@ -1,47 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
-using Datack.Web.Service.Data;
-using Microsoft.EntityFrameworkCore;
+using Datack.Web.Data.Repositories;
 
 namespace Datack.Web.Service.Services
 {
     public class Settings
     {
-        private readonly DataContext _dataContext;
+        private readonly SettingRepository _settingRepository;
 
-        public Settings(DataContext dataContext)
+        public Settings(SettingRepository settingRepository)
         {
-            _dataContext = dataContext;
+            _settingRepository = settingRepository;
         }
 
         public async Task<IList<Setting>> GetAll()
         {
-            return await _dataContext.Settings.AsNoTracking().ToListAsync();
+            return await _settingRepository.GetAll();
         }
 
         public async Task Update(IList<Setting> settings)
         {
-            var dbSettings = await _dataContext.Settings.ToListAsync();
-
-            foreach (var dbSetting in dbSettings)
-            {
-                var setting = settings.FirstOrDefault(m => m.SettingId == dbSetting.SettingId);
-
-                if (setting != null)
-                {
-                    dbSetting.Value = setting.Value;
-                }
-            }
-
-            await _dataContext.SaveChangesAsync();
+            await _settingRepository.Update(settings);
         }
 
         public async Task<Setting> Get(String key)
         {
-            return await _dataContext.Settings.AsNoTracking().FirstOrDefaultAsync(m => m.SettingId == key);
+            return await _settingRepository.Get(key);
         }
     }
 }

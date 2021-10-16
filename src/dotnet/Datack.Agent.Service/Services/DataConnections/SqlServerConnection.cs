@@ -12,51 +12,23 @@ namespace Datack.Agent.Services.DataConnections
 {
     public class SqlServerConnection
     {
-        private readonly Servers _servers;
-
-        public SqlServerConnection(Servers servers)
+        private static String BuildConnectionString(ServerDbSettings serverDbSettings)
         {
-            _servers = servers;
-        }
-
-        private async Task<String> GetConnectionString()
-        {
-            var server = await _servers.GetServer();
-            var dbSettings = server.DbSettings;
-
-#if DEBUG
-            dbSettings.ConnectionTimeout = 1000;
-#endif
-
-            return BuildConnectionString(dbSettings);
-    }
-        
-
-        private static String BuildConnectionString(ServerDbSettings dbSettings)
-        {
-            return $"Server={dbSettings.Server};User Id={dbSettings.UserName};Password={dbSettings.Password};Timeout={dbSettings.ConnectionTimeout}";
+            return $"Server={serverDbSettings.Server};User Id={serverDbSettings.UserName};Password={serverDbSettings.Password};Timeout={serverDbSettings.ConnectionTimeout}";
         }
         
         public async Task Test(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
         {
-            String connectionString;
-            if (serverDbSettings == null)
-            {
-                connectionString = await GetConnectionString();
-            }
-            else
-            {
-                connectionString = BuildConnectionString(serverDbSettings);
-            }
-
+            var connectionString = BuildConnectionString(serverDbSettings);
+            
             await using var sqlConnection = new SqlConnection(connectionString);
 
             await sqlConnection.OpenAsync(cancellationToken);
         }
 
-        public async Task<IList<Database>> GetDatabaseList(CancellationToken cancellationToken)
+        public async Task<IList<Database>> GetDatabaseList(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
         {
-            await using var sqlConnection = new SqlConnection(await GetConnectionString());
+            await using var sqlConnection = new SqlConnection(BuildConnectionString(serverDbSettings));
 
             await sqlConnection.OpenAsync(cancellationToken);
 
@@ -69,9 +41,9 @@ FROM
             return result.ToList();
         }
 
-        public async Task<IList<File>> GetFileList(CancellationToken cancellationToken)
+        public async Task<IList<File>> GetFileList(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
         {
-            await using var sqlConnection = new SqlConnection(await GetConnectionString());
+            await using var sqlConnection = new SqlConnection(BuildConnectionString(serverDbSettings));
 
             await sqlConnection.OpenAsync(cancellationToken);
 
@@ -88,9 +60,9 @@ ORDER BY
             return result.ToList();
         }
 
-        public async Task CreateBackup(String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
+        public async Task CreateBackup(ServerDbSettings serverDbSettings, String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
         {
-            await using var sqlConnection = new SqlConnection(await GetConnectionString());
+            await using var sqlConnection = new SqlConnection(BuildConnectionString(serverDbSettings));
 
             var backupName = $"{databaseName} Backup";
 

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -17,25 +15,7 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class CompressTask : BaseTask
     {
-        public override async Task<IList<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
-        {
-            return previousJobRunTasks
-                   .Select(m => new JobRunTask
-                   {
-                       JobRunTaskId = Guid.NewGuid(),
-                       JobTaskId = jobTask.JobTaskId,
-                       JobRunId = jobRunId,
-                       Type = jobTask.Type,
-                       ItemName = m.ItemName,
-                       ItemOrder = m.ItemOrder,
-                       IsError = false,
-                       Result = null,
-                       Settings = jobTask.Settings
-                   })
-                   .ToList();
-        }
-
-        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {
@@ -213,13 +193,13 @@ namespace Datack.Agent.Services.Tasks
                 
                 var message = $"Completed compression {jobRunTask.ItemName} {sw.Elapsed:g}";
                 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, false);
+                OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }
             catch (Exception ex)
             {
                 var message = $"Compression {jobRunTask.ItemName} resulted in an error: {ex.Message}";
 
-                OnComplete(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, message, null, true);
+                OnComplete(jobRunTask.JobRunTaskId, message, null, true);
             }
         }
     }

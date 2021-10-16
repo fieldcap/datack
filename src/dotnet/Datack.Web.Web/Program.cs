@@ -74,8 +74,8 @@ namespace Datack.Web.Web
             return Host.CreateDefaultBuilder(args)
                        .ConfigureLogging(logging =>
                        {
-                           logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
-                           logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug);
+                           logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Trace);
+                           logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Warning);
                        })
                        .ConfigureWebHostDefaults(webBuilder =>
                        {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Datack.Web.Service.Data;
+using Datack.Web.Data.Repositories;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Web.Service.Services
 {
@@ -10,13 +9,13 @@ namespace Datack.Web.Service.Services
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
-        private readonly DataContext _dataContext;
+        private readonly UserRepository _userRepository;
 
-        public Authentication(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, DataContext dataContext)
+        public Authentication(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, UserRepository userRepository)
         {
             _signInManager = signInManager;
             _userManager = userManager;
-            _dataContext = dataContext;
+            _userRepository = userRepository;
         }
 
         public async Task<IdentityResult> Register(String userName, String password)
@@ -33,7 +32,7 @@ namespace Datack.Web.Service.Services
 
         public async Task<IdentityUser> GetUser()
         {
-            return await _dataContext.Users.AsNoTracking().FirstOrDefaultAsync();
+            return await _userRepository.GetUser();
         }
 
         public async Task Logout()

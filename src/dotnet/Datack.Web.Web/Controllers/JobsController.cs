@@ -15,10 +15,12 @@ namespace Datack.Web.Web.Controllers
     public class JobsController : Controller
     {
         private readonly Jobs _jobs;
+        private readonly JobRunner _jobRunner;
 
-        public JobsController(Jobs jobs)
+        public JobsController(Jobs jobs, JobRunner jobRunner)
         {
             _jobs = jobs;
+            _jobRunner = jobRunner;
         }
 
         [HttpGet]
@@ -89,7 +91,7 @@ namespace Datack.Web.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
         {
-            await _jobs.Run(request.ServerId, request.JobId, request.BackupType, cancellationToken);
+            await _jobRunner.Run(request.JobId, request.BackupType, cancellationToken);
 
             return Ok();
         }

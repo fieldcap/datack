@@ -30,19 +30,19 @@ namespace Datack.Agent.Services
             }
         }
         
-        public async Task<IList<Database>> GetDatabaseList(CancellationToken cancellationToken)
+        public async Task<IList<Database>> GetDatabaseList(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
         {
-            return await _sqlServerConnection.GetDatabaseList(cancellationToken);
+            return await _sqlServerConnection.GetDatabaseList(serverDbSettings, cancellationToken);
         }
 
-        public async Task<IList<File>> GetFileList(CancellationToken cancellationToken)
+        public async Task<IList<File>> GetFileList(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
         {
-            return await _sqlServerConnection.GetFileList(cancellationToken);
+            return await _sqlServerConnection.GetFileList(serverDbSettings, cancellationToken);
         }
 
-        public async Task CreateBackup(String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
+        public async Task CreateBackup(ServerDbSettings serverDbSettings, String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
         {
-            await _sqlServerConnection.CreateBackup(databaseName, destinationFilePath, progressCallback, cancellationToken);
+            await _sqlServerConnection.CreateBackup(serverDbSettings, databaseName, destinationFilePath, progressCallback, cancellationToken);
         }
     }
 }

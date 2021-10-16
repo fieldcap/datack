@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -10,8 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.Extensions.Configuration;
 
-namespace Datack.Web.Service.Data
+namespace Datack.Web.Data
 {
     public class DataContext : IdentityDbContext
     {
@@ -38,7 +40,14 @@ namespace Datack.Web.Service.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            var cascadeFKs = modelBuilder.Model.GetEntityTypes()
+                                         .SelectMany(t => t.GetForeignKeys())
+                                         .Where(fk => !fk.IsOwnership && fk.DeleteBehavior == DeleteBehavior.Cascade);
+
+            foreach (var fk in cascadeFKs)
+            {
+                fk.DeleteBehavior = DeleteBehavior.Restrict;
+            }
 
             modelBuilder.HasDbFunction(typeof(DataContext).GetMethod(nameof(JsonValue)))
                         .HasTranslation(e => new SqlFunctionExpression("JSON_VALUE",
@@ -63,6 +72,8 @@ namespace Datack.Web.Service.Data
             modelBuilder.ApplyConfiguration(new JobTaskDbConfiguration());
             modelBuilder.ApplyConfiguration(new ServerConfiguration());
             modelBuilder.ApplyConfiguration(new ServerDbConfiguration());
+
+            base.OnModelCreating(modelBuilder);
         }
 
         public async Task Seed()
@@ -131,11 +142,11 @@ namespace Datack.Web.Service.Data
                         CreateBackup = new JobTaskCreateDatabaseSettings
                         {
                             FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}.bak",
-                            BackupDefaultExclude = false,
+                            BackupDefaultExclude = true,
                             BackupExcludeManual = "",
                             BackupExcludeRegex = "",
                             BackupExcludeSystemDatabases = true,
-                            BackupIncludeManual = "",
+                            BackupIncludeManual = "Datack",
                             BackupIncludeRegex = ""
                         }
                     }
@@ -197,6 +208,12 @@ namespace Datack.Web.Service.Data
 
                 await SaveChangesAsync();
             }
+
+            JobRunTaskLogs.RemoveRange(JobRunTaskLogs);
+            JobRunTasks.RemoveRange(JobRunTasks);
+            JobRuns.RemoveRange(JobRuns);
+
+            await SaveChangesAsync();
 #endif
         }
 
@@ -272,9 +289,15 @@ namespace Datack.Web.Service.Data
     {
         public DataContext CreateDbContext(String[] args)
         {
+            var configuration = new ConfigurationBuilder()
+                                .SetBasePath(Directory.GetCurrentDirectory() + @"\..\Datack.Web.Web")
+                                .AddJsonFile("appsettings.json")
+                                .AddJsonFile("appsettings.Dev.json", true)
+                                .Build();
+
             var builder = new DbContextOptionsBuilder<DataContext>();
-            var connectionString = $"Data Source=Datack.db";
-            builder.UseSqlite(connectionString);
+            var connectionString = configuration.GetConnectionString("Datack");
+            builder.UseSqlServer(connectionString);
             return new DataContext(builder.Options);
         }
     }

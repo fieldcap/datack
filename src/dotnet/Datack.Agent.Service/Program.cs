@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using Datack.Agent.Data;
 using Datack.Agent.Models;
 using Datack.Agent.Services;
 using Datack.Agent.Services.DataConnections;
@@ -103,22 +102,14 @@ namespace Datack.Agent
                            services.AddSingleton(connectionString);
 
                            services.AddSingleton<DatabaseAdapter>();
-                           services.AddSingleton<DataContextFactory>();
-                           services.AddSingleton<Jobs>();
-                           services.AddSingleton<JobRuns>();
-                           services.AddSingleton<JobScheduler>();
+                           services.AddSingleton<JobRunner>();
                            services.AddSingleton<RpcService>();
-                           services.AddSingleton<Servers>();
-                           services.AddSingleton<JobTasks>();
-                           services.AddSingleton<JobRunTasks>();
-                           services.AddSingleton<JobRunTaskLogs>();
                            services.AddSingleton<SqlServerConnection>();
 
                            services.AddSingleton<CreateBackupTask>();
                            services.AddSingleton<CompressTask>();
                            services.AddSingleton<UploadS3Task>();
 
-                           services.AddHostedService<StartupHostedService>();
                            services.AddHostedService<AgentHostedService>();
                        })
                        .UseSerilog();

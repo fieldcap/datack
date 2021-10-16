@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
-using Datack.Common.Enums;
 using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
 using Microsoft.Extensions.Hosting;
@@ -16,30 +15,28 @@ namespace Datack.Agent.Services
         private readonly ILogger _logger;
         private readonly AppSettings _appSettings;
         private readonly DatabaseAdapter _databaseAdapter;
-        private readonly Jobs _jobs;
-        private readonly Servers _servers;
-        private readonly JobTasks _jobTasks;
-
-        private readonly JobScheduler _jobScheduler;
         private readonly RpcService _rpcService;
-        
-        public AgentHostedService(ILogger<AgentHostedService> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, Jobs jobs, JobScheduler jobScheduler, Servers servers, JobTasks jobTasks)
+        private readonly JobRunner _jobRunner;
+
+        private CancellationToken _cancellationToken;
+
+        private Server _server;
+
+        public AgentHostedService(ILogger<AgentHostedService> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, RpcService rpcService, JobRunner jobRunner)
         {
             _logger = logger;
             _appSettings = appSettings;
             _databaseAdapter = databaseAdapter;
-            _jobs = jobs;
-            _jobScheduler = jobScheduler;
-            _servers = servers;
-            _jobTasks = jobTasks;
-
-            _rpcService = new RpcService(_appSettings);
+            _rpcService = rpcService;
+            _jobRunner = jobRunner;
 
             _logger.LogTrace("Agent Constructor");
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
+
             _logger.LogTrace("Starting");
 
             if (String.IsNullOrWhiteSpace(_appSettings.Token))
@@ -50,9 +47,8 @@ namespace Datack.Agent.Services
             _rpcService.OnConnect += (_, _) => Connect();
 
             _rpcService.Subscribe("GetDatabaseList", () => GetDatabaseList());
-            _rpcService.Subscribe<Guid, BackupType>("Run", (jobId, backupType) => Run(jobId, backupType));
+            _rpcService.Subscribe<JobRunTask, JobRunTask >("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<ServerDbSettings>("TestSqlServer", serverDbSettings => TestSqlServer(serverDbSettings));
-            _rpcService.Subscribe<JobTask>("UpdateJobTask", jobTask => UpdateJobTask(jobTask));
 
             _rpcService.StartAsync(cancellationToken);
 
@@ -64,7 +60,6 @@ namespace Datack.Agent.Services
             _logger.LogTrace("Stopping");
 
             await _rpcService.StopAsync(cancellationToken);
-            _jobScheduler.Stop();
         }
 
         private async void Connect()
@@ -73,18 +68,14 @@ namespace Datack.Agent.Services
 
             var response = await _rpcService.Send<RpcUpdate>("RpcUpdate");
 
-            await _servers.UpdateServer(response.Server);
-            await _jobs.UpdateJobs(response.Jobs);
-            await _jobTasks.UpdateJobTasks(response.JobTasks);
-
-            _jobScheduler.Start();
+            _server = response.Server;
         }
 
         private async Task<IList<Database>> GetDatabaseList()
         {
             _logger.LogTrace("GetDatabaseList");
 
-            return await _databaseAdapter.GetDatabaseList(CancellationToken.None);
+            return await _databaseAdapter.GetDatabaseList(_server.DbSettings, CancellationToken.None);
         }
 
         private async Task<String> TestSqlServer(ServerDbSettings serverDbSettings)
@@ -94,18 +85,14 @@ namespace Datack.Agent.Services
             return await _databaseAdapter.TestConnection(serverDbSettings, CancellationToken.None);
         }
 
-        private async Task<String> UpdateJobTask(JobTask jobTask)
+        private async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
         {
-            await _jobTasks.UpdateJobTask(jobTask);
+            if (_server == null)
+            {
+                throw new Exception($"No server settings found");
+            }
 
-            return "Success";
-        }
-
-        private async Task<String> Run(Guid jobId, BackupType backupType)
-        {
-            _logger.LogTrace("Run {jobId} {backupType}", jobId, backupType);
-
-            await _jobScheduler.Run(jobId, backupType);
+            await _jobRunner.ExecuteJobRunTask(_server, jobRunTask, previousTask, _cancellationToken);
 
             return "Success";
         }
