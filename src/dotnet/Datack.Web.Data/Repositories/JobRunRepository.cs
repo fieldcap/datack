@@ -17,10 +17,17 @@ namespace Datack.Web.Data.Repositories
             _dataContext = dataContext;
         }
 
-        public async Task Create(JobRun jobRun, CancellationToken cancellationToken)
+        public async Task<List<JobRun>> GetAll(Guid? jobId, CancellationToken cancellationToken)
         {
-            await _dataContext.JobRuns.AddAsync(jobRun, cancellationToken);
-            await _dataContext.SaveChangesAsync(cancellationToken);
+            IQueryable<JobRun> query = _dataContext.JobRuns
+                                                   .Include(m => m.Job);
+
+            if (jobId.HasValue)
+            {
+                query = query.Where(m => m.JobId == jobId);
+            }
+            
+            return await query.ToListAsync(cancellationToken);
         }
 
         public async Task<List<JobRun>> GetRunning(Guid jobId, CancellationToken cancellationToken)
@@ -32,9 +39,28 @@ namespace Datack.Web.Data.Repositories
                          .ToListAsync(cancellationToken);
         }
 
+        public async Task<List<JobRun>> GetByJobId(Guid jobId, CancellationToken cancellationToken)
+        {
+            return await _dataContext.JobRuns
+                                     .AsNoTracking()
+                                     .Where(m => m.JobId == jobId)
+                                     .OrderByDescending(m => m.Started)
+                                     .ToListAsync(cancellationToken);
+
+        }
+
         public async Task<JobRun> GetById(Guid jobRunId, CancellationToken cancellationToken)
         {
-            return await _dataContext.JobRuns.AsNoTracking().Include(m => m.Job).FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+            return await _dataContext.JobRuns
+                                     .AsNoTracking()
+                                     .Include(m => m.Job)
+                                     .FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+        }
+
+        public async Task Create(JobRun jobRun, CancellationToken cancellationToken)
+        {
+            await _dataContext.JobRuns.AddAsync(jobRun, cancellationToken);
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
         public async Task Update(JobRun jobRun, CancellationToken cancellationToken)
@@ -58,6 +84,8 @@ namespace Datack.Web.Data.Repositories
             var dbJobRunTasksWithErrors = dbJobRunTasks.Count(m => m.IsError);
 
             var timespan = dbJobRun.Completed - dbJobRun.Started;
+
+            dbJobRun.RunTime = (Int64) timespan.Value.TotalSeconds;
 
             if (dbJobRunTasksWithErrors > 0)
             {

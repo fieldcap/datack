@@ -24,6 +24,8 @@ namespace Datack.Common.Models.Data
 
         public DateTimeOffset? Completed { get; set; }
 
+        public Int64? RunTime { get; set; }
+
         public String Type { get; set; }
 
         public String ItemName { get; set; }

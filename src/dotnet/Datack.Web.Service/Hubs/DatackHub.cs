@@ -71,6 +71,7 @@ namespace Datack.Web.Service.Hubs
 
         public async Task TaskComplete(RpcCompleteEvent completeEvent)
         {
+            await _jobRunner.ProgressTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.IsError, CancellationToken.None);
             await _jobRunner.CompleteTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.ResultArtifact, completeEvent.IsError, CancellationToken.None);
         }
     }

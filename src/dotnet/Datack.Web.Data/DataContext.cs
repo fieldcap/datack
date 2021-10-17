@@ -209,11 +209,10 @@ namespace Datack.Web.Data
                 await SaveChangesAsync();
             }
 
-            JobRunTaskLogs.RemoveRange(JobRunTaskLogs);
+            /*JobRunTaskLogs.RemoveRange(JobRunTaskLogs);
             JobRunTasks.RemoveRange(JobRunTasks);
             JobRuns.RemoveRange(JobRuns);
-
-            await SaveChangesAsync();
+            await SaveChangesAsync();*/
 #endif
         }
 

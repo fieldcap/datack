@@ -72,10 +72,9 @@ export namespace Jobs {
         }
     };
 
-    export const run = async (serverId: string, jobId: string, type: string) => {
+    export const run = async (jobId: string, type: string) => {
         try {
             await axios.post<void>(`/api/Jobs/Run/`, {
-                serverId,
                 jobId,
                 type,
             });
@@ -89,7 +88,7 @@ export type TestCronResult = {
     resultFull: string;
     resultDiff: string;
     resultLog: string;
-    next: { dateTime: string; backupType: string }[];
+    next: { dateTime: Date; backupType: string }[];
 };
 
 export default Jobs;

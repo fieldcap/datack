@@ -9,6 +9,7 @@ export type JobRunTask = {
     jobRun?: JobRun | null;
     started: Date | null;
     completed: Date | null;
+    runTime: number | null;
     itemName: string;
     type: string;
     parallel: number;

@@ -4,14 +4,16 @@ using Datack.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Datack.Web.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20211017152923_RunTime")]
+    partial class RunTime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -105,9 +107,6 @@ namespace Datack.Web.Data.Migrations
 
                     b.Property<string>("ResultArtifact")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<long?>("RunTime")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("Settings")
                         .HasColumnType("nvarchar(max)");

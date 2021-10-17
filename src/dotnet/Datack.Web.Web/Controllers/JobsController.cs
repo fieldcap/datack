@@ -43,16 +43,16 @@ namespace Datack.Web.Web.Controllers
         [Route("GetById/{jobId:guid}")]
         public async Task<ActionResult> GetById(Guid jobId, CancellationToken cancellationToken)
         {
-            var server = await _jobs.GetById(jobId, cancellationToken);
+            var job = await _jobs.GetById(jobId, cancellationToken);
 
-            if (server == null)
+            if (job == null)
             {
                 return NotFound();
             }
 
-            return Ok(server);
+            return Ok(job);
         }
-
+        
         [HttpPost]
         [Route("Add")]
         public async Task<ActionResult<Guid>> Add([FromBody] Job job, CancellationToken cancellationToken)

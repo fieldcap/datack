@@ -1,5 +1,6 @@
 import {
     Box,
+    Button,
     Heading,
     Skeleton,
     Tab,
@@ -40,6 +41,14 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         };
     }, [props.match.params.id]);
 
+    const run = async (type: 'Full' | 'Diff' | 'Log') => {
+        if (job == null) {
+            return;
+        }
+
+        await Jobs.run(job.jobId, type);
+    };
+
     return (
         <Skeleton isLoaded={job != null}>
             <Box marginBottom="24px">
@@ -47,6 +56,15 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 {/* <Link href={`/#/server/${job?.serverId}`}>
                     {job?.server?.name}
                 </Link> */}
+            </Box>
+            <Box marginBottom="24px">
+                <Button onClick={() => run('Full')}>Run Full Backup</Button>
+                <Button marginLeft="12px" onClick={() => run('Diff')}>
+                    Run Diff Backup
+                </Button>
+                <Button marginLeft="12px" onClick={() => run('Log')}>
+                    Run Transaction Log Backup
+                </Button>
             </Box>
             <Tabs>
                 <TabList>

@@ -14,7 +14,7 @@ import {
     Textarea,
     UnorderedList
 } from '@chakra-ui/react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Job } from '../../models/job';
@@ -71,7 +71,7 @@ const JobSettingsTab: FC<Props> = (props) => {
 
         testResult.next.forEach((d) => {
             occurrences.push({
-                date: parseISO(d.dateTime),
+                date: d.dateTime,
                 type: d.backupType,
             });
         });
@@ -186,8 +186,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                         <UnorderedList overflowY="scroll" maxHeight="262px">
                             {cronOccurrences.map((m) => (
                                 <ListItem key={`${m.date}${m.type}`}>
-                                    {format(m.date, 'd MMMM yyyy HH:mm xxx')} (
-                                    {m.type})
+                                    {format(m.date, 'd MMMM yyyy HH:mm')} ({m.type})
                                 </ListItem>
                             ))}
                             <div ref={occurrenceList}></div>

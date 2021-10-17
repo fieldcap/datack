@@ -71,6 +71,14 @@ namespace Datack.Web.Data.Repositories
             }
 
             jobRunTask.Completed = DateTimeOffset.Now;
+
+            var timespan = jobRunTask.Completed - jobRunTask.Started;
+
+            if (timespan.HasValue)
+            {
+                jobRunTask.RunTime = (Int64)timespan.Value.TotalSeconds;
+            }
+
             jobRunTask.Result = result;
             jobRunTask.ResultArtifact = resultArtifact;
             jobRunTask.IsError = isError;

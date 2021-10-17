@@ -7,6 +7,7 @@ export type JobRun = {
     backupType: 'Full' | 'Diff' | 'Log';
     started: Date;
     completed: Date | null;
+    runTime: number | null;
     isError: boolean;
     result: string | null;
     settings: JobSettings;
