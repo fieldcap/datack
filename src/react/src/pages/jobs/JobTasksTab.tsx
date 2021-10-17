@@ -43,7 +43,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
             setJobTasks(result);
             setIsLoaded(true);
         })();
-    }, [props.job]);
+    }, [props.job, cancelToken]);
 
     const handleAddNewJobTaskClick = () => {
         if (props.job == null) {

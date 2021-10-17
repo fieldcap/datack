@@ -39,7 +39,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             );
             setJobRunTasks(result);
         })();
-    }, [props.match.params.id]);
+    }, [props.match.params.id, cancelToken]);
 
     const handleJobRunTaskClick = async (jobRunTaskId: string) => {
         const result = await JobRuns.getTaskLogs(jobRunTaskId, cancelToken);

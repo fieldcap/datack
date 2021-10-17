@@ -33,7 +33,7 @@ const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             setServer(result);
         };
         fetchData();
-    }, [props.match.params.id]);
+    }, [props.match.params.id, cancelToken]);
 
     return (
         <Skeleton isLoaded={server != null}>

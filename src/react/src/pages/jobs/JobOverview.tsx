@@ -35,7 +35,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             );
             setJob(result);
         })();
-    }, [props.match.params.id]);
+    }, [props.match.params.id, cancelToken]);
 
     const run = async () => {
         if (job == null) {

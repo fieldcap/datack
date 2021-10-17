@@ -32,7 +32,7 @@ const ServerSummaryTab: FC<Props> = (props) => {
 
             setJobs(jobs);
         })();
-    }, [props.server]);
+    }, [props.server, cancelToken]);
 
     const rowClick = (jobId: string): void => {
         history.push(`/job/${jobId}`);

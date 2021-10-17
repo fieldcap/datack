@@ -93,7 +93,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             const servers = await Servers.getList(cancelToken);
             setServers(servers);
         })();
-    }, [props.match.params.id, props.match.params.jobId]);
+    }, [props.match.params.id, props.match.params.jobId, cancelToken]);
 
     const save = async () => {
         setIsSaving(true);

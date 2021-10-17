@@ -48,7 +48,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
             setJobRuns(result);
             setIsLoaded(true);
         })();
-    }, [props.job]);
+    }, [props.job, cancelToken]);
 
     const rowClick = (jobRunId: string): void => {
         history.push(`/run/${jobRunId}`);

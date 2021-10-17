@@ -2,7 +2,6 @@ import {
     Alert,
     AlertDescription,
     AlertIcon,
-    Box,
     Button,
     FormControl,
     FormHelperText,
@@ -121,37 +120,27 @@ const JobSettingsTab: FC<Props> = (props) => {
                     />
                 </FormControl>
 
-                <HStack spacing="12px" align="stretch">
-                    <Box flex="1">
-                        <FormControl id="cronFull" marginBottom={4} isRequired>
-                            <FormLabel>Backup Schedule</FormLabel>
-                            <Input
-                                type="text"
-                                maxLength={100}
-                                value={cron}
-                                onChange={(e) => setCron(e.target.value)}
-                                onBlur={() => handleChangeCrons()}
-                            />
-                            <FormHelperText>
-                                {testResult?.result}
-                            </FormHelperText>
-                        </FormControl>
-                    </Box>
-                    <Box flex="1">
-                        <FormLabel>Occurrences for next 2 weeks</FormLabel>
-                        <UnorderedList overflowY="scroll" maxHeight="262px">
-                            {cronOccurrences.map((m) => (
-                                <ListItem key={m.toISOString()}>
-                                    {format(m, 'd MMMM yyyy HH:mm')}
-                                </ListItem>
-                            ))}
-                            <div ref={occurrenceList}></div>
-                        </UnorderedList>
-                        <Button onClick={() => showMoreOccurrences()}>
-                            More
-                        </Button>
-                    </Box>
-                </HStack>
+                <FormControl id="cronFull" marginBottom={4} isRequired>
+                    <FormLabel>Backup Schedule</FormLabel>
+                    <Input
+                        type="text"
+                        maxLength={100}
+                        value={cron}
+                        onChange={(e) => setCron(e.target.value)}
+                        onBlur={() => handleChangeCrons()}
+                    />
+                    <FormHelperText>{testResult?.result}</FormHelperText>
+                </FormControl>
+
+                <FormLabel>Occurrences for next 2 weeks</FormLabel>
+                <UnorderedList overflowY="scroll" maxHeight="300px">
+                    {cronOccurrences.map((m) => (
+                        <ListItem key={m.toISOString()}>
+                            {format(m, 'd MMMM yyyy HH:mm')}
+                        </ListItem>
+                    ))}
+                    <div ref={occurrenceList}></div>
+                </UnorderedList>
 
                 {error != null ? (
                     <Alert marginTop="24px" status="error">
@@ -166,6 +155,11 @@ const JobSettingsTab: FC<Props> = (props) => {
                     >
                         Save
                     </Button>
+                    {occurrencesMax < cronOccurrences.length ? (
+                        <Button onClick={() => showMoreOccurrences()}>
+                            Show more occurrences
+                        </Button>
+                    ) : null}
                 </HStack>
             </form>
         </Skeleton>

@@ -32,7 +32,7 @@ const ServerList: FC<RouteComponentProps> = () => {
             setServers(servers);
             setIsLoaded(true);
         })();
-    }, []);
+    }, [cancelToken]);
 
     const rowClick = (serverId: string): void => {
         history.push(`/server/${serverId}`);

@@ -32,7 +32,7 @@ const JobList: FC<RouteComponentProps> = () => {
             setJobs(jobs);
             setIsLoaded(true);
         })();
-    }, []);
+    }, [cancelToken]);
 
     const rowClick = (jobId: string): void => {
         history.push(`/job/${jobId}`);
