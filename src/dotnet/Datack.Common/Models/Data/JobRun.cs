@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Datack.Common.Enums;
 using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Models.Data
@@ -15,8 +14,6 @@ namespace Datack.Common.Models.Data
 
         [ForeignKey("JobId")]
         public Job Job { get; set; }
-
-        public BackupType BackupType { get; set; }
 
         public DateTimeOffset Started { get; set; }
 

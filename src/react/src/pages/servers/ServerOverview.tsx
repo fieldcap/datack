@@ -7,9 +7,9 @@ import {
     TabPanels,
     Tabs
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Server } from '../../models/server';
 import Servers from '../../services/servers';
 import ServerSettingsTab from './ServerSettingsTab';
@@ -22,21 +22,17 @@ type RouteParams = {
 const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     let [server, setServer] = React.useState<Server | null>(null);
 
-    useEffect(() => {
-        const getByIdCancelToken = axios.CancelToken.source();
+    const cancelToken = useCancellationToken();
 
+    useEffect(() => {
         const fetchData = async () => {
             const result = await Servers.getById(
                 props.match.params.id,
-                getByIdCancelToken
+                cancelToken
             );
             setServer(result);
         };
         fetchData();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, [props.match.params.id]);
 
     return (

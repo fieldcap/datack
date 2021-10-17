@@ -10,10 +10,10 @@ import {
     Thead,
     Tr
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useExpanded, useSortBy, useTable } from 'react-table';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import { JobTask } from '../../models/job-task';
 import JobTasks from '../../services/jobTasks';
@@ -28,25 +28,21 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
 
     const history = useHistory();
 
+    const cancelToken = useCancellationToken();
+
     useEffect(() => {
         if (props.job == null) {
             return;
         }
 
-        const getByIdCancelToken = axios.CancelToken.source();
-
         (async () => {
             const result = await JobTasks.getForJob(
                 props.job!.jobId,
-                getByIdCancelToken
+                cancelToken
             );
             setJobTasks(result);
             setIsLoaded(true);
         })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, [props.job]);
 
     const handleAddNewJobTaskClick = () => {

@@ -24,6 +24,7 @@ export type JobTaskSettings = {
 
 export type JobTaskCreateDatabaseSettings = {
     fileName: string;
+    backupType: string;
     backupDefaultExclude: boolean;
     backupIncludeRegex: string;
     backupExcludeRegex: string;

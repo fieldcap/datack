@@ -11,10 +11,10 @@ import {
     Thead,
     Tr
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Server } from '../../models/server';
 import Servers from '../../services/servers';
 
@@ -24,18 +24,14 @@ const ServerList: FC<RouteComponentProps> = () => {
 
     const history = useHistory();
 
-    useEffect(() => {
-        const getByIdCancelToken = axios.CancelToken.source();
+    const cancelToken = useCancellationToken();
 
+    useEffect(() => {
         (async () => {
-            const servers = await Servers.getList(getByIdCancelToken);
+            const servers = await Servers.getList(cancelToken);
             setServers(servers);
             setIsLoaded(true);
         })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, []);
 
     const rowClick = (serverId: string): void => {

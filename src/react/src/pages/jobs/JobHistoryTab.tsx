@@ -14,11 +14,11 @@ import {
     Thead,
     Tr
 } from '@chakra-ui/react';
-import axios from 'axios';
 import { format, formatDistanceStrict } from 'date-fns';
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import { JobRun } from '../../models/job-run';
 import JobRuns from '../../services/job-runs';
@@ -33,25 +33,21 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
 
     const history = useHistory();
 
+    const cancelToken = useCancellationToken();
+
     useEffect(() => {
         if (props.job == null) {
             return;
         }
 
-        const getByIdCancelToken = axios.CancelToken.source();
-
         (async () => {
             const result = await JobRuns.getForJob(
                 props.job!.jobId,
-                getByIdCancelToken
+                cancelToken
             );
             setJobRuns(result);
             setIsLoaded(true);
         })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, [props.job]);
 
     const rowClick = (jobRunId: string): void => {
@@ -63,7 +59,8 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
             {
                 Header: 'Started',
                 accessor: 'started',
-                Cell: ({ cell: { value } }) => format(value, 'd MMMM yyyy HH:mm'),
+                Cell: ({ cell: { value } }) =>
+                    format(value, 'd MMMM yyyy HH:mm'),
             },
             {
                 Header: 'Completed',
@@ -86,10 +83,6 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                     }
                     return formatDistanceStrict(0, value * 1000);
                 },
-            },
-            {
-                Header: 'Type',
-                accessor: 'backupType',
             },
             {
                 Header: 'Result',

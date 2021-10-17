@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
 using Datack.Common.Models.Data;
 using Datack.Web.Service.Tasks;
 using Microsoft.Extensions.Logging;
@@ -67,9 +66,8 @@ namespace Datack.Web.Service.Services
         ///     Run a job based on the ID.
         /// </summary>
         /// <param name="jobId">The ID of the Job</param>
-        /// <param name="backupType">The backuptype to run for this job.</param>
         /// <param name="cancellationToken"></param>
-        public async Task Run(Guid jobId, BackupType backupType, CancellationToken cancellationToken)
+        public async Task Run(Guid jobId, CancellationToken cancellationToken)
         {
             var job = await _jobs.GetById(jobId, cancellationToken);
 
@@ -78,15 +76,15 @@ namespace Datack.Web.Service.Services
                 throw new Exception($"Job with ID {jobId} not found");
             }
 
-            await SetupJobRun(job, backupType, cancellationToken);
+            await SetupJobRun(job, cancellationToken);
         }
 
         /// <summary>
         ///     Setup a new job.
         /// </summary>
-        private async Task SetupJobRun(Job job, BackupType backupType, CancellationToken cancellationToken)
+        private async Task SetupJobRun(Job job, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("SetJobRun {jobId} {name} for type {backupType} backup", job.JobId, job.Name, backupType);
+            _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
             // Make sure only 1 process setup a new job otherwise it's possible that a job is duplicated.
             var receivedLockSuccesfully = await _setupJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
@@ -108,7 +106,6 @@ namespace Datack.Web.Service.Services
                 {
                     JobRunId = Guid.NewGuid(),
                     JobId = job.JobId,
-                    BackupType = backupType,
                     Started = DateTimeOffset.Now,
                     IsError = false,
                     Result = null
@@ -157,7 +154,7 @@ namespace Datack.Web.Service.Services
                             previousJobRunTasks = allJobRunTasks.Where(m => m.JobTaskId == jobTask.UsePreviousTaskArtifactsFromJobTaskId).ToList();
                         }
 
-                        var jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, backupType, jobRun.JobRunId, cancellationToken);
+                        var jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, jobRun.JobRunId, cancellationToken);
 
                         _logger.LogDebug("Received {count} new job run tasks for {type} for job {name}", jobRunTasks.Count, jobTask.Type, job.Name);
 

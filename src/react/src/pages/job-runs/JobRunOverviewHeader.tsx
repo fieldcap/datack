@@ -17,10 +17,6 @@ const JobRunOverviewHeader: FC<Props> = (props) => {
                     <Td>{jobRun.job.name}</Td>
                 </Tr>
                 <Tr>
-                    <Td style={{ fontWeight: 'bold' }}>Backup Type</Td>
-                    <Td>{jobRun.backupType}</Td>
-                </Tr>
-                <Tr>
                     <Td style={{ fontWeight: 'bold' }}>Started</Td>
                     <Td>{format(jobRun.started, 'd MMMM yyyy HH:mm')}</Td>
                 </Tr>

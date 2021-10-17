@@ -9,9 +9,9 @@ import {
     TabPanels,
     Tabs
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
 import JobHistoryTab from './JobHistoryTab';
@@ -25,46 +25,33 @@ type RouteParams = {
 const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     let [job, setJob] = React.useState<Job | null>(null);
 
-    useEffect(() => {
-        const getByIdCancelToken = axios.CancelToken.source();
+    const cancelToken = useCancellationToken();
 
+    useEffect(() => {
         (async () => {
             const result = await Jobs.getById(
                 props.match.params.id,
-                getByIdCancelToken
+                cancelToken
             );
             setJob(result);
         })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, [props.match.params.id]);
 
-    const run = async (type: 'Full' | 'Diff' | 'Log') => {
+    const run = async () => {
         if (job == null) {
             return;
         }
 
-        await Jobs.run(job.jobId, type);
+        await Jobs.run(job.jobId);
     };
 
     return (
         <Skeleton isLoaded={job != null}>
             <Box marginBottom="24px">
                 <Heading>{job?.name}</Heading>
-                {/* <Link href={`/#/server/${job?.serverId}`}>
-                    {job?.server?.name}
-                </Link> */}
             </Box>
             <Box marginBottom="24px">
-                <Button onClick={() => run('Full')}>Run Full Backup</Button>
-                <Button marginLeft="12px" onClick={() => run('Diff')}>
-                    Run Diff Backup
-                </Button>
-                <Button marginLeft="12px" onClick={() => run('Log')}>
-                    Run Transaction Log Backup
-                </Button>
+                <Button onClick={() => run()}>Run Backup</Button>
             </Box>
             <Tabs>
                 <TabList>

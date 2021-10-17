@@ -119,12 +119,8 @@ namespace Datack.Web.Data
                     JobId = Guid.Parse("6b9e6002-13ef-454a-92a2-23818a5737ac"),
                     Description = "Create backup job",
                     Name = "Backup Job",
-                    Settings = new JobSettings
-                    {
-                        CronFull = "0 4 * * *",
-                        CronDiff = "0 * * * *",
-                        CronLog = "*/15 * * * *"
-                    }
+                    Cron = "0 4 * * *",
+                    Settings = new JobSettings()
                 };
 
                 var jobTask1 = new JobTask

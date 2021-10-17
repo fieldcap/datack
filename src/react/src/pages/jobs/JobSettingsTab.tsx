@@ -31,18 +31,8 @@ const JobSettingsTab: FC<Props> = (props) => {
         props.job?.description ?? ''
     );
 
-    const [cronFull, setCronFull] = useState<string>(
-        props.job?.settings.cronFull ?? ''
-    );
-    const [cronDiff, setCronDiff] = useState<string>(
-        props.job?.settings.cronDiff ?? ''
-    );
-    const [cronLog, setCronLog] = useState<string>(
-        props.job?.settings.cronLog ?? ''
-    );
-    const [cronOccurrences, setCronOccurrences] = useState<
-        { date: Date; type: string }[]
-    >([]);
+    const [cron, setCron] = useState<string>(props.job?.cron ?? '');
+    const [cronOccurrences, setCronOccurrences] = useState<Date[]>([]);
 
     const [testResult, setTestResult] = useState<TestCronResult | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -53,30 +43,27 @@ const JobSettingsTab: FC<Props> = (props) => {
 
     const handleChangeCrons = useCallback(() => {
         (async () => {
-            const result = await Jobs.testCrons(cronFull, cronDiff, cronLog);
+            const result = await Jobs.testCron(cron);
             setTestResult(result);
         })();
-    }, [cronFull, cronDiff, cronLog]);
+    }, [cron]);
 
     useEffect(() => {
         handleChangeCrons();
     }, [props.job, handleChangeCrons]);
 
     useEffect(() => {
-        let occurrences: { date: Date; type: string }[] = [];
+        let occurrences: Date[] = [];
 
         if (testResult == null) {
             return;
         }
 
         testResult.next.forEach((d) => {
-            occurrences.push({
-                date: d.dateTime,
-                type: d.backupType,
-            });
+            occurrences.push(d);
         });
 
-        occurrences = _.orderBy(occurrences, (m) => m.date);
+        occurrences = _.orderBy(occurrences, (m) => m);
 
         occurrences = _.take(occurrences, occurrencesMax);
 
@@ -101,11 +88,8 @@ const JobSettingsTab: FC<Props> = (props) => {
                 jobId: props.job!.jobId,
                 name,
                 description,
-                settings: {
-                    cronFull,
-                    cronDiff,
-                    cronLog,
-                },
+                cron,
+                settings: {},
             };
 
             await Jobs.update(newJob);
@@ -140,44 +124,16 @@ const JobSettingsTab: FC<Props> = (props) => {
                 <HStack spacing="12px" align="stretch">
                     <Box flex="1">
                         <FormControl id="cronFull" marginBottom={4} isRequired>
-                            <FormLabel>Full Backup Schedule</FormLabel>
+                            <FormLabel>Backup Schedule</FormLabel>
                             <Input
                                 type="text"
                                 maxLength={100}
-                                value={cronFull}
-                                onChange={(e) => setCronFull(e.target.value)}
+                                value={cron}
+                                onChange={(e) => setCron(e.target.value)}
                                 onBlur={() => handleChangeCrons()}
                             />
                             <FormHelperText>
-                                {testResult?.resultFull}
-                            </FormHelperText>
-                        </FormControl>
-                        <FormControl id="cronDiff" marginBottom={4} isRequired>
-                            <FormLabel>Diff Backup Schedule</FormLabel>
-                            <Input
-                                type="text"
-                                maxLength={100}
-                                value={cronDiff}
-                                onChange={(e) => setCronDiff(e.target.value)}
-                                onBlur={() => handleChangeCrons()}
-                            />
-                            <FormHelperText>
-                                {testResult?.resultDiff}
-                            </FormHelperText>
-                        </FormControl>
-                        <FormControl id="cronLog" marginBottom={4} isRequired>
-                            <FormLabel>
-                                Transaction Log Backup Schedule
-                            </FormLabel>
-                            <Input
-                                type="text"
-                                maxLength={100}
-                                value={cronLog}
-                                onChange={(e) => setCronLog(e.target.value)}
-                                onBlur={() => handleChangeCrons()}
-                            />
-                            <FormHelperText>
-                                {testResult?.resultLog}
+                                {testResult?.result}
                             </FormHelperText>
                         </FormControl>
                     </Box>
@@ -185,8 +141,8 @@ const JobSettingsTab: FC<Props> = (props) => {
                         <FormLabel>Occurrences for next 2 weeks</FormLabel>
                         <UnorderedList overflowY="scroll" maxHeight="262px">
                             {cronOccurrences.map((m) => (
-                                <ListItem key={`${m.date}${m.type}`}>
-                                    {format(m.date, 'd MMMM yyyy HH:mm')} ({m.type})
+                                <ListItem key={m.toISOString()}>
+                                    {format(m, 'd MMMM yyyy HH:mm')}
                                 </ListItem>
                             ))}
                             <div ref={occurrenceList}></div>

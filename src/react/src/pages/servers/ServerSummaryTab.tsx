@@ -1,9 +1,9 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { chakra, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import { Server } from '../../models/server';
 import Jobs from '../../services/jobs';
@@ -17,12 +17,12 @@ const ServerSummaryTab: FC<Props> = (props) => {
 
     const history = useHistory();
 
+    const cancelToken = useCancellationToken();
+
     useEffect(() => {
         if (!props.server) {
             return;
         }
-
-        const cancelToken = axios.CancelToken.source();
 
         (async () => {
             const jobs = await Jobs.getForServer(
@@ -32,10 +32,6 @@ const ServerSummaryTab: FC<Props> = (props) => {
 
             setJobs(jobs);
         })();
-
-        return () => {
-            cancelToken.cancel();
-        };
     }, [props.server]);
 
     const rowClick = (jobId: string): void => {

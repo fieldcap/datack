@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
 using Datack.Common.Models.Data;
 
 namespace Datack.Web.Service.Tasks
@@ -13,7 +12,7 @@ namespace Datack.Web.Service.Tasks
     /// </summary>
     public class UploadS3Task : IBaseTask
     {
-        public Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
+        public Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, Guid jobRunId, CancellationToken cancellationToken)
         {
             var result = previousJobRunTasks
                          .Select(m => new JobRunTask

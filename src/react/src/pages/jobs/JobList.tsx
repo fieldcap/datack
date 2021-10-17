@@ -11,10 +11,10 @@ import {
     Thead,
     Tr
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
 
@@ -24,18 +24,14 @@ const JobList: FC<RouteComponentProps> = () => {
 
     const history = useHistory();
 
-    useEffect(() => {
-        const getByIdCancelToken = axios.CancelToken.source();
+    const cancelToken = useCancellationToken();
 
+    useEffect(() => {
         (async () => {
-            const jobs = await Jobs.getList(getByIdCancelToken);
+            const jobs = await Jobs.getList(cancelToken);
             setJobs(jobs);
             setIsLoaded(true);
         })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, []);
 
     const rowClick = (jobId: string): void => {

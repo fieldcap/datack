@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using Datack.Web.Service.Services;
@@ -22,7 +21,7 @@ namespace Datack.Web.Service.Tasks
             _remoteService = remoteService;
         }
 
-        public async Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, BackupType backupType, Guid jobRunId, CancellationToken cancellationToken)
+        public async Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, Guid jobRunId, CancellationToken cancellationToken)
         {
             var allDatabases = await _remoteService.GetDatabaseList(jobTask.Server, cancellationToken);
 

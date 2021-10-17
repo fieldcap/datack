@@ -34,11 +34,11 @@ namespace Datack.Web.Service.Services
 
                     foreach (var job in jobs)
                     {
-                        var backupType = CronHelper.GetNextOccurrence(job.Settings.CronFull, job.Settings.CronDiff, job.Settings.CronLog, now);
+                        var nextDate = CronHelper.GetNextOccurrence(job.Cron, now);
 
-                        if (backupType != null)
+                        if (nextDate.HasValue && nextDate.Value == now)
                         {
-                            await jobRunnerService.Run(job.JobId, backupType.Value, cancellationToken);
+                            await jobRunnerService.Run(job.JobId, cancellationToken);
                         }
                     }
 

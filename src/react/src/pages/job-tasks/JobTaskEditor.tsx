@@ -13,10 +13,10 @@ import {
     Skeleton,
     Textarea
 } from '@chakra-ui/react';
-import axios from 'axios';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { v4 } from 'uuid';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { JobTask, JobTaskSettings } from '../../models/job-task';
 import { Server } from '../../models/server';
 import JobTasks from '../../services/jobTasks';
@@ -55,10 +55,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const history = useHistory();
 
-    useEffect(() => {
-        const getByIdCancelToken = axios.CancelToken.source();
-        const getJobTasksCancelToken = axios.CancelToken.source();
+    const cancelToken = useCancellationToken();
 
+    useEffect(() => {
         if (props.match.params.id == null) {
             setIsAdd(true);
         }
@@ -67,7 +66,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             (async () => {
                 const result = await JobTasks.getById(
                     props.match.params.id!,
-                    getByIdCancelToken
+                    cancelToken
                 );
                 setJobTask(result);
                 setName(result.name || '');
@@ -85,19 +84,15 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         (async () => {
             const result = await JobTasks.getForJob(
                 props.match.params.jobId,
-                getJobTasksCancelToken
+                cancelToken
             );
             setAllJobTasks(result);
         })();
 
         (async () => {
-            const servers = await Servers.getList(getByIdCancelToken);
+            const servers = await Servers.getList(cancelToken);
             setServers(servers);
         })();
-
-        return () => {
-            getByIdCancelToken.cancel();
-        };
     }, [props.match.params.id, props.match.params.jobId]);
 
     const save = async () => {
@@ -208,11 +203,6 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 ) : (
                     <Heading>Edit task</Heading>
                 )}
-                {/* <Link href={`/#/job/${jobTask?.jobId}`}>{jobTask?.job?.name}</Link>
-                <br /> */}
-                {/* <Link href={`/#/server/${jobTask?.job?.serverId}`}>
-                    {jobTask?.job?.server?.name}
-                </Link> */}
             </Box>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
@@ -287,7 +277,10 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             Don't use artifactes from previous tasks
                         </option>
                         {allJobTasks.map((jobTask) => (
-                            <option value={jobTask.jobTaskId}>
+                            <option
+                                value={jobTask.jobTaskId}
+                                key={jobTask.jobTaskId}
+                            >
                                 Task: {jobTask.name}
                             </option>
                         ))}

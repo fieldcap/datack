@@ -4,6 +4,7 @@ import {
     FormControl,
     FormLabel,
     Input,
+    Select,
     Table,
     Tbody,
     Td,
@@ -32,6 +33,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         if (props.settings == null) {
             onSettingsChanged({
                 fileName: '',
+                backupType: 'Full',
                 backupDefaultExclude: false,
                 backupExcludeSystemDatabases: true,
                 backupExcludeRegex: '',
@@ -69,6 +71,16 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.settings?.backupExcludeManual,
         props.serverId,
     ]);
+
+    const handleBackupTypeChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            backupType: value,
+        });
+    };
 
     const handleFilenameChanged = (value: string) => {
         if (props.settings == null) {
@@ -239,6 +251,17 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
 
     return (
         <>
+            <FormControl id="backupType" marginBottom={4}>
+                <FormLabel>Backup Type</FormLabel>
+                <Select
+                    value={props.settings?.backupType || 'Full'}
+                    onChange={(e) => handleBackupTypeChanged(e.target.value)}
+                >
+                    <option value="Full">Full</option>
+                    <option value="Transaction">Transaction</option>
+                    <option value="Log">Log</option>
+                </Select>
+            </FormControl>
             <FormControl id="fileName" marginBottom={4}>
                 <FormLabel>File name</FormLabel>
                 <Input

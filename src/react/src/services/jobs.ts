@@ -52,18 +52,12 @@ export namespace Jobs {
         }
     };
 
-    export const testCrons = async (
-        cronFull: string,
-        cronDiff: string,
-        cronLog: string
-    ) => {
+    export const testCron = async (cron: string) => {
         try {
             const result = await axios.post<TestCronResult>(
                 `/api/Jobs/ParseCron/`,
                 {
-                    cronFull,
-                    cronDiff,
-                    cronLog,
+                    cron,
                 }
             );
             return result.data;
@@ -72,11 +66,10 @@ export namespace Jobs {
         }
     };
 
-    export const run = async (jobId: string, type: string) => {
+    export const run = async (jobId: string) => {
         try {
             await axios.post<void>(`/api/Jobs/Run/`, {
                 jobId,
-                type,
             });
         } catch (err) {
             throw ErrorHelper.getError(err);
@@ -85,10 +78,8 @@ export namespace Jobs {
 }
 
 export type TestCronResult = {
-    resultFull: string;
-    resultDiff: string;
-    resultLog: string;
-    next: { dateTime: Date; backupType: string }[];
+    result: string;
+    next: Date[];
 };
 
 export default Jobs;

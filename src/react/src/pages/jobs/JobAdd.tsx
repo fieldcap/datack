@@ -34,6 +34,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
         const job: Job = {
             jobId: v4(),
             name,
+            cron: '',
             description,
             settings: {},
         };

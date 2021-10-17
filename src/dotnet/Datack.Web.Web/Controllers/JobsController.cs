@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Enums;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using Datack.Web.Service.Services;
@@ -75,15 +74,13 @@ namespace Datack.Web.Web.Controllers
         [HttpPost]
         public ActionResult ParseCron([FromBody] JobsParseCronRequest request)
         {
-            var descriptionFull = CronHelper.ParseCron(request.CronFull);
-            var descriptionDiff = CronHelper.ParseCron(request.CronDiff);
-            var descriptionLog = CronHelper.ParseCron(request.CronLog);
+            var description = CronHelper.ParseCron(request.Cron);
 
-            var next = CronHelper.GetNextOccurrences(request.CronFull, request.CronDiff, request.CronLog, TimeSpan.FromDays(7));
+            var next = CronHelper.GetNextOccurrences(request.Cron, TimeSpan.FromDays(7));
             
             return Ok(new
             {
-                resultFull = descriptionFull, resultDiff = descriptionDiff, resultLog = descriptionLog, next
+                resultFull = description, next
             });
         }
 
@@ -91,7 +88,7 @@ namespace Datack.Web.Web.Controllers
         [HttpPost]
         public async Task<ActionResult> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
         {
-            await _jobRunner.Run(request.JobId, request.BackupType, cancellationToken);
+            await _jobRunner.Run(request.JobId, cancellationToken);
 
             return Ok();
         }
@@ -99,15 +96,12 @@ namespace Datack.Web.Web.Controllers
 
     public class JobsParseCronRequest
     {
-        public String CronFull { get; set; }
-        public String CronDiff { get; set; }
-        public String CronLog { get; set; }
+        public String Cron { get; set; }
     }
 
     public class JobRunRequest
     {
         public Guid ServerId { get; set; }
         public Guid JobId { get; set; }
-        public BackupType BackupType { get; set; }
     }
 }

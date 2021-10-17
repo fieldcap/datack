@@ -12,6 +12,8 @@ namespace Datack.Common.Models.Data
         public String Name { get; set; }
 
         public String Description { get; set; }
+
+        public String Cron { get;set; }
         
         public JobSettings Settings { get; set; }
     }

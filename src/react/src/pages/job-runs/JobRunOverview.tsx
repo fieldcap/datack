@@ -1,7 +1,7 @@
 import { Box, Flex, Heading, Skeleton } from '@chakra-ui/react';
-import axios, { CancelTokenSource } from 'axios';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { JobRun } from '../../models/job-run';
 import { JobRunTask } from '../../models/job-run-task';
 import { JobRunTaskLog } from '../../models/job-run-task-log';
@@ -21,9 +21,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         []
     );
 
-    const [cancelToken] = useState<CancelTokenSource>(
-        axios.CancelToken.source()
-    );
+    const cancelToken = useCancellationToken();
 
     useEffect(() => {
         (async () => {
@@ -41,10 +39,6 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             );
             setJobRunTasks(result);
         })();
-
-        return () => {
-            cancelToken.cancel();
-        };
     }, [props.match.params.id]);
 
     const handleJobRunTaskClick = async (jobRunTaskId: string) => {
@@ -81,9 +75,9 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                         style={{ height: 'calc(100vh - 48px)' }}
                     >
                         <Box overflowY="auto">
-                        <JobRunOverviewTaskLogs
-                            jobRunTaskLogs={jobRunTaskLogs}
-                        />
+                            <JobRunOverviewTaskLogs
+                                jobRunTaskLogs={jobRunTaskLogs}
+                            />
                         </Box>
                     </Flex>
                 </Flex>
