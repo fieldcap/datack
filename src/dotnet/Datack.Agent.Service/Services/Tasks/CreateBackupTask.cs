@@ -98,6 +98,8 @@ namespace Datack.Agent.Services.Tasks
                 sw.Stop();
                 
                 var message = $"Completed backup of database {jobRunTask.ItemName} {sw.Elapsed:g}";
+
+                await Task.Delay(100000, cancellationToken);
                 
                 OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }

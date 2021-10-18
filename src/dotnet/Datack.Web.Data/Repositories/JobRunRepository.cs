@@ -100,5 +100,26 @@ namespace Datack.Web.Data.Repositories
             
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task UpdateStop(Guid jobRunId, CancellationToken cancellationToken)
+        {
+            var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+
+            if (dbJobRun == null)
+            {
+                return;
+            }
+
+            dbJobRun.Completed = DateTimeOffset.Now;
+
+            var timespan = dbJobRun.Completed - dbJobRun.Started;
+
+            dbJobRun.RunTime = (Int64) timespan.Value.TotalSeconds;
+
+            dbJobRun.IsError = true;
+            dbJobRun.Result = $"Job was manually stopped after {timespan:g}";
+            
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

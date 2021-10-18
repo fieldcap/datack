@@ -50,5 +50,10 @@ namespace Datack.Web.Service.Services
         {
             await _jobRunRepository.UpdateComplete(jobRunId, cancellationToken);
         }
+
+        public async Task UpdateStop(Guid jobRunId, CancellationToken cancellationToken)
+        {
+            await _jobRunRepository.UpdateStop(jobRunId, cancellationToken);
+        }
     }
 }

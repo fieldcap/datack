@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Dapper;
 using Datack.Agent.Models.Internal;
 using Datack.Common.Models.Internal;
+using Microsoft.Data.SqlClient;
 
 namespace Datack.Agent.Services.DataConnections
 {
@@ -75,20 +75,27 @@ ORDER BY
                 });
             };
 
-            // Use ExecuteScalarAsync otherwise the InfoMessage event only fires when all messages are processed.
-            await sqlConnection.ExecuteScalarAsync<Int32>($@"BACKUP DATABASE @DatabaseName 
+            var command = new CommandDefinition($@"BACKUP DATABASE @DatabaseName 
 TO DISK = @FilePath WITH NOFORMAT, 
 INIT,
 NAME = @BackupName, 
 SKIP, 
 NOREWIND, 
 NOUNLOAD,
-STATS = 10", new
-            {
-                DatabaseName = databaseName,
-                FilePath = destinationFilePath,
-                BackupName = backupName
-            });
+STATS = 10",
+                                                new
+                                                {
+                                                    DatabaseName = databaseName,
+                                                    FilePath = destinationFilePath,
+                                                    BackupName = backupName
+                                                },
+                                                null,
+                                                null,
+                                                null,
+                                                CommandFlags.Buffered,
+                                                cancellationToken);
+
+            await sqlConnection.ExecuteScalarAsync(command);
         }
     }
 }

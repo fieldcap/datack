@@ -34,7 +34,12 @@ namespace Datack.Web.Service.Services
         {
             return await Send<String>(jobRunTask.JobTask.Server.Key, "Run", cancellationToken, jobRunTask, previousTask);
         }
-        
+
+        public async Task<String> Stop(JobRunTask jobRunTask, CancellationToken cancellationToken)
+        {
+            return await Send<String>(jobRunTask.JobTask.Server.Key, "Stop", cancellationToken, jobRunTask.JobRunTaskId);
+        }
+
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
         {
             var hasConnection = DatackHub.Users.TryGetValue(key, out var connectionId);

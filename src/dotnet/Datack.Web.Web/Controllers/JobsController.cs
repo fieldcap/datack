@@ -86,9 +86,18 @@ namespace Datack.Web.Web.Controllers
 
         [Route("Run")]
         [HttpPost]
-        public async Task<ActionResult> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
+        public async Task<ActionResult<Guid>> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
         {
-            await _jobRunner.Run(request.JobId, cancellationToken);
+            var jobRunId = await _jobRunner.Run(request.JobId, cancellationToken);
+
+            return Ok(jobRunId);
+        }
+        
+        [Route("Stop")]
+        [HttpPost]
+        public async Task<ActionResult> Stop([FromBody] JobStopRequest request, CancellationToken cancellationToken)
+        {
+            await _jobRunner.Stop(request.JobRunId, cancellationToken);
 
             return Ok();
         }
@@ -101,7 +110,11 @@ namespace Datack.Web.Web.Controllers
 
     public class JobRunRequest
     {
-        public Guid ServerId { get; set; }
         public Guid JobId { get; set; }
+    }
+
+    public class JobStopRequest
+    {
+        public Guid JobRunId { get; set; }
     }
 }

@@ -47,7 +47,8 @@ namespace Datack.Agent.Services
             _rpcService.OnConnect += (_, _) => Connect();
 
             _rpcService.Subscribe("GetDatabaseList", () => GetDatabaseList());
-            _rpcService.Subscribe<JobRunTask, JobRunTask >("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
+            _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
+            _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
             _rpcService.Subscribe<ServerDbSettings>("TestSqlServer", serverDbSettings => TestSqlServer(serverDbSettings));
 
             _rpcService.StartAsync(cancellationToken);
@@ -60,6 +61,8 @@ namespace Datack.Agent.Services
             _logger.LogTrace("Stopping");
 
             await _rpcService.StopAsync(cancellationToken);
+
+            _jobRunner.StopAllTasks();
         }
 
         private async void Connect()
@@ -95,6 +98,18 @@ namespace Datack.Agent.Services
             await _jobRunner.ExecuteJobRunTask(_server, jobRunTask, previousTask, _cancellationToken);
 
             return "Success";
+        }
+        
+        private Task<String> Stop(Guid jobRunTaskId)
+        {
+            if (_server == null)
+            {
+                throw new Exception($"No server settings found");
+            }
+
+            _jobRunner.StopTask(jobRunTaskId);
+
+            return Task.FromResult("Success");
         }
     }
 }

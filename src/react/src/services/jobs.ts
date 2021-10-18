@@ -66,11 +66,12 @@ export namespace Jobs {
         }
     };
 
-    export const run = async (jobId: string) => {
+    export const run = async (jobId: string): Promise<string> => {
         try {
-            await axios.post<void>(`/api/Jobs/Run/`, {
+            const result = await axios.post<string>(`/api/Jobs/Run/`, {
                 jobId,
             });
+            return result.data;
         } catch (err) {
             throw ErrorHelper.getError(err);
         }

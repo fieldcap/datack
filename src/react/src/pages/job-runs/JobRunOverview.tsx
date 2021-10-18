@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Skeleton } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Skeleton } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -47,6 +47,10 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         setJobRunTaskLogs(result);
     };
 
+    const stop = async () => {
+        await JobRuns.stop(props.match.params.id, cancelToken);
+    };
+
     return (
         <Skeleton isLoaded={jobRun != null}>
             {jobRun != null ? (
@@ -59,6 +63,13 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <Box marginBottom="24px">
                             <Heading>Run for job: {jobRun.job.name}</Heading>
                         </Box>
+                        {jobRun.completed == null ? (
+                            <Box marginBottom="24px">
+                                <Button onClick={() => stop()}>
+                                    Stop Job Run
+                                </Button>
+                            </Box>
+                        ) : null}
                         <Box>
                             <JobRunOverviewHeader jobRun={jobRun} />
                         </Box>

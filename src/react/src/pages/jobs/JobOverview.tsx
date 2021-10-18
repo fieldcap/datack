@@ -10,7 +10,7 @@ import {
     Tabs
 } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
@@ -24,6 +24,8 @@ type RouteParams = {
 
 const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     let [job, setJob] = React.useState<Job | null>(null);
+
+    const history = useHistory();
 
     const cancelToken = useCancellationToken();
 
@@ -42,7 +44,9 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             return;
         }
 
-        await Jobs.run(job.jobId);
+        var jobRunId = await Jobs.run(job.jobId);
+
+        history.push(`/run/${jobRunId}`);
     };
 
     return (
@@ -51,7 +55,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 <Heading>{job?.name}</Heading>
             </Box>
             <Box marginBottom="24px">
-                <Button onClick={() => run()}>Run Backup</Button>
+                <Button onClick={() => run()}>Run Job</Button>
             </Box>
             <Tabs>
                 <TabList>

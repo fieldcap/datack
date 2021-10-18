@@ -67,7 +67,7 @@ namespace Datack.Web.Service.Services
         /// </summary>
         /// <param name="jobId">The ID of the Job</param>
         /// <param name="cancellationToken"></param>
-        public async Task Run(Guid jobId, CancellationToken cancellationToken)
+        public async Task<Guid> Run(Guid jobId, CancellationToken cancellationToken)
         {
             var job = await _jobs.GetById(jobId, cancellationToken);
 
@@ -76,13 +76,30 @@ namespace Datack.Web.Service.Services
                 throw new Exception($"Job with ID {jobId} not found");
             }
 
-            await SetupJobRun(job, cancellationToken);
+            return await SetupJobRun(job, cancellationToken);
+        }
+
+        public async Task Stop(Guid jobRunId, CancellationToken cancellationToken)
+        {
+            var jobRunTasks = await _jobRunTasks.GetByJobRunId(jobRunId, cancellationToken);
+
+            await _jobRuns.UpdateStop(jobRunId, cancellationToken);
+
+            foreach (var jobRunTask in jobRunTasks.Where(m => m.Completed == null))
+            {
+                if (jobRunTask.Started == null)
+                {
+                    await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, cancellationToken);
+                }
+                await _jobRunTasks.UpdateCompleted(jobRunTask.JobRunTaskId, "Task was stopped", null, true, cancellationToken);
+                await _remoteService.Stop(jobRunTask, cancellationToken);
+            }
         }
 
         /// <summary>
         ///     Setup a new job.
         /// </summary>
-        private async Task SetupJobRun(Job job, CancellationToken cancellationToken)
+        private async Task<Guid> SetupJobRun(Job job, CancellationToken cancellationToken)
         {
             _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
@@ -92,9 +109,7 @@ namespace Datack.Web.Service.Services
             if (!receivedLockSuccesfully)
             {
                 // Lock timed out
-                _logger.LogError("Could not obtain runSetupLock within 30 seconds for job {name}!", job.Name);
-
-                return;
+                throw new Exception($"Could not obtain runSetupLock within 30 seconds for job {job.Name}!");
             }
 
             _logger.LogDebug("Entered lock for job {name}", job.Name);
@@ -186,6 +201,8 @@ namespace Datack.Web.Service.Services
 
                     await _jobRuns.Update(jobRun, cancellationToken);
                 }
+
+                return jobRun.JobRunId;
             }
             finally
             {

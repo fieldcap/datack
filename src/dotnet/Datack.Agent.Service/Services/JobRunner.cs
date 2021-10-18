@@ -18,6 +18,8 @@ namespace Datack.Agent.Services
 
         private readonly Dictionary<String, BaseTask> _tasks;
 
+        private readonly Dictionary<Guid, CancellationTokenSource> _runningTasks = new();
+
         public JobRunner(ILogger<JobRunner> logger,
                          RpcService rpcService,
                          CreateBackupTask createBackupTask,
@@ -52,6 +54,8 @@ namespace Datack.Agent.Services
                     {
                         _logger.LogInformation("{jobRunTaskId}: {message}", evt.JobRunTaskId, evt.Message);
                     }
+
+                    _runningTasks.Remove(evt.JobRunTaskId);
 
                     await _rpcService.SendComplete(evt);
                 };
@@ -102,7 +106,14 @@ namespace Datack.Agent.Services
                         throw new Exception($"Unknown task type {jobRunTask.Type}");
                     }
 
-                    _ = Task.Run(() => task.Run(server, jobRunTask, previousTask, cancellationToken), cancellationToken);
+                    _ = Task.Run(() =>
+                    {
+                        var cancellationTokenSource = new CancellationTokenSource();
+
+                        _runningTasks.Add(jobRunTask.JobRunTaskId, cancellationTokenSource);
+
+                        return task.Run(server, jobRunTask, previousTask, cancellationTokenSource.Token);
+                    }, cancellationToken);
                 }
                 finally
                 {
@@ -119,6 +130,30 @@ namespace Datack.Agent.Services
                     Message = ex.Message,
                     ResultArtifact = null
                 });
+            }
+        }
+
+        public void StopTask(Guid jobRunTaskId)
+        {
+            _logger.LogDebug($"Stopping job run task {jobRunTaskId}");
+
+            _runningTasks.TryGetValue(jobRunTaskId, out var cancellationTokenSource);
+
+            if (cancellationTokenSource == null)
+            {
+                _logger.LogDebug($"Cancellation token for job task {jobRunTaskId} not found");
+
+                return;
+            }
+
+            cancellationTokenSource.Cancel();
+        }
+
+        public void StopAllTasks()
+        {
+            foreach (var runningTask in _runningTasks)
+            {
+                runningTask.Value.Cancel();
             }
         }
     }

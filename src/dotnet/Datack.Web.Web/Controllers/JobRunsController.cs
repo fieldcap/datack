@@ -14,12 +14,14 @@ namespace Datack.Web.Web.Controllers
         private readonly JobRuns _jobRuns;
         private readonly JobRunTasks _jobRunTasks;
         private readonly JobRunTaskLogs _jobRunTaskLogs;
+        private readonly JobRunner _jobRunner;
 
-        public JobRunsController(JobRuns jobRuns, JobRunTasks jobRunTasks, JobRunTaskLogs jobRunTaskLogs)
+        public JobRunsController(JobRuns jobRuns, JobRunTasks jobRunTasks, JobRunTaskLogs jobRunTaskLogs, JobRunner jobRunner)
         {
             _jobRuns = jobRuns;
             _jobRunTasks = jobRunTasks;
             _jobRunTaskLogs = jobRunTaskLogs;
+            _jobRunner = jobRunner;
         }
 
         [HttpGet]
@@ -61,5 +63,18 @@ namespace Datack.Web.Web.Controllers
             var jobRuns = await _jobRunTaskLogs.GetByJobRunTaskId(jobRunTaskId, cancellationToken);
             return Ok(jobRuns);
         }
+        
+        [HttpPost]
+        [Route("Stop")]
+        public async Task<ActionResult> Stop([FromBody] JobRunsStopRequest request, CancellationToken cancellationToken)
+        {
+            await _jobRunner.Stop(request.JobRunId, cancellationToken);
+            return Ok();
+        }
+    }
+
+    public class JobRunsStopRequest
+    {
+        public Guid JobRunId { get; set; }
     }
 }

@@ -62,6 +62,21 @@ export namespace JobRuns {
         );
         return result.data;
     };
+
+    export const stop = async (
+        jobRunId: string,
+        cancelToken: CancelTokenSource
+    ): Promise<void> => {
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.post<void>(
+            `/api/JobRuns/Stop/`,
+            {
+                jobRunId,
+            },
+            config
+        );
+        return result.data;
+    };
 }
 
 export default JobRuns;
