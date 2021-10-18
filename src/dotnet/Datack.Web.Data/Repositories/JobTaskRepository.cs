@@ -80,5 +80,24 @@ namespace Datack.Web.Data.Repositories
 
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task ReOrder(Guid jobId, IList<Guid> jobTaskIds, CancellationToken cancellationToken)
+        {
+            var dbJobTasks = await _dataContext
+                                   .JobTasks
+                                   .Where(m => m.JobId == jobId)
+                                   .ToListAsync(cancellationToken);
+
+            var index = 0;
+            foreach (var jobTaskId in jobTaskIds)
+            {
+                var dbJobTask = dbJobTasks.First(m => m.JobTaskId == jobTaskId);
+                dbJobTask.Order = index;
+
+                index++;
+            }
+
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

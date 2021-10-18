@@ -40,5 +40,10 @@ namespace Datack.Web.Service.Services
         {
             await _jobTaskRepository.Update(jobTask, cancellationToken);
         }
+
+        public async Task ReOrder(Guid jobId, IList<Guid> jobTaskIds, CancellationToken cancellationToken)
+        {
+            await _jobTaskRepository.ReOrder(jobId, jobTaskIds, cancellationToken);
+        }
     }
 }

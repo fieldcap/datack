@@ -1,4 +1,8 @@
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import {
+    ArrowUpDownIcon,
+    TriangleDownIcon,
+    TriangleUpIcon
+} from '@chakra-ui/icons';
 import {
     Button,
     chakra,
@@ -11,8 +15,12 @@ import {
     Tr
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
+import {
+    DragDropContext,
+    Draggable,
+    Droppable,
+    DropResult
+} from 'react-beautiful-dnd';
 import { useHistory } from 'react-router-dom';
 import { Column, useExpanded, useSortBy, useTable } from 'react-table';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -62,8 +70,22 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
     const columns = React.useMemo(() => {
         const columns: Column<JobTask>[] = [
             {
+                Header: '',
+                id: 'click',
+                Cell: (c: any) => (
+                    <>
+                        <span {...c.dragHandleProps}>
+                            <ArrowUpDownIcon />
+                        </span>
+                    </>
+                ),
+                width: 10,
+                maxWidth: 10,
+            },
+            {
                 Header: 'Name',
                 accessor: 'name',
+                width: 10000,
             },
         ];
         return columns;
@@ -72,57 +94,130 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
         useTable<JobTask>({ columns, data: jobTasks }, useSortBy, useExpanded);
 
+    const handleDragEnd = async (result: DropResult) => {
+        const { source, destination } = result;
+        if (!destination) {
+            return;
+        }
+        const newData = [...jobTasks];
+        const [movedRow] = newData.splice(source.index, 1);
+        newData.splice(destination.index, 0, movedRow);
+        setJobTasks(newData);
+
+        await JobTasks.reOrder(
+            props.job!.jobId,
+            newData.map((m) => m.jobTaskId)
+        );
+    };
+
     return (
         <>
             <Skeleton isLoaded={isLoaded}>
-                <DndProvider backend={HTML5Backend}>
-                    <Table {...getTableProps()}>
-                        <Thead>
-                            {headerGroups.map((headerGroup) => (
-                                <Tr {...headerGroup.getHeaderGroupProps()}>
-                                    {headerGroup.headers.map((column) => (
-                                        <Th
-                                            {...column.getHeaderProps(
-                                                column.getSortByToggleProps()
-                                            )}
-                                        >
-                                            {column.render('Header')}
-                                            <chakra.span pl="4">
-                                                {column.isSorted ? (
-                                                    column.isSortedDesc ? (
-                                                        <TriangleDownIcon aria-label="sorted descending" />
-                                                    ) : (
-                                                        <TriangleUpIcon aria-label="sorted ascending" />
-                                                    )
-                                                ) : null}
-                                            </chakra.span>
-                                        </Th>
-                                    ))}
-                                </Tr>
-                            ))}
-                        </Thead>
-                        <Tbody {...getTableBodyProps()}>
-                            {rows.map((row) => {
-                                prepareRow(row);
-                                return (
-                                    <Tr
-                                        {...row.getRowProps()}
-                                        onClick={() =>
-                                            rowClick(row.original.jobTaskId)
-                                        }
-                                        style={{ cursor: 'pointer' }}
+                <Table {...getTableProps()}>
+                    <Thead>
+                        {headerGroups.map((headerGroup) => (
+                            <Tr {...headerGroup.getHeaderGroupProps()}>
+                                {headerGroup.headers.map((column) => (
+                                    <Th
+                                        {...column.getHeaderProps(
+                                            column.getSortByToggleProps()
+                                        )}
                                     >
-                                        {row.cells.map((cell) => (
-                                            <Td {...cell.getCellProps()}>
-                                                {cell.render('Cell')}
-                                            </Td>
-                                        ))}
-                                    </Tr>
-                                );
-                            })}
-                        </Tbody>
-                    </Table>
-                </DndProvider>
+                                        {column.render('Header')}
+                                        <chakra.span pl="4">
+                                            {column.isSorted ? (
+                                                column.isSortedDesc ? (
+                                                    <TriangleDownIcon aria-label="sorted descending" />
+                                                ) : (
+                                                    <TriangleUpIcon aria-label="sorted ascending" />
+                                                )
+                                            ) : null}
+                                        </chakra.span>
+                                    </Th>
+                                ))}
+                            </Tr>
+                        ))}
+                    </Thead>
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <Droppable droppableId="table-body">
+                            {(provided, snapshot) => (
+                                <Tbody
+                                    {...getTableBodyProps()}
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                >
+                                    {rows.map((row) => {
+                                        prepareRow(row);
+                                        return (
+                                            <Draggable
+                                                draggableId={
+                                                    row.original.jobTaskId
+                                                }
+                                                key={row.original.jobTaskId}
+                                                index={row.index}
+                                            >
+                                                {(provided, snapshot) => {
+                                                    return (
+                                                        <Tr
+                                                            {...row.getRowProps()}
+                                                            {...provided.draggableProps}
+                                                            // {...provided.dragHandleProps}
+                                                            ref={
+                                                                provided.innerRef
+                                                            }
+                                                        >
+                                                            {row.cells.map(
+                                                                (
+                                                                    cell,
+                                                                    index
+                                                                ) => (
+                                                                    <Td
+                                                                        onClick={() =>
+                                                                            rowClick(
+                                                                                cell
+                                                                                    .row
+                                                                                    .original
+                                                                                    .jobTaskId
+                                                                            )
+                                                                        }
+                                                                        {...cell.getCellProps(
+                                                                            {
+                                                                                style: {
+                                                                                    minWidth:
+                                                                                        cell
+                                                                                            .column
+                                                                                            .minWidth,
+                                                                                    width: cell
+                                                                                        .column
+                                                                                        .width,
+                                                                                },
+                                                                            }
+                                                                        )}
+                                                                    >
+                                                                        {cell.render(
+                                                                            'Cell',
+                                                                            {
+                                                                                dragHandleProps:
+                                                                                    provided.dragHandleProps,
+                                                                                isSomethingDragging:
+                                                                                    snapshot.isDragging,
+                                                                            }
+                                                                        )}
+                                                                    </Td>
+                                                                )
+                                                            )}
+                                                        </Tr>
+                                                    );
+                                                }}
+                                            </Draggable>
+                                        );
+                                    })}
+                                    {provided.placeholder}
+                                </Tbody>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
+                </Table>
                 <Button
                     marginTop="24px"
                     onClick={() => handleAddNewJobTaskClick()}

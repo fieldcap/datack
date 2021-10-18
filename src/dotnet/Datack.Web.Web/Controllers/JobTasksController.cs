@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -89,6 +90,16 @@ namespace Datack.Web.Web.Controllers
 
             return Ok(result);
         }
+
+        
+        [Route("ReOrder")]
+        [HttpPost]
+        public async Task<ActionResult> ReOrder([FromBody] JobTaskReOrderRequest request, CancellationToken cancellationToken)
+        {
+            await _jobTasks.ReOrder(request.JobId, request.JobTaskIds, cancellationToken);
+
+            return Ok();
+        }
     }
 
     public class JobTasksTestDatabaseRegexRequest
@@ -100,5 +111,11 @@ namespace Datack.Web.Web.Controllers
         public String BackupIncludeManual { get; set; }
         public String BackupExcludeManual { get; set; }
         public Guid ServerId { get; set; }
+    }
+
+    public class JobTaskReOrderRequest
+    {
+        public Guid JobId { get; set; }
+        public IList<Guid> JobTaskIds { get; set; }
     }
 }

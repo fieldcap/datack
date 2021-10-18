@@ -92,7 +92,7 @@ namespace Datack.Web.Web.Controllers
 
             return Ok(jobRunId);
         }
-        
+
         [Route("Stop")]
         [HttpPost]
         public async Task<ActionResult> Stop([FromBody] JobStopRequest request, CancellationToken cancellationToken)

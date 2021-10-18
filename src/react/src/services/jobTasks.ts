@@ -75,6 +75,16 @@ export namespace JobTasks {
             throw ErrorHelper.getError(err);
         }
     };
+
+    export const reOrder = async (
+        jobId: string,
+        jobTaskIds: string[]
+    ): Promise<void> => {
+        await axios.post<DatabaseListTestResult[]>(`/api/JobTasks/ReOrder/`, {
+            jobId,
+            jobTaskIds,
+        });
+    };
 }
 
 export default JobTasks;
