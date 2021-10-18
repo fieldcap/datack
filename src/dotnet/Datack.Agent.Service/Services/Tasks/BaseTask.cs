@@ -13,8 +13,24 @@ namespace Datack.Agent.Services.Tasks
         
         public abstract Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken);
         
-        protected void OnProgress(Guid jobRunTaskId, String message)
+        private DateTime _lastProgressUpdate = DateTime.UtcNow;
+        private String _lastProgressMessage;
+
+        protected void OnProgress(Guid jobRunTaskId, String message, Boolean verbose = false)
         {
+            if (verbose)
+            {
+                var diff = DateTime.UtcNow - _lastProgressUpdate;
+
+                if (diff.TotalMilliseconds < 1000 || _lastProgressMessage == message)
+                {
+                    return;
+                }
+
+                _lastProgressUpdate = DateTime.UtcNow;
+                _lastProgressMessage = message;
+            }
+
             OnProgressEvent?.Invoke(this, new ProgressEvent
             {
                 JobRunTaskId = jobRunTaskId,

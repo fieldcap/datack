@@ -108,6 +108,7 @@ namespace Datack.Agent
 
                            services.AddSingleton<CreateBackupTask>();
                            services.AddSingleton<CompressTask>();
+                           services.AddSingleton<UploadAzureTask>();
                            services.AddSingleton<UploadS3Task>();
 
                            services.AddHostedService<AgentHostedService>();

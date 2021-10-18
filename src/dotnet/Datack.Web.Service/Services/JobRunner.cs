@@ -19,8 +19,8 @@ namespace Datack.Web.Service.Services
         private readonly ILogger<JobRunner> _logger;
         private readonly RemoteService _remoteService;
 
-        private readonly SemaphoreSlim _setupJobRunLock = new SemaphoreSlim(1, 1);
-        private readonly SemaphoreSlim _executeJobRunLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _setupJobRunLock = new(1, 1);
+        private readonly SemaphoreSlim _executeJobRunLock = new(1, 1);
 
         private readonly Dictionary<String, IBaseTask> _tasks;
 
@@ -36,6 +36,7 @@ namespace Datack.Web.Service.Services
                          JobRunTaskLogs jobRunTaskLogs,
                          CreateBackupTask createBackupTask,
                          CompressTask compressTask,
+                         UploadAzureTask uploadAzureTask,
                          UploadS3Task uploadS3Task)
         {
             _logger = logger;
@@ -55,6 +56,9 @@ namespace Datack.Web.Service.Services
                 },
                 {
                     "compress", compressTask
+                },
+                {
+                    "upload_azure", uploadAzureTask
                 },
                 {
                     "upload_s3", uploadS3Task

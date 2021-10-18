@@ -14,7 +14,7 @@ namespace Datack.Agent.Services
         private readonly ILogger<JobRunner> _logger;
         private readonly RpcService _rpcService;
 
-        private readonly SemaphoreSlim _executeJobRunLock = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _executeJobRunLock = new(1, 1);
 
         private readonly Dictionary<String, BaseTask> _tasks;
 
@@ -24,6 +24,7 @@ namespace Datack.Agent.Services
                          RpcService rpcService,
                          CreateBackupTask createBackupTask,
                          CompressTask compressTask,
+                         UploadAzureTask uploadAzureTask,
                          UploadS3Task uploadS3Task)
         {
             _logger = logger;
@@ -36,6 +37,9 @@ namespace Datack.Agent.Services
                 },
                 {
                     "compress", compressTask
+                },
+                {
+                    "upload_azure", uploadAzureTask
                 },
                 {
                     "upload_s3", uploadS3Task

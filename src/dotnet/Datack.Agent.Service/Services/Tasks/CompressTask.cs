@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ByteSizeLib;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -160,7 +161,7 @@ namespace Datack.Agent.Services.Tasks
                             return;
                         }
 
-                        OnProgress(jobRunTask.JobRunTaskId, line);
+                        OnProgress(jobRunTask.JobRunTaskId, line, true);
                     };
 
                     process.ErrorDataReceived += (_, args) =>
@@ -190,8 +191,11 @@ namespace Datack.Agent.Services.Tasks
                 }
 
                 sw.Stop();
+
+                var fileSize = new FileInfo(sourceFileName).Length;
+                var finalFileSize = new FileInfo(storePath).Length;
                 
-                var message = $"Completed compression {jobRunTask.ItemName} {sw.Elapsed:g}";
+                var message = $"Completed compression of {jobRunTask.ItemName} from {ByteSize.FromBytes(fileSize):0.00} to {ByteSize.FromBytes(finalFileSize):0.00} ({(Int32) ((Double)finalFileSize / fileSize * 100.0) }%) in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
                 
                 OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }

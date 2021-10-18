@@ -13,6 +13,9 @@ namespace Datack.Common.Models.Internal
 
         [JsonPropertyName("uploadS3")]
         public JobTaskUploadS3Settings UploadS3 { get; set; }
+
+        [JsonPropertyName("uploadAzure")]
+        public JobTaskUploadAzureSettings UploadAzure { get; set; }
     }
 
     public class JobTaskCreateDatabaseSettings
@@ -76,5 +79,17 @@ namespace Datack.Common.Models.Internal
 
         [JsonPropertyName("secret")]
         public String Secret { get; set; }
+    }
+    
+    public class JobTaskUploadAzureSettings
+    {
+        [JsonPropertyName("fileName")]
+        public String FileName { get; set; }
+
+        [JsonPropertyName("containerName")]
+        public String ContainerName { get; set; }
+
+        [JsonPropertyName("connectionString")]
+        public String ConnectionString { get; set; }
     }
 }

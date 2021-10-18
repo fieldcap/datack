@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using ByteSizeLib;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -91,16 +92,16 @@ namespace Datack.Agent.Services.Tasks
                                                     storePath,
                                                     evt =>
                                                     {
-                                                        OnProgress(jobRunTask.JobRunTaskId, evt.Message);
+                                                        OnProgress(jobRunTask.JobRunTaskId, evt.Message, true);
                                                     },
                                                     cancellationToken);
 
                 sw.Stop();
-                
-                var message = $"Completed backup of database {jobRunTask.ItemName} {sw.Elapsed:g}";
 
-                await Task.Delay(100000, cancellationToken);
+                var fileSize = new FileInfo(storePath).Length;
                 
+                var message = $"Completed backup of database of {jobRunTask.ItemName} ({ByteSize.FromBytes(fileSize):0.00} in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
+
                 OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }
             catch (Exception ex)

@@ -185,13 +185,35 @@ namespace Datack.Web.Data
                     UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
                     Settings = new JobTaskSettings
                     {
-                        UploadS3 = new JobTaskUploadS3Settings()
+                        UploadS3 = new JobTaskUploadS3Settings
                         {
                             FileName = @"{DatabaseName}/{0:yyyyMMddHHmm}.7z",
-                            AccessKey = "",
                             Region = "",
                             Bucket = "",
+                            AccessKey = "",
                             Secret = ""
+                        }
+                    }
+                };
+
+                var jobTask4 = new JobTask
+                {
+                    JobTaskId = Guid.Parse("DA2E4E4E-C98F-43F8-9F6C-9BA66D1233FA"),
+                    JobId = job.JobId,
+                    ServerId = server.ServerId,
+                    Description = "Upload compressed backup to Azure",
+                    Name = "Upload to Azure",
+                    Order = 2,
+                    Parallel = 2,
+                    Type = "upload_azure",
+                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
+                    Settings = new JobTaskSettings
+                    {
+                        UploadAzure = new JobTaskUploadAzureSettings
+                        {
+                            FileName = @"{DatabaseName}/{0:yyyyMMddHHmm}.7z",
+                            ContainerName = "",
+                            ConnectionString = ""
                         }
                     }
                 };
@@ -201,14 +223,10 @@ namespace Datack.Web.Data
                 await JobTasks.AddAsync(jobTask1);
                 await JobTasks.AddAsync(jobTask2);
                 await JobTasks.AddAsync(jobTask3);
+                await JobTasks.AddAsync(jobTask4);
 
                 await SaveChangesAsync();
             }
-
-            /*JobRunTaskLogs.RemoveRange(JobRunTaskLogs);
-            JobRunTasks.RemoveRange(JobRunTasks);
-            JobRuns.RemoveRange(JobRuns);
-            await SaveChangesAsync();*/
 #endif
         }
 

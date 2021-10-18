@@ -7,6 +7,7 @@ using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Transfer;
+using ByteSizeLib;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -48,29 +49,28 @@ namespace Datack.Agent.Services.Tasks
                     DatabaseName = jobRunTask.ItemName
                 };
 
-                var rawFileName = Path.GetFileName(jobRunTask.Settings.UploadS3.FileName);
+                var keyFileName = Path.GetFileName(jobRunTask.Settings.UploadS3.FileName);
 
-                if (String.IsNullOrWhiteSpace(rawFileName))
+                if (String.IsNullOrWhiteSpace(keyFileName))
                 {
-                    throw new Exception($"Invalid filename '{jobRunTask.Settings.UploadS3.FileName}'");
+                    throw new Exception($"Key cannot be null");
                 }
 
-                var keyFileName = rawFileName.FormatToken(tokenValues);
+                keyFileName = keyFileName.FormatToken(tokenValues);
                 keyFileName = String.Format(keyFileName, jobRunTask.JobRun.Started);
 
-                var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.UploadS3.FileName);
-
-                if (String.IsNullOrWhiteSpace(rawFilePath))
+                var key = keyFileName;
+                
+                var keyPath = Path.GetDirectoryName(jobRunTask.Settings.UploadS3.FileName);
+                if (!String.IsNullOrWhiteSpace(keyPath))
                 {
-                    throw new Exception($"Invalid file path '{jobRunTask.Settings.UploadS3.FileName}'");
+                    keyPath = keyPath.FormatToken(tokenValues);
+                    keyPath = String.Format(keyPath, jobRunTask.JobRun.Started);
+
+                    key = Path.Combine(keyPath, keyFileName);
+
+                    key = key.Replace("\\", "/");
                 }
-
-                var keyPrefix = rawFilePath.FormatToken(tokenValues);
-                keyPrefix = String.Format(keyPrefix, jobRunTask.JobRun.Started);
-
-                var key = Path.Combine(keyPrefix, keyFileName);
-
-                key = key.Replace("\\", "/");
 
                 var resultArtifact = key;
 
@@ -89,18 +89,20 @@ namespace Datack.Agent.Services.Tasks
                     Key = key
                 };
 
+                var fileSize = new FileInfo(sourceFileName).Length;
+
                 uploadRequest.UploadProgressEvent += (_, args) =>
                 {
                     var msg = $"Uploaded {args.PercentDone}%";
 
-                    OnProgress(jobRunTask.JobRunTaskId, msg);
+                    OnProgress(jobRunTask.JobRunTaskId, msg, true);
                 };
 
                 await fileTransferUtility.UploadAsync(uploadRequest, cancellationToken);
 
                 sw.Stop();
                 
-                var message = $"Completed uploading of {jobRunTask.ItemName} to s3 in {sw.Elapsed:g}";
+                var message = $"Completed uploading of {jobRunTask.ItemName} ({ByteSize.FromBytes(fileSize):0.00}) to s3 in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
                 
                 OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
             }

@@ -20,6 +20,7 @@ export type JobTaskSettings = {
     createBackup?: JobTaskCreateDatabaseSettings;
     compress?: JobTaskCompressSettings;
     uploadS3?: JobTaskUploadS3Settings;
+    uploadAzure?: JobTaskUploadAzureSettings;
 };
 
 export type JobTaskCreateDatabaseSettings = {
@@ -47,4 +48,10 @@ export type JobTaskUploadS3Settings = {
     bucket: string;
     accessKey: string;
     secret: string;
+};
+
+export type JobTaskUploadAzureSettings = {
+    fileName: string;
+    containerName: string;
+    connectionString: string;
 };
