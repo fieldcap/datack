@@ -19,6 +19,7 @@ export type JobTask = {
 export type JobTaskSettings = {
     createBackup?: JobTaskCreateDatabaseSettings;
     compress?: JobTaskCompressSettings;
+    delete?: JobTaskDeleteSettings;
     uploadS3?: JobTaskUploadS3Settings;
     uploadAzure?: JobTaskUploadAzureSettings;
 };
@@ -40,6 +41,10 @@ export type JobTaskCompressSettings = {
     compressionLevel: string;
     multithreadMode: string;
     password: string | null;
+};
+
+export type JobTaskDeleteSettings = {
+    ignoreIfFileDoesNotExist: boolean;
 };
 
 export type JobTaskUploadS3Settings = {

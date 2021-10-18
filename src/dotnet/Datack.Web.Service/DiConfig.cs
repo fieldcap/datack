@@ -20,9 +20,6 @@ namespace Datack.Web.Service
             services.AddScoped<Settings>();
 
             services.AddScoped<CreateBackupTask>();
-            services.AddScoped<CompressTask>();
-            services.AddScoped<UploadAzureTask>();
-            services.AddScoped<UploadS3Task>();
 
             services.AddHostedService<StartupHostedService>();
             services.AddHostedService<SchedulerHostedService>();

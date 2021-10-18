@@ -23,6 +23,7 @@ import JobTasks from '../../services/jobTasks';
 import Servers from '../../services/servers';
 import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
+import JobTaskDelete from './JobTaskDelete';
 import JobTaskUploadAzure from './JobTaskUploadAzure';
 import JobTaskUploadS3 from './JobTaskUploadS3';
 
@@ -178,6 +179,19 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskCompress>
                 );
+            case 'delete':
+                return (
+                    <JobTaskDelete
+                        settings={settings.delete}
+                        serverId={serverId}
+                        onSettingsChanged={(newSettings) => {
+                            setSettings({
+                                ...settings,
+                                delete: newSettings,
+                            });
+                        }}
+                    ></JobTaskDelete>
+                );
             case 'upload_s3':
                 return (
                     <JobTaskUploadS3
@@ -262,6 +276,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     >
                         <option value="create_backup">Create Backup</option>
                         <option value="compress">Compress</option>
+                        <option value="delete">Delete</option>
                         <option value="upload_s3">Upload to S3</option>
                         <option value="upload_azure">Upload to Azure</option>
                     </Select>

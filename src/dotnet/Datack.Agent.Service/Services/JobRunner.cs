@@ -24,6 +24,7 @@ namespace Datack.Agent.Services
                          RpcService rpcService,
                          CreateBackupTask createBackupTask,
                          CompressTask compressTask,
+                         DeleteTask deleteTask,
                          UploadAzureTask uploadAzureTask,
                          UploadS3Task uploadS3Task)
         {
@@ -37,6 +38,9 @@ namespace Datack.Agent.Services
                 },
                 {
                     "compress", compressTask
+                },
+                {
+                    "delete", deleteTask
                 },
                 {
                     "upload_azure", uploadAzureTask

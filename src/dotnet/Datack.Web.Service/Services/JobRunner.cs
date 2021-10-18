@@ -34,10 +34,7 @@ namespace Datack.Web.Service.Services
                          JobTasks jobTasks,
                          JobRunTasks jobRunTasks,
                          JobRunTaskLogs jobRunTaskLogs,
-                         CreateBackupTask createBackupTask,
-                         CompressTask compressTask,
-                         UploadAzureTask uploadAzureTask,
-                         UploadS3Task uploadS3Task)
+                         CreateBackupTask createBackupTask)
         {
             _logger = logger;
             _remoteService = remoteService;
@@ -53,15 +50,6 @@ namespace Datack.Web.Service.Services
             {
                 {
                     "create_backup", createBackupTask
-                },
-                {
-                    "compress", compressTask
-                },
-                {
-                    "upload_azure", uploadAzureTask
-                },
-                {
-                    "upload_s3", uploadS3Task
                 }
             };
         }
@@ -162,8 +150,7 @@ namespace Datack.Web.Service.Services
 
                     foreach (var jobTask in jobTasks)
                     {
-                        var task = GetTask(jobTask.Type);
-
+                       
                         _logger.LogDebug("Setting up job run task {type} for job {name}", jobTask.Type, job.Name);
 
                         var previousJobRunTasks = new List<JobRunTask>();
@@ -173,7 +160,29 @@ namespace Datack.Web.Service.Services
                             previousJobRunTasks = allJobRunTasks.Where(m => m.JobTaskId == jobTask.UsePreviousTaskArtifactsFromJobTaskId).ToList();
                         }
 
-                        var jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, jobRun.JobRunId, cancellationToken);
+                        List<JobRunTask> jobRunTasks;
+
+                        if (_tasks.TryGetValue(jobTask.Type, out var task))
+                        {
+                            jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, jobRun.JobRunId, cancellationToken);   
+                        }
+                        else
+                        {
+                            jobRunTasks = previousJobRunTasks
+                                          .Select(m => new JobRunTask
+                                          {
+                                              JobRunTaskId = Guid.NewGuid(),
+                                              JobTaskId = jobTask.JobTaskId,
+                                              JobRunId = jobRun.JobRunId,
+                                              Type = jobTask.Type,
+                                              ItemName = m.ItemName,
+                                              ItemOrder = m.ItemOrder,
+                                              IsError = false,
+                                              Result = null,
+                                              Settings = jobTask.Settings
+                                          })
+                                          .ToList();
+                        }
 
                         _logger.LogDebug("Received {count} new job run tasks for {type} for job {name}", jobRunTasks.Count, jobTask.Type, job.Name);
 
@@ -182,12 +191,16 @@ namespace Datack.Web.Service.Services
 
                     _logger.LogDebug("Received  {count} new job run tasks in total for job {name}", allJobRunTasks.Count, job.Name);
 
+                    var index = 0;
                     // Make sure that the order the queue runs in is the same as the order of the tasks of the job.
-                    foreach (var jobRunTask in allJobRunTasks)
+                    foreach (var jobRunTaskGroup in allJobRunTasks.GroupBy(m => m.JobTaskId))
                     {
-                        var jobTask = jobTasks.First(m => m.JobTaskId == jobRunTask.JobTaskId);
+                        foreach (var jobRunTask in jobRunTaskGroup)
+                        {
+                            jobRunTask.TaskOrder = index;
+                        }
 
-                        jobRunTask.TaskOrder = jobTask.Order;
+                        index++;
                     }
 
                     // Add all the run tasks to the database and execute the job.
@@ -348,21 +361,6 @@ namespace Datack.Web.Service.Services
                 _logger.LogDebug("Releasing lock for job run {jobRunId}", jobRunId);
                 _executeJobRunLock.Release();
             }
-        }
-
-        private IBaseTask GetTask(String type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentException("Type cannot be null");
-            }
-
-            if (!_tasks.TryGetValue(type, out var task))
-            {
-                throw new Exception($"Unknown task type {type}");
-            }
-
-            return task;
         }
 
         public async Task ProgressTask(Guid jobRunTaskId, String message, Boolean isError, CancellationToken cancellationToken)
