@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -86,7 +87,12 @@ namespace Datack.Agent.Services.Tasks
                     {
                         var progress = (Int32)(transferred / (Double)fileSize * 100.0);
                         OnProgress(jobRunTask.JobRunTaskId, $"Uploading file {progress}% complete", true);
-                    })
+                    }),
+                    Tags = new Dictionary<String, String>
+                    {
+                        { "Datack:BackupDate", jobRunTask.Started.Value.ToString("O") },
+                        { "Datack:BackupType", jobRunTask.Settings.CreateBackup.BackupType }
+                    }
                 };
 
                 await blobClient.UploadAsync(sourceFileName, blobUploadOptions, cancellationToken);

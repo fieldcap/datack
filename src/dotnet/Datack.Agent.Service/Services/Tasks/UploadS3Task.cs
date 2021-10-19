@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -6,6 +7,7 @@ using System.Threading.Tasks;
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using ByteSizeLib;
 using Datack.Common.Models.Data;
@@ -86,7 +88,20 @@ namespace Datack.Agent.Services.Tasks
                 {
                     BucketName = jobRunTask.Settings.UploadS3.Bucket,
                     FilePath = sourceFileName,
-                    Key = key
+                    Key = key,
+                    TagSet = new List<Tag>
+                    {
+                        new Tag
+                        {
+                            Key = "Datack:BackupDate",
+                            Value = jobRunTask.Started.Value.ToString("O")
+                        },
+                        new Tag
+                        {
+                            Key = "Datack:BackupType",
+                            Value = jobRunTask.Settings.CreateBackup.BackupType
+                        }
+                    }
                 };
 
                 var fileSize = new FileInfo(sourceFileName).Length;
