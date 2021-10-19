@@ -22,8 +22,7 @@ const loading = (
 
 type PrivateRouteProps = RouteProps & OmitNative<{}, keyof RouteProps> & {};
 
-const isoDateFormat =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)((-(\d{2}):(\d{2})|Z)?)$/;
+const isoDateFormat = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)(([-+](\d{2}):(\d{2})|Z)?)$/;
 
 const isIsoDateString = (value: any): boolean => {
     return value && typeof value === 'string' && isoDateFormat.test(value);

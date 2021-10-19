@@ -10,6 +10,7 @@ export type JobTask = {
     name: string;
     description: string;
     order: number;
+    timeout: number | null;
     usePreviousTaskArtifactsFromJobTaskId: string | null;
     settings: JobTaskSettings;
     serverId: string;

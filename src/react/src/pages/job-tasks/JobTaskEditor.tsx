@@ -45,6 +45,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [description, setDescription] = useState<string>('');
     const [type, setType] = useState<string>('');
     const [parallel, setParallel] = useState<number>(1);
+    const [timeout, setTimeout] = useState<number | null>(null);
     const [usePreviousTaskArtifacts, setUsePreviousTaskArtifacts] = useState<
         string | null
     >(null);
@@ -80,6 +81,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 );
                 setSettings(result.settings);
                 setServerId(result.serverId || '');
+                setTimeout(result.timeout);
             })();
         }
 
@@ -110,6 +112,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     type: type,
                     parallel: parallel,
                     order: 0,
+                    timeout: timeout,
                     usePreviousTaskArtifactsFromJobTaskId: null,
                     settings: settings || {},
                     serverId: serverId,
@@ -117,7 +120,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
                 const result = await JobTasks.add(newJobTask);
 
-                history.push(`/job/${props.match.params.jobId}/task/${result.jobTaskId}`);
+                history.push(
+                    `/job/${props.match.params.jobId}/task/${result.jobTaskId}`
+                );
             } else if (jobTask != null) {
                 jobTask.name = name;
                 jobTask.description = description;
@@ -125,6 +130,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 jobTask.settings = settings || {};
                 jobTask.serverId = serverId;
                 jobTask.parallel = parallel;
+                jobTask.timeout = timeout;
 
                 if (!usePreviousTaskArtifacts) {
                     jobTask.usePreviousTaskArtifactsFromJobTaskId = null;
@@ -250,7 +256,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         onChange={(e) => setDescription(e.target.value)}
                     />
                 </FormControl>
-                <FormControl id="type" isRequired marginBottom={4}>
+                <FormControl id="serverId" isRequired marginBottom={4}>
                     <FormLabel>Server</FormLabel>
                     <Select
                         placeholder="Select a server"
@@ -281,7 +287,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <option value="upload_azure">Upload to Azure</option>
                     </Select>
                 </FormControl>
-                <FormControl id="type" isRequired marginBottom={4}>
+                <FormControl id="parallel" isRequired marginBottom={4}>
                     <FormLabel>Parallel execution</FormLabel>
                     <Input
                         type="number"
@@ -293,7 +299,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     />
                 </FormControl>
-                <FormControl id="type" marginBottom={4}>
+                <FormControl id="usePreviousTaskArtifacts" marginBottom={4}>
                     <FormLabel>
                         Use artifact results from previous task
                     </FormLabel>
@@ -315,6 +321,21 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             </option>
                         ))}
                     </Select>
+                </FormControl>
+                <FormControl id="timeout" marginBottom={4} isRequired>
+                    <FormLabel>Timeout</FormLabel>
+                    <Input
+                        type="number"
+                        value={timeout || ''}
+                        onChange={(e) => {
+                            const n = parseInt(e.target.value);
+                            if (isNaN(n)) {
+                                setTimeout(null);
+                            } else {
+                                setTimeout(n);
+                            }
+                        }}
+                    />
                 </FormControl>
                 {getTaskType()}
                 {error != null ? (

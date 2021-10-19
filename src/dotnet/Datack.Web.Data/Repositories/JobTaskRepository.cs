@@ -75,6 +75,7 @@ namespace Datack.Web.Data.Repositories
             dbJobTask.UsePreviousTaskArtifactsFromJobTaskId = jobTask.UsePreviousTaskArtifactsFromJobTaskId;
             dbJobTask.Type = jobTask.Type;
             dbJobTask.Parallel = jobTask.Parallel;
+            dbJobTask.Timeout = jobTask.Timeout;
             dbJobTask.Settings = jobTask.Settings;
             dbJobTask.ServerId = jobTask.ServerId;
 

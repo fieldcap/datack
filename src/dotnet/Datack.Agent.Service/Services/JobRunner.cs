@@ -116,7 +116,15 @@ namespace Datack.Agent.Services
 
                     _ = Task.Run(() =>
                     {
-                        var cancellationTokenSource = new CancellationTokenSource();
+                        CancellationTokenSource cancellationTokenSource;
+                        if (jobRunTask.JobTask.Timeout > 0)
+                        {
+                            cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(jobRunTask.JobTask.Timeout.Value));
+                        }
+                        else
+                        {
+                            cancellationTokenSource = new CancellationTokenSource();
+                        }
 
                         _runningTasks.Add(jobRunTask.JobRunTaskId, cancellationTokenSource);
 
