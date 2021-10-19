@@ -17,30 +17,30 @@ import { Server } from '../../models/server';
 import Servers from '../../services/servers';
 
 type Props = {
-    server?: Server;
+    server: Server;
 };
 
 const ServerSettingsTab: FC<Props> = (props) => {
-    const [name, setName] = useState<string>(props.server?.name ?? '');
+    const [name, setName] = useState<string>(props.server.name ?? '');
 
     const [description, setDescription] = useState<string>(
-        props.server?.description ?? ''
+        props.server.description ?? ''
     );
 
-    const [key, setKey] = useState<string>(props.server?.key ?? '');
+    const [key, setKey] = useState<string>(props.server.key ?? '');
 
     const [tempPath, setTempPath] = useState<string>(
-        props.server?.settings?.tempPath ?? ''
+        props.server.settings?.tempPath ?? ''
     );
 
     const [server, setServer] = useState<string>(
-        props.server?.dbSettings?.server ?? ''
+        props.server.dbSettings?.server ?? ''
     );
     const [userName, setUserName] = useState<string>(
-        props.server?.dbSettings?.userName ?? ''
+        props.server.dbSettings?.userName ?? ''
     );
     const [password, setPassword] = useState<string>(
-        props.server?.dbSettings?.password ?? ''
+        props.server.dbSettings?.password ?? ''
     );
 
     const [error, setError] = useState<string | null>(null);
