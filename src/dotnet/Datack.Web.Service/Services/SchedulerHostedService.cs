@@ -26,7 +26,28 @@ namespace Datack.Web.Service.Services
                 using var serviceScope = _serviceProvider.CreateScope();
 
                 var jobService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
-                var jobRunnerService = serviceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
+                var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
+                
+                // Mark tasks that are still running as not start to restart them.
+                var runningJobs = await jobRunsService.GetRunning(cancellationToken);
+
+                foreach (var runningJob in runningJobs)
+                {
+                    var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, cancellationToken);
+
+                    foreach (var jobRunTask in jobRunTasks.Where(m => m.Completed == null && m.Started != null))
+                    {
+                        await jobRunTasksService.UpdateStarted(jobRunTask.JobRunTaskId, null, cancellationToken);
+                    }
+
+                    _ = Task.Run(async () =>
+                    {
+                        using var blockServiceScope = _serviceProvider.CreateScope();
+                        var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                        await jobRunnerService.ExecuteJobRun(runningJob.JobRunId, cancellationToken);
+                    }, cancellationToken);
+                }
 
                 while (!cancellationToken.IsCancellationRequested)
                 {
@@ -53,7 +74,12 @@ namespace Datack.Web.Service.Services
                         {
                             var jobToRun = groupResults.OrderBy(m => m.Priority).First();
 
-                            _ = Task.Run(async () => await jobRunnerService.SetupJobRun(jobToRun, cancellationToken), cancellationToken);
+                            _ = Task.Run(async () =>
+                            {
+                                using var blockServiceScope = _serviceProvider.CreateScope();
+                                var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                                await jobRunnerService.SetupJobRun(jobToRun, cancellationToken);
+                            }, cancellationToken);
                         }
                     }
 

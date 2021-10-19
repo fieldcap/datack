@@ -31,9 +31,9 @@ namespace Datack.Web.Service.Services
             await _jobRunTaskRepository.Create(jobRunTasks, cancellationToken);
         }
 
-        public async Task UpdateStarted(Guid jobRunTaskId, CancellationToken cancellationToken)
+        public async Task UpdateStarted(Guid jobRunTaskId, DateTimeOffset? date, CancellationToken cancellationToken)
         {
-            await _jobRunTaskRepository.UpdateStarted(jobRunTaskId, cancellationToken);
+            await _jobRunTaskRepository.UpdateStarted(jobRunTaskId, date, cancellationToken);
         }
 
         public async Task UpdateCompleted(Guid jobRunTaskId, String result, String resultArtifact, Boolean isError, CancellationToken cancellationToken)

@@ -62,10 +62,6 @@ namespace Datack.Web.Service.Services
 
             foreach (var jobRunTask in jobRunTasks.Where(m => m.Completed == null))
             {
-                if (jobRunTask.Started == null)
-                {
-                    await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, cancellationToken);
-                }
                 await _jobRunTasks.UpdateCompleted(jobRunTask.JobRunTaskId, "Task was stopped", null, true, cancellationToken);
                 await _remoteService.Stop(jobRunTask, cancellationToken);
             }
@@ -108,7 +104,7 @@ namespace Datack.Web.Service.Services
                 try
                 {
                     // Figure out if this job is already running, if so, stop execution.
-                    var runningTasks = await _jobRuns.GetRunning(job.JobId, cancellationToken);
+                    var runningTasks = await _jobRuns.GetRunning(cancellationToken);
 
                     // Only check for tasks for this group, and filter itself out
                     runningTasks = runningTasks.Where(m => m.JobRunId != jobRun.JobRunId && m.Job.Group == job.Group).ToList();
@@ -211,7 +207,7 @@ namespace Datack.Web.Service.Services
             }
         }
 
-        private async Task ExecuteJobRun(Guid jobRunId, CancellationToken cancellationToken)
+        public async Task ExecuteJobRun(Guid jobRunId, CancellationToken cancellationToken)
         {
             _logger.LogDebug("ExecuteJobRun for job run {jobRunId}", jobRunId);
 
@@ -319,7 +315,7 @@ namespace Datack.Web.Service.Services
 
                         // Mark the task as started
                         jobRunTask.Started = DateTimeOffset.Now;
-                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, cancellationToken);
+                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, jobRunTask.Started, cancellationToken);
                         
                         _ = Task.Run(async () =>
                         {

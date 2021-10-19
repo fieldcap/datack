@@ -30,13 +30,13 @@ namespace Datack.Web.Data.Repositories
             return await query.ToListAsync(cancellationToken);
         }
 
-        public async Task<List<JobRun>> GetRunning(Guid jobId, CancellationToken cancellationToken)
+        public async Task<List<JobRun>> GetRunning(CancellationToken cancellationToken)
         {
             return await _dataContext
                          .JobRuns
                          .Include(m => m.Job)
                          .AsNoTracking()
-                         .Where(m => m.Completed == null && m.JobId == jobId)
+                         .Where(m => m.Completed == null)
                          .ToListAsync(cancellationToken);
         }
 
@@ -125,7 +125,7 @@ namespace Datack.Web.Data.Repositories
 
         public async Task Delete(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
         {
-            var fromDate = DateTime.UtcNow.AddDays(-keepDays);
+            var fromDate = DateTimeOffset.Now.AddDays(-keepDays);
 
             await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRunTaskLogs
 FROM JobRunTaskLogs

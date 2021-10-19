@@ -21,9 +21,9 @@ namespace Datack.Web.Service.Services
             return await _jobRunRepository.GetAll(jobId, cancellationToken);
         }
 
-        public async Task<List<JobRun>> GetRunning(Guid jobId, CancellationToken cancellationToken)
+        public async Task<List<JobRun>> GetRunning(CancellationToken cancellationToken)
         {
-            return await _jobRunRepository.GetRunning(jobId, cancellationToken);
+            return await _jobRunRepository.GetRunning(cancellationToken);
         }
 
         public async Task<List<JobRun>> GetByJobId(Guid jobId, CancellationToken cancellationToken)

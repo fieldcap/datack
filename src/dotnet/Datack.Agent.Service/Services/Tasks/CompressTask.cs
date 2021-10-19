@@ -80,7 +80,7 @@ namespace Datack.Agent.Services.Tasks
 
                 if (File.Exists(fileName))
                 {
-                    throw new Exception($"Cannot create file, file '{storePath}' already exists");
+                    File.Delete(fileName);
                 }
 
                 try

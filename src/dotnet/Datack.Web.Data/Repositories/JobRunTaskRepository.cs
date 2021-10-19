@@ -45,7 +45,7 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateStarted(Guid jobRunTaskId, CancellationToken cancellationToken)
+        public async Task UpdateStarted(Guid jobRunTaskId, DateTimeOffset? date, CancellationToken cancellationToken)
         {
             var jobRunTask = await _dataContext.JobRunTasks.FirstOrDefaultAsync(m => m.JobRunTaskId == jobRunTaskId, cancellationToken);
 
@@ -54,7 +54,7 @@ namespace Datack.Web.Data.Repositories
                 return;
             }
 
-            jobRunTask.Started = DateTimeOffset.Now;
+            jobRunTask.Started = date;
             jobRunTask.Result = null;
             jobRunTask.IsError = false;
 
@@ -70,15 +70,14 @@ namespace Datack.Web.Data.Repositories
                 return;
             }
 
+            jobRunTask.Started ??= DateTimeOffset.Now;
+
             jobRunTask.Completed = DateTimeOffset.Now;
 
             var timespan = jobRunTask.Completed - jobRunTask.Started;
 
-            if (timespan.HasValue)
-            {
-                jobRunTask.RunTime = (Int64)timespan.Value.TotalSeconds;
-            }
-
+            jobRunTask.RunTime = (Int64)timespan.Value.TotalSeconds;
+            
             jobRunTask.Result = result;
             jobRunTask.ResultArtifact = resultArtifact;
             jobRunTask.IsError = isError;

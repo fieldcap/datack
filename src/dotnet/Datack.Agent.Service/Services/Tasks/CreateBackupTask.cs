@@ -73,7 +73,7 @@ namespace Datack.Agent.Services.Tasks
 
                 if (File.Exists(fileName))
                 {
-                    throw new Exception($"Cannot create backup, file '{storePath}' already exists");
+                    File.Delete(fileName);
                 }
 
                 try
