@@ -55,6 +55,18 @@ const ServerJobList: FC<Props> = (props) => {
                 Header: 'Name',
                 accessor: 'name',
             },
+            {
+                Header: 'Name',
+                accessor: 'name',
+            },
+            {
+                Header: 'Group',
+                accessor: 'group',
+            },
+            {
+                Header: 'Priority',
+                accessor: 'priority',
+            },
         ];
         return columns;
     }, []);

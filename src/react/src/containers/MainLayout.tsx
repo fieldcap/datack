@@ -2,6 +2,7 @@ import { ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
+import History from '../pages/history/History';
 import JobRunOverview from '../pages/job-runs/JobRunOverview';
 import JobTaskEditor from '../pages/job-tasks/JobTaskEditor';
 import JobAdd from '../pages/jobs/JobAdd';
@@ -82,6 +83,10 @@ const MainLayout: FC = () => {
                     <Route
                         path="/run/:id"
                         render={(props) => <JobRunOverview {...props} />}
+                    />
+                    <Route
+                        path="/history"
+                        render={(props) => <History {...props} />}
                     />
                 </Switch>
             </Box>

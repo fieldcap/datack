@@ -125,7 +125,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                     <option value="on">On</option>
                     <option value="off">Off</option>
                     {Array.from(Array(63).keys()).map((v: any) => (
-                        <option value={v + 1}>{v + 1}</option>
+                        <option value={v + 1} key={v + 1}>{v + 1}</option>
                     ))}
                 </Select>
             </FormControl>

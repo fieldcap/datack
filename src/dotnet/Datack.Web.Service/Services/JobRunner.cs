@@ -53,24 +53,7 @@ namespace Datack.Web.Service.Services
                 }
             };
         }
-
-        /// <summary>
-        ///     Run a job based on the ID.
-        /// </summary>
-        /// <param name="jobId">The ID of the Job</param>
-        /// <param name="cancellationToken"></param>
-        public async Task<Guid> Run(Guid jobId, CancellationToken cancellationToken)
-        {
-            var job = await _jobs.GetById(jobId, cancellationToken);
-
-            if (job == null)
-            {
-                throw new Exception($"Job with ID {jobId} not found");
-            }
-
-            return await SetupJobRun(job, cancellationToken);
-        }
-
+        
         public async Task Stop(Guid jobRunId, CancellationToken cancellationToken)
         {
             var jobRunTasks = await _jobRunTasks.GetByJobRunId(jobRunId, cancellationToken);
@@ -91,7 +74,7 @@ namespace Datack.Web.Service.Services
         /// <summary>
         ///     Setup a new job.
         /// </summary>
-        private async Task<Guid> SetupJobRun(Job job, CancellationToken cancellationToken)
+        public async Task<Guid> SetupJobRun(Job job, CancellationToken cancellationToken)
         {
             _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
@@ -127,16 +110,16 @@ namespace Datack.Web.Service.Services
                     // Figure out if this job is already running, if so, stop execution.
                     var runningTasks = await _jobRuns.GetRunning(job.JobId, cancellationToken);
 
-                    // Filter out itself..
-                    runningTasks = runningTasks.Where(m => m.JobRunId != jobRun.JobRunId).ToList();
+                    // Only check for tasks for this group, and filter itself out
+                    runningTasks = runningTasks.Where(m => m.JobRunId != jobRun.JobRunId && m.Job.Group == job.Group).ToList();
 
-                    _logger.LogDebug("Found {count} already running tasks for job {name}", runningTasks.Count, job.Name);
+                    _logger.LogDebug("Found {count} already running tasks for job group {group}", runningTasks.Count, job.Group);
 
                     if (runningTasks.Count > 0)
                     {
                         var runningTasksList = String.Join(", ", runningTasks.Select(m => $"{m.JobRunId} (started {m.Started:g})"));
 
-                        throw new Exception($"Cannot start job {job.Name}, there is already another job still running ({runningTasksList})");
+                        throw new Exception($"Cannot start job {job.Name} for group {job.Group}, there is already another job still running ({runningTasksList})");
                     }
 
                     // Get all the tasks for the job and run the through the task Setup procedure.

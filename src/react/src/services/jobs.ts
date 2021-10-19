@@ -35,9 +35,9 @@ export namespace Jobs {
         return result.data;
     };
 
-    export const add = async (job: Job): Promise<Job> => {
+    export const add = async (job: Job): Promise<string> => {
         try {
-            const result = await axios.post<Job>(`/api/Jobs/Add/`, job);
+            const result = await axios.post<string>(`/api/Jobs/Add/`, job);
             return result.data;
         } catch (err) {
             throw ErrorHelper.getError(err);
@@ -47,6 +47,25 @@ export namespace Jobs {
     export const update = async (job: Job): Promise<void> => {
         try {
             await axios.put(`/api/Jobs/Update/`, job);
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
+    export const duplicate = async (jobId: string): Promise<Job> => {
+        try {
+            var result = await axios.post<Job>(`/api/Jobs/Duplicate/`, {
+                jobId,
+            });
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
+    };
+
+    export const deleteJob = async (jobId: string): Promise<void> => {
+        try {
+            await axios.delete<void>(`/api/Jobs/Delete/${jobId}`);
         } catch (err) {
             throw ErrorHelper.getError(err);
         }

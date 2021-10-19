@@ -11,9 +11,15 @@ namespace Datack.Common.Models.Data
 
         public String Name { get; set; }
 
+        public String Group { get; set; }
+
+        public Int32 Priority { get; set; }
+
         public String Description { get; set; }
 
         public String Cron { get;set; }
+
+        public Int32 DeleteLogsAfter { get; set; }
         
         public JobSettings Settings { get; set; }
     }

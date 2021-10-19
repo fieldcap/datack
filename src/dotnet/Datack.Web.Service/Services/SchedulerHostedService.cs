@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Helpers;
+using Datack.Common.Models.Data;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -32,13 +35,25 @@ namespace Datack.Web.Service.Services
 
                     var jobs = await jobService.GetList(cancellationToken);
 
-                    foreach (var job in jobs)
+                    foreach (var jobsGroup in jobs.GroupBy(m => m.Group))
                     {
-                        var nextDate = CronHelper.GetNextOccurrence(job.Cron, now);
+                        var groupResults = new List<Job>();
 
-                        if (nextDate.HasValue && nextDate.Value == now)
+                        foreach (var job in jobsGroup)
                         {
-                            await jobRunnerService.Run(job.JobId, cancellationToken);
+                            var nextDate = CronHelper.GetNextOccurrence(job.Cron, now);
+
+                            if (nextDate.HasValue && nextDate.Value == now)
+                            {
+                                groupResults.Add(job);
+                            }
+                        }
+
+                        if (groupResults.Count > 0)
+                        {
+                            var jobToRun = groupResults.OrderBy(m => m.Priority).First();
+
+                            _ = Task.Run(async () => await jobRunnerService.SetupJobRun(jobToRun, cancellationToken), cancellationToken);
                         }
                     }
 

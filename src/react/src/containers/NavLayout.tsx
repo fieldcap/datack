@@ -85,6 +85,13 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
             >
                 Jobs
             </Button>
+            <Button
+                onClick={() => handleNavigate('/history')}
+                w="100%"
+                isActive={activeRoute === '/history'}
+            >
+                History
+            </Button>
         </VStack>
     );
 

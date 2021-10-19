@@ -161,7 +161,7 @@ namespace Datack.Agent.Services.Tasks
                             return;
                         }
 
-                        OnProgress(jobRunTask.JobRunTaskId, line, true);
+                        OnProgress(jobRunTask.JobRunTaskId, line, line.Contains("%"));
                     };
 
                     process.ErrorDataReceived += (_, args) =>

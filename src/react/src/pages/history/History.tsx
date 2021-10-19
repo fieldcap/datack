@@ -1,6 +1,11 @@
-import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import {
-    Button,
+    CheckIcon,
+    TriangleDownIcon,
+    TriangleUpIcon,
+    WarningIcon
+} from '@chakra-ui/icons';
+import {
+    Box,
     chakra,
     Heading,
     Skeleton,
@@ -11,16 +16,19 @@ import {
     Thead,
     Tr
 } from '@chakra-ui/react';
+import { format, formatDistanceStrict } from 'date-fns';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import useCancellationToken from '../../hooks/useCancellationToken';
-import { Job } from '../../models/job';
-import Jobs from '../../services/jobs';
+import { JobRun } from '../../models/job-run';
+import JobRuns from '../../services/job-runs';
 
-const JobList: FC<RouteComponentProps> = () => {
-    const [jobs, setJobs] = useState<Job[]>([]);
-    const [isLoaded, setIsLoaded] = useState<boolean>(false);
+type RouteParams = {};
+
+const History: FC<RouteComponentProps<RouteParams>> = (props) => {
+    let [isLoaded, setIsLoaded] = useState<boolean>(false);
+    let [jobRuns, setJobRuns] = useState<JobRun[]>([]);
 
     const history = useHistory();
 
@@ -28,45 +36,72 @@ const JobList: FC<RouteComponentProps> = () => {
 
     useEffect(() => {
         (async () => {
-            const jobs = await Jobs.getList(cancelToken);
-            setJobs(jobs);
+            const result = await JobRuns.getList(cancelToken);
+            setJobRuns(result);
             setIsLoaded(true);
         })();
     }, [cancelToken]);
 
-    const rowClick = (jobId: string): void => {
-        history.push(`/job/${jobId}`);
-    };
-
-    const handleAddNewJobClick = () => {
-        history.push(`/job/new`);
+    const rowClick = (jobRunId: string): void => {
+        history.push(`/run/${jobRunId}`);
     };
 
     const columns = React.useMemo(() => {
-        const columns: Column<Job>[] = [
+        const columns: Column<JobRun>[] = [
             {
-                Header: 'Name',
-                accessor: 'name',
+                Header: 'Job',
+                accessor: (r) => r.job.name,
             },
             {
-                Header: 'Group',
-                accessor: 'group',
+                Header: 'Started',
+                accessor: 'started',
+                Cell: ({ cell: { value } }) =>
+                    format(value, 'd MMMM yyyy HH:mm'),
             },
             {
-                Header: 'Priority',
-                accessor: 'priority',
+                Header: 'Completed',
+                accessor: 'completed',
+                sortType: 'datetime',
+                Cell: ({ cell: { value } }) => {
+                    if (!value) {
+                        return '';
+                    }
+                    return format(value, 'd MMMM yyyy HH:mm');
+                },
+            },
+            {
+                Header: 'Runtime',
+                accessor: 'runTime',
+                sortType: 'datetime',
+                Cell: ({ cell: { value } }) => {
+                    if (value == null) {
+                        return '';
+                    }
+                    return formatDistanceStrict(0, value * 1000);
+                },
+            },
+            {
+                Header: 'Result',
+                accessor: 'isError',
+                Cell: ({ cell: { value } }) => {
+                    if (value) {
+                        return <WarningIcon style={{ color: 'red' }} />;
+                    }
+                    return <CheckIcon style={{ color: 'green' }} />;
+                },
             },
         ];
         return columns;
     }, []);
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<Job>({ columns, data: jobs }, useSortBy);
+        useTable<JobRun>({ columns, data: jobRuns }, useSortBy);
 
     return (
         <Skeleton isLoaded={isLoaded}>
-            <Heading marginBottom="24px">Jobs</Heading>
-
+            <Box marginBottom="24px">
+                <Heading>History</Heading>
+            </Box>
             <Table {...getTableProps()}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
@@ -98,7 +133,7 @@ const JobList: FC<RouteComponentProps> = () => {
                         return (
                             <Tr
                                 {...row.getRowProps()}
-                                onClick={() => rowClick(row.original.jobId)}
+                                onClick={() => rowClick(row.original.jobRunId)}
                                 style={{ cursor: 'pointer' }}
                             >
                                 {row.cells.map((cell) => (
@@ -111,12 +146,8 @@ const JobList: FC<RouteComponentProps> = () => {
                     })}
                 </Tbody>
             </Table>
-
-            <Button marginTop="24px" onClick={handleAddNewJobClick}>
-                Add new job
-            </Button>
         </Skeleton>
     );
 };
 
-export default JobList;
+export default History;

@@ -68,6 +68,11 @@ ORDER BY
 
             sqlConnection.InfoMessage += (_, args) =>
             {
+                if (String.IsNullOrWhiteSpace(args.Message))
+                {
+                    return;
+                }
+
                 progressCallback?.Invoke(new DatabaseProgressEvent
                 {
                     Message = args.Message,

@@ -16,6 +16,7 @@ import {
 import { format } from 'date-fns';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { useHistory } from 'react-router';
 import { Job } from '../../models/job';
 import Jobs, { TestCronResult } from '../../services/jobs';
 
@@ -25,10 +26,11 @@ type Props = {
 
 const JobSettingsTab: FC<Props> = (props) => {
     const [name, setName] = useState<string>(props.job?.name ?? '');
-
     const [description, setDescription] = useState<string>(
         props.job?.description ?? ''
     );
+    const [group, setGroup] = useState<string>(props.job?.group ?? '');
+    const [priority, setPriority] = useState<number>(props.job?.priority ?? 0);
 
     const [cron, setCron] = useState<string>(props.job?.cron ?? '');
     const [cronOccurrences, setCronOccurrences] = useState<Date[]>([]);
@@ -37,6 +39,8 @@ const JobSettingsTab: FC<Props> = (props) => {
     const [error, setError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [occurrencesMax, setOccurrencesMax] = useState<number>(20);
+
+    const history = useHistory();
 
     const occurrenceList = useRef(null);
 
@@ -86,6 +90,8 @@ const JobSettingsTab: FC<Props> = (props) => {
             const newJob: Job = {
                 jobId: props.job!.jobId,
                 name,
+                group,
+                priority,
                 description,
                 cron,
                 settings: {},
@@ -93,6 +99,32 @@ const JobSettingsTab: FC<Props> = (props) => {
 
             await Jobs.update(newJob);
             setIsSaving(false);
+        } catch (err: any) {
+            setError(err);
+            setIsSaving(false);
+        }
+    };
+
+    const duplicate = async () => {
+        setIsSaving(true);
+        setError(null);
+
+        try {
+            const newJob = await Jobs.duplicate(props.job!.jobId);
+            history.push(`/job/${newJob.jobId}`);
+        } catch (err: any) {
+            setError(err);
+            setIsSaving(false);
+        }
+    };
+
+    const deleteJob = async () => {
+        setIsSaving(true);
+        setError(null);
+
+        try {
+            await Jobs.deleteJob(props.job!.jobId);
+            history.push(`/jobs`);
         } catch (err: any) {
             setError(err);
             setIsSaving(false);
@@ -119,8 +151,27 @@ const JobSettingsTab: FC<Props> = (props) => {
                         onChange={(e) => setDescription(e.target.value)}
                     />
                 </FormControl>
+                <FormControl id="group" marginBottom={4}>
+                    <FormLabel>Job Group</FormLabel>
+                    <Input
+                        type="text"
+                        maxLength={100}
+                        value={group}
+                        onChange={(e) => setGroup(e.target.value)}
+                    />
+                </FormControl>
+                <FormControl id="priority" marginBottom={4}>
+                    <FormLabel>Priority</FormLabel>
+                    <Input
+                        type="number"
+                        min="0"
+                        max="9999"
+                        value={priority}
+                        onChange={(e) => setPriority(+e.target.value)}
+                    />
+                </FormControl>
 
-                <FormControl id="cronFull" marginBottom={4} isRequired>
+                <FormControl id="cron" marginBottom={4} isRequired>
                     <FormLabel>Backup Schedule</FormLabel>
                     <Input
                         type="text"
@@ -160,6 +211,12 @@ const JobSettingsTab: FC<Props> = (props) => {
                             Show more occurrences
                         </Button>
                     ) : null}
+                    <Button onClick={() => duplicate()} isLoading={isSaving}>
+                        Duplicate
+                    </Button>
+                    <Button onClick={() => deleteJob()} isLoading={isSaving}>
+                        Delete
+                    </Button>
                 </HStack>
             </form>
         </Skeleton>

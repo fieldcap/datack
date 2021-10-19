@@ -117,9 +117,12 @@ namespace Datack.Web.Data
                 var job = new Job
                 {
                     JobId = Guid.Parse("6b9e6002-13ef-454a-92a2-23818a5737ac"),
-                    Description = "Create backup job",
-                    Name = "Backup Job",
+                    Description = "Create full database backup",
+                    Name = "Full backup",
+                    Group = "SQL Group 1",
+                    Priority = 1,
                     Cron = "0 4 * * *",
+                    DeleteLogsAfter = 7,
                     Settings = new JobSettings()
                 };
 
@@ -203,7 +206,7 @@ namespace Datack.Web.Data
                     ServerId = server.ServerId,
                     Description = "Upload compressed backup to Azure",
                     Name = "Upload to Azure",
-                    Order = 2,
+                    Order = 3,
                     Parallel = 2,
                     Type = "upload_azure",
                     UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
@@ -218,12 +221,48 @@ namespace Datack.Web.Data
                     }
                 };
 
+                var jobTask5 = new JobTask
+                {
+                    JobTaskId = Guid.Parse("E1F55FC5-A335-4A46-8D79-1F07A86393CF"),
+                    JobId = job.JobId,
+                    ServerId = server.ServerId,
+                    Description = "Delete backup",
+                    Name = "Delete backup",
+                    Order = 4,
+                    Parallel = 2,
+                    Type = "delete",
+                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("FF1F7DFF-12A5-4CAB-8EFC-181805D1BC48"),
+                    Settings = new JobTaskSettings
+                    {
+                        Delete = new JobTaskDeleteSettings()
+                    }
+                };
+                
+                var jobTask6 = new JobTask
+                {
+                    JobTaskId = Guid.Parse("AFE2AF25-A004-4E82-90F0-7BCA4434DA5D"),
+                    JobId = job.JobId,
+                    ServerId = server.ServerId,
+                    Description = "Delete zip",
+                    Name = "Delete zip",
+                    Order = 5,
+                    Parallel = 2,
+                    Type = "delete",
+                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
+                    Settings = new JobTaskSettings
+                    {
+                        Delete = new JobTaskDeleteSettings()
+                    }
+                };
+
                 await Servers.AddAsync(server);
                 await Jobs.AddAsync(job);
                 await JobTasks.AddAsync(jobTask1);
                 await JobTasks.AddAsync(jobTask2);
                 await JobTasks.AddAsync(jobTask3);
                 await JobTasks.AddAsync(jobTask4);
+                await JobTasks.AddAsync(jobTask5);
+                await JobTasks.AddAsync(jobTask6);
 
                 await SaveChangesAsync();
             }

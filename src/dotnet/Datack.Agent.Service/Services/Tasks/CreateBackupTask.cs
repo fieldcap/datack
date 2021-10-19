@@ -92,7 +92,7 @@ namespace Datack.Agent.Services.Tasks
                                                     storePath,
                                                     evt =>
                                                     {
-                                                        OnProgress(jobRunTask.JobRunTaskId, evt.Message, true);
+                                                        OnProgress(jobRunTask.JobRunTaskId, evt.Message, evt.Message.Contains("%"));
                                                     },
                                                     cancellationToken);
 

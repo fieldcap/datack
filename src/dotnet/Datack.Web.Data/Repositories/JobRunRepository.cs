@@ -34,6 +34,7 @@ namespace Datack.Web.Data.Repositories
         {
             return await _dataContext
                          .JobRuns
+                         .Include(m => m.Job)
                          .AsNoTracking()
                          .Where(m => m.Completed == null && m.JobId == jobId)
                          .ToListAsync(cancellationToken);
@@ -120,6 +121,26 @@ namespace Datack.Web.Data.Repositories
             dbJobRun.Result = $"Job was manually stopped after {timespan:g}";
             
             await _dataContext.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task Delete(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
+        {
+            var fromDate = DateTime.UtcNow.AddDays(-keepDays);
+
+            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRunTaskLogs
+FROM JobRunTaskLogs
+INNER JOIN JobRunTasks ON JobRunTasks.JobRunTaskId = JobRunTaskLogs.JobRunTaskId
+INNER JOIN JobRuns ON JobRuns.JobRunId = JobRunTasks.JobRunId
+WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);
+
+            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRunTasks
+FROM JobRunTasks
+INNER JOIN JobRuns ON JobRuns.JobRunId = JobRunTasks.JobRunId
+WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);
+
+            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRuns
+FROM JobRuns
+WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);
         }
     }
 }

@@ -14,11 +14,13 @@ namespace Datack.Web.Web.Controllers
     public class JobsController : Controller
     {
         private readonly Jobs _jobs;
+        private readonly JobRuns _jobRuns;
         private readonly JobRunner _jobRunner;
 
-        public JobsController(Jobs jobs, JobRunner jobRunner)
+        public JobsController(Jobs jobs, JobRuns jobRuns, JobRunner jobRunner)
         {
             _jobs = jobs;
+            _jobRuns = jobRuns;
             _jobRunner = jobRunner;
         }
 
@@ -69,6 +71,25 @@ namespace Datack.Web.Web.Controllers
 
             return Ok();
         }
+        
+        [HttpPost]
+        [Route("Duplicate")]
+        public async Task<ActionResult<Job>> Duplicate([FromBody] JobDuplicateRequest request, CancellationToken cancellationToken)
+        {
+            var result = await _jobs.Duplicate(request.JobId, cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpDelete]
+        [Route("Delete/{jobId:guid}")]
+        public async Task<ActionResult<Job>> Delete(Guid jobId, CancellationToken cancellationToken)
+        {
+            await _jobRuns.Delete(jobId, -1, cancellationToken);
+            await _jobs.Delete(jobId, cancellationToken);
+
+            return Ok();
+        }
 
         [Route("ParseCron")]
         [HttpPost]
@@ -88,7 +109,14 @@ namespace Datack.Web.Web.Controllers
         [HttpPost]
         public async Task<ActionResult<Guid>> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
         {
-            var jobRunId = await _jobRunner.Run(request.JobId, cancellationToken);
+            var job = await _jobs.GetById(request.JobId, cancellationToken);
+
+            if (job == null)
+            {
+                throw new Exception($"Job with ID {request.JobId} not found");
+            }
+
+            var jobRunId = await _jobRunner.SetupJobRun(job, cancellationToken);
 
             return Ok(jobRunId);
         }
@@ -101,6 +129,11 @@ namespace Datack.Web.Web.Controllers
 
             return Ok();
         }
+    }
+
+    public class JobDuplicateRequest
+    {
+        public Guid JobId { get; set; }
     }
 
     public class JobsParseCronRequest

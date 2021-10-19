@@ -35,14 +35,16 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
             jobId: v4(),
             name,
             cron: '',
+            group: '',
+            priority: 1,
             description,
             settings: {},
         };
 
         try {
             setIsSaving(true);
-            const newJob = await Jobs.add(job);
-            history.push(`/job/${newJob.jobId}`);
+            const newJobId = await Jobs.add(job);
+            history.push(`/job/${newJobId}`);
         } catch (err: any) {
             setIsSaving(false);
             setError(err);

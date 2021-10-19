@@ -117,7 +117,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
                 const result = await JobTasks.add(newJobTask);
 
-                history.push(`/job/${result}`);
+                history.push(`/job/${props.match.params.jobId}/task/${result.jobTaskId}`);
             } else if (jobTask != null) {
                 jobTask.name = name;
                 jobTask.description = description;
