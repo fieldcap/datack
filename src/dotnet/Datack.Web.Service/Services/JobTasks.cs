@@ -72,6 +72,8 @@ namespace Datack.Web.Service.Services
                     continue;
                 }
 
+                currentSettings ??= Activator.CreateInstance(newSetting.GetType());
+
                 var newSettingKeys = newSetting.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
                 foreach (var settingKey in newSettingKeys)

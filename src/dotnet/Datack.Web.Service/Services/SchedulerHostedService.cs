@@ -41,6 +41,8 @@ namespace Datack.Web.Service.Services
                         await jobRunTasksService.UpdateStarted(jobRunTask.JobRunTaskId, null, cancellationToken);
                     }
 
+                    await Task.Delay(10000, cancellationToken);
+
                     _ = Task.Run(async () =>
                     {
                         using var blockServiceScope = _serviceProvider.CreateScope();

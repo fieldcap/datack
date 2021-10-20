@@ -25,6 +25,7 @@ namespace Datack.Agent.Services
                          CreateBackupTask createBackupTask,
                          CompressTask compressTask,
                          DeleteTask deleteTask,
+                         DeleteS3Task deleteS3Task,
                          UploadAzureTask uploadAzureTask,
                          UploadS3Task uploadS3Task)
         {
@@ -41,6 +42,9 @@ namespace Datack.Agent.Services
                 },
                 {
                     "delete", deleteTask
+                },
+                {
+                    "delete_s3", deleteS3Task
                 },
                 {
                     "upload_azure", uploadAzureTask

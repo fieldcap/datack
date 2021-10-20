@@ -1,11 +1,19 @@
-import { FormControl, FormLabel, Input, Select } from '@chakra-ui/react';
+import {
+    FormControl,
+    FormLabel,
+    Input,
+    Radio,
+    RadioGroup,
+    Select,
+    Stack
+} from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
-import { JobTaskUploadS3Settings } from '../../models/job-task';
+import { JobTaskDeleteS3Settings } from '../../models/job-task';
 
 type Props = {
     serverId: string;
-    settings: JobTaskUploadS3Settings | undefined | null;
-    onSettingsChanged: (settings: JobTaskUploadS3Settings) => void;
+    settings: JobTaskDeleteS3Settings | undefined | null;
+    onSettingsChanged: (settings: JobTaskDeleteS3Settings) => void;
 };
 
 const JobTaskUploadS3: FC<Props> = (props) => {
@@ -20,6 +28,8 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 accessKey: '',
                 secret: '',
                 tag: '',
+                timeSpanType: 'Month',
+                timeSpanAmount: 1,
             });
         }
     }, [props.settings, onSettingsChanged]);
@@ -84,6 +94,26 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         });
     };
 
+    const handleTimeSpanTypeChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            timeSpanType: value,
+        });
+    };
+
+    const handleTimeSpanAmountChanged = (value: number) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            timeSpanAmount: value,
+        });
+    };
+
     return (
         <>
             <FormControl id="region" marginBottom={4}>
@@ -139,7 +169,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 ></Input>
             </FormControl>
             <FormControl id="fileName" marginBottom={4}>
-                <FormLabel>Key</FormLabel>
+                <FormLabel>Root Key</FormLabel>
                 <Input
                     type="text"
                     value={props.settings?.fileName || ''}
@@ -169,6 +199,32 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.tag || ''}
                     onChange={(evt) => handleTagChanged(evt.target.value)}
                 ></Input>
+            </FormControl>
+            <FormControl id="timeSpan1" marginBottom={4}>
+                <FormLabel>Delete files older than</FormLabel>
+                <Input
+                    type="number"
+                    min="0"
+                    max="9999999"
+                    step="1"
+                    value={props.settings?.timeSpanAmount || ''}
+                    onChange={(evt) =>
+                        handleTimeSpanAmountChanged(+evt.target.value)
+                    }
+                    marginBottom="12px"
+                ></Input>
+                <RadioGroup
+                    value={props.settings?.timeSpanType || ''}
+                    onChange={(value) => handleTimeSpanTypeChanged(value)}
+                >
+                    <Stack direction="column">
+                        <Radio value="Year">Years</Radio>
+                        <Radio value="Month">Months</Radio>
+                        <Radio value="Day">Days</Radio>
+                        <Radio value="Hour">Hours</Radio>
+                        <Radio value="Minute">Minutes</Radio>
+                    </Stack>
+                </RadioGroup>
             </FormControl>
         </>
     );

@@ -9,7 +9,7 @@ using Datack.Common.Models.Data;
 namespace Datack.Agent.Services.Tasks
 {
     /// <summary>
-    /// This task compresses files with 7z.
+    /// This task deletes files from disk.
     /// </summary>
     public class DeleteTask : BaseTask
     {
@@ -61,7 +61,7 @@ namespace Datack.Agent.Services.Tasks
             }
             catch (Exception ex)
             {
-                var message = $"Compression {jobRunTask.ItemName} resulted in an error: {ex.Message}";
+                var message = $"Deletion of {jobRunTask.ItemName} resulted in an error: {ex.Message}";
 
                 OnComplete(jobRunTask.JobRunTaskId, message, null, true);
             }

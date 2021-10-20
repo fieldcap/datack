@@ -24,6 +24,7 @@ import Servers from '../../services/servers';
 import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
 import JobTaskDelete from './JobTaskDelete';
+import JobTaskDeleteS3 from './JobTaskDeleteS3';
 import JobTaskUploadAzure from './JobTaskUploadAzure';
 import JobTaskUploadS3 from './JobTaskUploadS3';
 
@@ -198,6 +199,19 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskDelete>
                 );
+            case 'delete_s3':
+                return (
+                    <JobTaskDeleteS3
+                        settings={settings.deleteS3}
+                        serverId={serverId}
+                        onSettingsChanged={(newSettings) => {
+                            setSettings({
+                                ...settings,
+                                deleteS3: newSettings,
+                            });
+                        }}
+                    ></JobTaskDeleteS3>
+                );
             case 'upload_s3':
                 return (
                     <JobTaskUploadS3
@@ -282,7 +296,8 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     >
                         <option value="create_backup">Create Backup</option>
                         <option value="compress">Compress</option>
-                        <option value="delete">Delete</option>
+                        <option value="delete">Delete File</option>
+                        <option value="delete_s3">Delete S3</option>
                         <option value="upload_s3">Upload to S3</option>
                         <option value="upload_azure">Upload to Azure</option>
                     </Select>
@@ -322,7 +337,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         ))}
                     </Select>
                 </FormControl>
-                <FormControl id="timeout" marginBottom={4} isRequired>
+                <FormControl id="timeout" marginBottom={4}>
                     <FormLabel>Timeout</FormLabel>
                     <Input
                         type="number"
