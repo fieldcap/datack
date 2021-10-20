@@ -63,7 +63,15 @@ namespace Datack.Web.Service.Services
             foreach (var jobRunTask in jobRunTasks.Where(m => m.Completed == null))
             {
                 await _jobRunTasks.UpdateCompleted(jobRunTask.JobRunTaskId, "Task was stopped", null, true, cancellationToken);
-                await _remoteService.Stop(jobRunTask, cancellationToken);
+
+                try
+                {
+                    await _remoteService.Stop(jobRunTask, cancellationToken);
+                }
+                catch
+                {
+                    // ignored
+                }
             }
         }
 

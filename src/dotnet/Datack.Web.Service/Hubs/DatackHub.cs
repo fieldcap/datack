@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
+using Datack.Web.Service.Models;
 using Datack.Web.Service.Services;
 using Microsoft.AspNetCore.SignalR;
 
@@ -11,6 +12,9 @@ namespace Datack.Web.Service.Hubs
 {
     public class DatackHub : Hub
     {
+        public static event EventHandler<ClientConnectEvent> OnClientConnect;
+        public static event EventHandler<ClientDisconnectEvent> OnClientDisconnect;
+
         private readonly Servers _servers;
         private readonly JobRunner _jobRunner;
 
@@ -30,10 +34,11 @@ namespace Datack.Web.Service.Hubs
                 if (value == Context.ConnectionId)
                 {
                     Users.TryRemove(key, out _);
+                    OnClientDisconnect?.Invoke(this, new ClientDisconnectEvent{ ServerKey = key });
                     break;
                 }
             }
-            
+
             await base.OnDisconnectedAsync(exception);
         }
 
@@ -45,6 +50,8 @@ namespace Datack.Web.Service.Hubs
             {
                 throw new Exception($"Server with key {key} was not found");
             }
+
+            OnClientConnect?.Invoke(this, new ClientConnectEvent{ ServerKey = key });
 
             Users.TryAdd(key, Context.ConnectionId);
         }
