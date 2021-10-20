@@ -56,6 +56,7 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
                     aria-label="Settings"
                     title="Settings"
                     icon={<SettingsIcon />}
+                    onClick={() => handleNavigate('/settings')}
                 />
                 <IconButton
                     aria-label="Sign out"

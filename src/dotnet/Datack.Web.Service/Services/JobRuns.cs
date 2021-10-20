@@ -10,10 +10,12 @@ namespace Datack.Web.Service.Services
     public class JobRuns
     {
         private readonly JobRunRepository _jobRunRepository;
+        private readonly Emails _emails;
 
-        public JobRuns(JobRunRepository jobRunRepository)
+        public JobRuns(JobRunRepository jobRunRepository, Emails emails)
         {
             _jobRunRepository = jobRunRepository;
+            _emails = emails;
         }
 
         public async Task<List<JobRun>> GetAll(Guid? jobId, CancellationToken cancellationToken)
@@ -49,6 +51,10 @@ namespace Datack.Web.Service.Services
         public async Task UpdateComplete(Guid jobRunId, CancellationToken cancellationToken)
         {
             await _jobRunRepository.UpdateComplete(jobRunId, cancellationToken);
+
+            var jobRun = await GetById(jobRunId, cancellationToken);
+
+            await _emails.SendComplete(jobRun, cancellationToken);
         }
 
         public async Task UpdateStop(Guid jobRunId, CancellationToken cancellationToken)

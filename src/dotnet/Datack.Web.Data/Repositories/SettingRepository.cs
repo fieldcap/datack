@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
 using Microsoft.EntityFrameworkCore;
@@ -16,31 +16,23 @@ namespace Datack.Web.Data.Repositories
             _dataContext = dataContext;
         }
 
-        public async Task<IList<Setting>> GetAll()
+        public async Task<IList<Setting>> GetAll(CancellationToken cancellationToken)
         {
-            return await _dataContext.Settings.AsNoTracking().ToListAsync();
+            return await _dataContext.Settings.AsNoTracking().ToListAsync(cancellationToken);
         }
 
-        public async Task Update(IList<Setting> settings)
+        public async Task Update(Setting setting, CancellationToken cancellationToken)
         {
-            var dbSettings = await _dataContext.Settings.ToListAsync();
+            var dbSetting = await _dataContext.Settings.FirstOrDefaultAsync(m => m.SettingId == setting.SettingId, cancellationToken);
 
-            foreach (var dbSetting in dbSettings)
-            {
-                var setting = settings.FirstOrDefault(m => m.SettingId == dbSetting.SettingId);
+            dbSetting.Value = setting.Value;
 
-                if (setting != null)
-                {
-                    dbSetting.Value = setting.Value;
-                }
-            }
-
-            await _dataContext.SaveChangesAsync();
+            await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<Setting> Get(String key)
+        public async Task<Setting> Get(String key, CancellationToken cancellationToken)
         {
-            return await _dataContext.Settings.AsNoTracking().FirstOrDefaultAsync(m => m.SettingId == key);
+            return await _dataContext.Settings.AsNoTracking().FirstOrDefaultAsync(m => m.SettingId == key, cancellationToken);
         }
     }
 }

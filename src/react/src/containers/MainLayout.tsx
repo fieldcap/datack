@@ -11,6 +11,7 @@ import JobOverview from '../pages/jobs/JobOverview';
 import ServerAdd from '../pages/servers/ServerAdd';
 import ServerList from '../pages/servers/ServerList';
 import ServerOverview from '../pages/servers/ServerOverview';
+import SettingsOverview from '../pages/settings/SettingsOverview';
 import NavLayout from './NavLayout';
 
 const smVariant = { navigation: 'drawer', navigationButton: true };
@@ -48,6 +49,10 @@ const MainLayout: FC = () => {
 
             <Box flex="1" padding="24px">
                 <Switch>
+                    <Route
+                        path="/settings"
+                        render={(props) => <SettingsOverview {...props} />}
+                    />
                     <Route
                         path="/servers"
                         render={(props) => <ServerList {...props} />}

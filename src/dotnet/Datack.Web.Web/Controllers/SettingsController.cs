@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
 using Datack.Web.Service.Services;
@@ -14,29 +15,31 @@ namespace Datack.Web.Web.Controllers
     public class SettingsController : Controller
     {
         private readonly Settings _settings;
+        private readonly Emails _emails;
 
-        public SettingsController(Settings settings)
+        public SettingsController(Settings settings, Emails emails)
         {
             _settings = settings;
+            _emails = emails;
         }
 
         [HttpGet]
         [Route("")]
-        public async Task<ActionResult<IList<Setting>>> Get()
+        public async Task<ActionResult<IList<Setting>>> Get(CancellationToken cancellationToken)
         {
-            var result = await _settings.GetAll();
+            var result = await _settings.GetAll(cancellationToken);
             return Ok(result);
         }
 
         [HttpPut]
         [Route("")]
-        public async Task<ActionResult> Update([FromBody] SettingsControllerUpdateRequest request)
+        public async Task<ActionResult> Update([FromBody] IList<Setting> settings, CancellationToken cancellationToken)
         {
-            await _settings.Update(request.Settings);
+            await _settings.Update(settings, cancellationToken);
             
-            var logLevelSetting = await _settings.Get("LogLevel");
+            var logLevelSetting = await _settings.Get<String>("LogLevel", cancellationToken);
 
-            if (!Enum.TryParse<LogEventLevel>(logLevelSetting?.Value, out var logLevel))
+            if (!Enum.TryParse<LogEventLevel>(logLevelSetting, out var logLevel))
             {
                 logLevel = LogEventLevel.Information;
             }
@@ -45,10 +48,19 @@ namespace Datack.Web.Web.Controllers
 
             return Ok();
         }
+
+        [HttpPost]
+        [Route("TestEmail")]
+        public async Task<ActionResult> TestEmail([FromBody] SettingsTestEmailRequest request, CancellationToken cancellationToken)
+        {
+            await _emails.SendTest(request.To, cancellationToken);
+
+            return Ok();
+        }
     }
 
-    public class SettingsControllerUpdateRequest
+    public class SettingsTestEmailRequest
     {
-        public IList<Setting> Settings { get; set; }
+        public String To { get; set; }
     }
 }

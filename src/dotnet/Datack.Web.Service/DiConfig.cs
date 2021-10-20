@@ -9,6 +9,7 @@ namespace Datack.Web.Service
         public static void Config(IServiceCollection services)
         {
             services.AddScoped<Authentication>();
+            services.AddScoped<Emails>();
             services.AddScoped<JobRunner>();
             services.AddScoped<JobRuns>();
             services.AddScoped<JobRunTaskLogs>();

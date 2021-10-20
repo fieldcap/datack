@@ -10,6 +10,6 @@ namespace Datack.Common.Models.Data
 
         public String Value { get; set; }
 
-        public String Type { get; set; }
+        public Boolean Secure { get; set; }
     }
 }

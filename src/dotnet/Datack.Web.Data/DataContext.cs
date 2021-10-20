@@ -78,7 +78,52 @@ namespace Datack.Web.Data
 
         public async Task Seed()
         {
-            var seedSettings = new List<Setting>();
+            var seedSettings = new List<Setting>
+            {
+                new Setting
+                {
+                    SettingId = "Email:Smtp:Host",
+                    Value = ""
+                },
+                new Setting
+                {
+                    SettingId = "Email:Smtp:Port",
+                    Value = ""
+                },
+                new Setting
+                {
+                    SettingId = "Email:Smtp:UserName",
+                    Value = ""
+                },
+                new Setting
+                {
+                    SettingId = "Email:Smtp:Password",
+                    Value = "",
+                    Secure = true
+                },
+                new Setting
+                {
+                    SettingId = "Email:Smtp:UseSsl",
+                    Value = ""
+                },
+                new Setting
+                {
+                    SettingId = "Email:Smtp:From",
+                    Value = ""
+                },
+                new Setting
+                {
+                    SettingId = "AWS:S3:Secret",
+                    Value = "",
+                    Secure = true
+                },
+                new Setting
+                {
+                    SettingId = "Azure:Blob:ConnectionString",
+                    Value = "",
+                    Secure = true
+                }
+            };
 
             var dbSettings = await Settings.ToListAsync();
 
