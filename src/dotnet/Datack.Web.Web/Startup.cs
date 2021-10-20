@@ -41,6 +41,7 @@ namespace Datack.Web.Web
                     .AddJsonOptions(opts =>
                     {
                         opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                        opts.JsonSerializerOptions.Converters.Add(new JsonProtectedConverter());
                     });
 
             services.AddSpaStaticFiles(configuration => { configuration.RootPath = "wwwroot"; });

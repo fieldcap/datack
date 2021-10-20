@@ -12,23 +12,30 @@ namespace Datack.Agent.Services
 {
     public class AgentHostedService : IHostedService
     {
-        private readonly ILogger _logger;
         private readonly AppSettings _appSettings;
         private readonly DatabaseAdapter _databaseAdapter;
-        private readonly RpcService _rpcService;
         private readonly JobRunner _jobRunner;
+        private readonly DataProtector _dataProtector;
+        private readonly ILogger _logger;
+        private readonly RpcService _rpcService;
 
         private CancellationToken _cancellationToken;
 
         private Server _server;
 
-        public AgentHostedService(ILogger<AgentHostedService> logger, AppSettings appSettings, DatabaseAdapter databaseAdapter, RpcService rpcService, JobRunner jobRunner)
+        public AgentHostedService(ILogger<AgentHostedService> logger,
+                                  AppSettings appSettings,
+                                  DatabaseAdapter databaseAdapter,
+                                  RpcService rpcService,
+                                  JobRunner jobRunner,
+                                  DataProtector dataProtector)
         {
             _logger = logger;
             _appSettings = appSettings;
             _databaseAdapter = databaseAdapter;
             _rpcService = rpcService;
             _jobRunner = jobRunner;
+            _dataProtector = dataProtector;
 
             _logger.LogTrace("Agent Constructor");
         }
@@ -46,6 +53,7 @@ namespace Datack.Agent.Services
 
             _rpcService.OnConnect += (_, _) => Connect();
 
+            _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
             _rpcService.Subscribe("GetDatabaseList", () => GetDatabaseList());
             _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
@@ -74,6 +82,15 @@ namespace Datack.Agent.Services
             _server = response.Server;
         }
 
+        private async Task<String> Encrypt(String input)
+        {
+            _logger.LogTrace("Encrypt");
+
+            await Task.Delay(1, _cancellationToken);
+
+            return _dataProtector.Encrypt(input);
+        }
+
         private async Task<IList<Database>> GetDatabaseList()
         {
             _logger.LogTrace("GetDatabaseList");
@@ -99,7 +116,7 @@ namespace Datack.Agent.Services
 
             return "Success";
         }
-        
+
         private Task<String> Stop(Guid jobRunTaskId)
         {
             if (_server == null)

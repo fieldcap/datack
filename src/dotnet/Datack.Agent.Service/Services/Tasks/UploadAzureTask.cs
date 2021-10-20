@@ -17,6 +17,13 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class UploadAzureTask : BaseTask
     {
+        private readonly DataProtector _dataProtector;
+
+        public UploadAzureTask(DataProtector dataProtector)
+        {
+            _dataProtector = dataProtector;
+        }
+
         public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
@@ -75,7 +82,9 @@ namespace Datack.Agent.Services.Tasks
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting upload file to {jobRunTask.Settings.UploadAzure.ContainerName}://{blob}");
 
-                var blobServiceClient = new BlobServiceClient(jobRunTask.Settings.UploadAzure.ConnectionString);
+                var connectionString = _dataProtector.Decrypt(jobRunTask.Settings.UploadAzure.ConnectionString);
+
+                var blobServiceClient = new BlobServiceClient(connectionString);
                 var containerClient = blobServiceClient.GetBlobContainerClient(jobRunTask.Settings.UploadAzure.ContainerName);
                 var blobClient = containerClient.GetBlobClient(blob);
 

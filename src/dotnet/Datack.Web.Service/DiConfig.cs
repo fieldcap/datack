@@ -1,5 +1,6 @@
 ﻿using Datack.Web.Service.Services;
 using Datack.Web.Service.Tasks;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Datack.Web.Service
@@ -8,6 +9,8 @@ namespace Datack.Web.Service
     {
         public static void Config(IServiceCollection services)
         {
+            services.AddDataProtection().SetApplicationName("Datack.Web");
+
             services.AddScoped<Authentication>();
             services.AddScoped<Emails>();
             services.AddScoped<JobRunner>();

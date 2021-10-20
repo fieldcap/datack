@@ -7,6 +7,7 @@ using Datack.Agent.Models;
 using Datack.Agent.Services;
 using Datack.Agent.Services.DataConnections;
 using Datack.Agent.Services.Tasks;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -98,10 +99,13 @@ namespace Datack.Agent
                        {
                            var connectionString = $"Data Source={appSettings.Database.Path}";
                            
+                           services.AddDataProtection().SetApplicationName("Datack.Agent");
+
                            services.AddSingleton(appSettings);
                            services.AddSingleton(connectionString);
 
                            services.AddSingleton<DatabaseAdapter>();
+                           services.AddSingleton<DataProtector>();
                            services.AddSingleton<JobRunner>();
                            services.AddSingleton<RpcService>();
                            services.AddSingleton<SqlServerConnection>();

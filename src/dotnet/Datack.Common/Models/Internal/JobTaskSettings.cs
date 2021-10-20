@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text.Json.Serialization;
+using Datack.Common.Helpers;
 
 namespace Datack.Common.Models.Internal
 {
@@ -63,6 +64,7 @@ namespace Datack.Common.Models.Internal
         public String MultithreadMode { get; set; }
 
         [JsonPropertyName("password")]
+        [Protected]
         public String Password { get; set; }
     }
 
@@ -87,6 +89,7 @@ namespace Datack.Common.Models.Internal
         public String AccessKey { get; set; }
 
         [JsonPropertyName("secret")]
+        [Protected]
         public String Secret { get; set; }
     }
     
@@ -99,6 +102,7 @@ namespace Datack.Common.Models.Internal
         public String ContainerName { get; set; }
 
         [JsonPropertyName("connectionString")]
+        [Protected]
         public String ConnectionString { get; set; }
     }
 }

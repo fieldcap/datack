@@ -20,6 +20,13 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class UploadS3Task : BaseTask
     {
+        private readonly DataProtector _dataProtector;
+
+        public UploadS3Task(DataProtector dataProtector)
+        {
+            _dataProtector = dataProtector;
+        }
+
         public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
@@ -80,7 +87,9 @@ namespace Datack.Agent.Services.Tasks
 
                 var region = RegionEndpoint.GetBySystemName(jobRunTask.Settings.UploadS3.Region);
 
-                var s3Client = new AmazonS3Client(new BasicAWSCredentials(jobRunTask.Settings.UploadS3.AccessKey, jobRunTask.Settings.UploadS3.Secret), region);
+                var secret = _dataProtector.Decrypt(jobRunTask.Settings.UploadS3.Secret);
+
+                var s3Client = new AmazonS3Client(new BasicAWSCredentials(jobRunTask.Settings.UploadS3.AccessKey, secret), region);
 
                 var fileTransferUtility = new TransferUtility(s3Client);
 

@@ -16,6 +16,13 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class CompressTask : BaseTask
     {
+        private readonly DataProtector _dataProtector;
+
+        public CompressTask(DataProtector dataProtector)
+        {
+            _dataProtector = dataProtector;
+        }
+
         public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
@@ -113,11 +120,13 @@ namespace Datack.Agent.Services.Tasks
 
                 if (!String.IsNullOrWhiteSpace(password))
                 {
+                    var decryptedPassword = _dataProtector.Decrypt(password);
+
                     // Encrypt header
                     arguments.Add("-mhe");
 
                     // Password
-                    arguments.Add(@$"-p""{password}""");
+                    arguments.Add(@$"-p""{decryptedPassword}""");
                 }
 
                 arguments.Add($"\"{storePath}\"");

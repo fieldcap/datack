@@ -29,7 +29,7 @@ namespace Datack.Web.Service.Services
             {
                 if (setting.Secure)
                 {
-                    setting.Value = null;
+                    setting.Value = "******";
                 }
             }
 
@@ -51,7 +51,7 @@ namespace Datack.Web.Service.Services
 
                 if (dbSetting.Secure)
                 {
-                    if (updatedSetting.Value != null)
+                    if (updatedSetting.Value != null && updatedSetting.Value != "******")
                     {
                         dbSetting.Value = _protector.Protect(updatedSetting.Value);
                         await _settingRepository.Update(dbSetting, cancellationToken);

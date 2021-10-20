@@ -40,6 +40,11 @@ namespace Datack.Web.Service.Services
             return await Send<String>(jobRunTask.JobTask.Server.Key, "Stop", cancellationToken, jobRunTask.JobRunTaskId);
         }
 
+        public async Task<String> Encrypt(Server server, String input, CancellationToken cancellationToken)
+        {
+            return await Send<String>(server.Key, "Encrypt", cancellationToken, input);
+        }
+
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
         {
             var hasConnection = DatackHub.Users.TryGetValue(key, out var connectionId);
