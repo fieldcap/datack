@@ -17,6 +17,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 fileName: '',
                 containerName: '',
                 connectionString: '',
+                tag: '',
             });
         }
     }, [props.settings, onSettingsChanged]);
@@ -51,6 +52,16 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
         });
     };
 
+    const handleTagChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            tag: value,
+        });
+    };
+
     return (
         <>
             <FormControl id="containerName" marginBottom={4}>
@@ -74,11 +85,19 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
             <FormControl id="connectionString" marginBottom={4}>
                 <FormLabel>Connection String</FormLabel>
                 <Input
-                    type="text"
+                    type="password"
                     value={props.settings?.connectionString || ''}
                     onChange={(evt) =>
                         handleConnectionStringChanged(evt.target.value)
                     }
+                ></Input>
+            </FormControl>
+            <FormControl id="tag" marginBottom={4}>
+                <FormLabel>Tag</FormLabel>
+                <Input
+                    type="text"
+                    value={props.settings?.tag || ''}
+                    onChange={(evt) => handleTagChanged(evt.target.value)}
                 ></Input>
             </FormControl>
         </>

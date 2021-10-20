@@ -36,6 +36,11 @@ namespace Datack.Agent.Services.Tasks
                     throw new Exception("No previous task found");
                 }
 
+                if (jobRunTask.Settings.UploadAzure == null)
+                {
+                    throw new Exception("No settings set");
+                }
+
                 var sourceFileName = previousTask.ResultArtifact;
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting upload to azure task for file {sourceFileName}");
@@ -99,10 +104,14 @@ namespace Datack.Agent.Services.Tasks
                     }),
                     Tags = new Dictionary<String, String>
                     {
-                        { "Datack:BackupDate", jobRunTask.Started.Value.ToString("O") },
-                        { "Datack:BackupType", jobRunTask.Settings.CreateBackup.BackupType }
+                        { "Datack:JobDate", jobRunTask.JobRun.Started.ToString("O") }
                     }
                 };
+
+                if (!String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadAzure.Tag))
+                {
+                    blobUploadOptions.Tags.Add("Datack:Tag", jobRunTask.Settings.UploadAzure.Tag);
+                }
 
                 await blobClient.UploadAsync(sourceFileName, blobUploadOptions, cancellationToken);
 

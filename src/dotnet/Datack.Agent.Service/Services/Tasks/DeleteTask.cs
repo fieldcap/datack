@@ -22,6 +22,11 @@ namespace Datack.Agent.Services.Tasks
                     throw new Exception("No previous task found");
                 }
 
+                if (jobRunTask.Settings.Delete == null)
+                {
+                    throw new Exception("No settings set");
+                }
+
                 var sourceFileName = previousTask.ResultArtifact;
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting delete task for file {sourceFileName}");

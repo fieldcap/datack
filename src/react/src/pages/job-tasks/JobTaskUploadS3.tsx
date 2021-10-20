@@ -19,6 +19,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 bucket: '',
                 accessKey: '',
                 secret: '',
+                tag: '',
             });
         }
     }, [props.settings, onSettingsChanged]);
@@ -70,6 +71,16 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         props.onSettingsChanged({
             ...props.settings,
             secret: value,
+        });
+    };
+
+    const handleTagChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            tag: value,
         });
     };
 
@@ -138,7 +149,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
             <FormControl id="accessKey" marginBottom={4}>
                 <FormLabel>Access Key</FormLabel>
                 <Input
-                    type="text"
+                    type="password"
                     value={props.settings?.accessKey || ''}
                     onChange={(evt) => handleAccessKeyChanged(evt.target.value)}
                 ></Input>
@@ -149,6 +160,14 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     type="text"
                     value={props.settings?.secret || ''}
                     onChange={(evt) => handleSecretChanged(evt.target.value)}
+                ></Input>
+            </FormControl>
+            <FormControl id="tag" marginBottom={4}>
+                <FormLabel>Tag</FormLabel>
+                <Input
+                    type="text"
+                    value={props.settings?.tag || ''}
+                    onChange={(evt) => handleTagChanged(evt.target.value)}
                 ></Input>
             </FormControl>
         </>

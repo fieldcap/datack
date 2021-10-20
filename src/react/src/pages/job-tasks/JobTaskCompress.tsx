@@ -132,7 +132,7 @@ const JobTaskCompress: FC<Props> = (props) => {
             <FormControl id="password" marginBottom={4}>
                 <FormLabel>Password</FormLabel>
                 <Input
-                    type="text"
+                    type="password"
                     value={props.settings?.password || ''}
                     onChange={(evt) => handlePasswordChanged(evt.target.value)}
                 ></Input>

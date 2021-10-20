@@ -91,6 +91,9 @@ namespace Datack.Common.Models.Internal
         [JsonPropertyName("secret")]
         [Protected]
         public String Secret { get; set; }
+
+        [JsonPropertyName("tag")]
+        public String Tag { get; set; }
     }
     
     public class JobTaskUploadAzureSettings
@@ -104,5 +107,8 @@ namespace Datack.Common.Models.Internal
         [JsonPropertyName("connectionString")]
         [Protected]
         public String ConnectionString { get; set; }
+
+        [JsonPropertyName("tag")]
+        public String Tag { get; set; }
     }
 }

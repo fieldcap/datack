@@ -39,6 +39,11 @@ namespace Datack.Agent.Services.Tasks
                     throw new Exception("No previous task found");
                 }
 
+                if (jobRunTask.Settings.UploadS3 == null)
+                {
+                    throw new Exception("No settings set");
+                }
+
                 var sourceFileName = previousTask.ResultArtifact;
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting upload to s3 task for file {sourceFileName}");
@@ -102,16 +107,20 @@ namespace Datack.Agent.Services.Tasks
                     {
                         new Tag
                         {
-                            Key = "Datack:BackupDate",
-                            Value = jobRunTask.Started.Value.ToString("O")
-                        },
-                        new Tag
-                        {
-                            Key = "Datack:BackupType",
-                            Value = jobRunTask.Settings.CreateBackup.BackupType
+                            Key = "Datack:JobDate",
+                            Value = jobRunTask.JobRun.Started.ToString("O")
                         }
                     }
                 };
+
+                if (!String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadS3.Tag))
+                {
+                    uploadRequest.TagSet.Add(new Tag
+                    {
+                        Key = "Datack:Tag",
+                        Value = jobRunTask.Settings.UploadS3.Tag
+                    });
+                }
 
                 var fileSize = new FileInfo(sourceFileName).Length;
 

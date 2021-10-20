@@ -54,10 +54,12 @@ export type JobTaskUploadS3Settings = {
     bucket: string;
     accessKey: string;
     secret: string;
+    tag: string;
 };
 
 export type JobTaskUploadAzureSettings = {
     fileName: string;
     containerName: string;
     connectionString: string;
+    tag: string;
 };

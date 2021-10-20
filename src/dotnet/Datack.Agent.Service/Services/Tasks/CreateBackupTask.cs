@@ -25,6 +25,11 @@ namespace Datack.Agent.Services.Tasks
         {
             try
             {
+                if (jobRunTask.Settings.CreateBackup == null)
+                {
+                    throw new Exception("No settings set");
+                }
+
                 var sw = new Stopwatch();
                 sw.Start();
 

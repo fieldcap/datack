@@ -35,6 +35,11 @@ namespace Datack.Agent.Services.Tasks
                     throw new Exception("No previous task found");
                 }
 
+                if (jobRunTask.Settings.Compress == null)
+                {
+                    throw new Exception("No settings set");
+                }
+
                 var sourceFileName = previousTask.ResultArtifact;
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting compression task for file {sourceFileName}");
