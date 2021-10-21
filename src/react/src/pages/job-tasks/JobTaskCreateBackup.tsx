@@ -369,7 +369,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                     onChange={(evt) => handleConnectionStringPasswordChanged(evt.target.value)}
                 ></Input>
                 <FormHelperText>
-                    The password token value for the connection string. Is stored encrypted.
+                    The password token value for the connection string. This setting is stored encrypted.
                 </FormHelperText>
             </FormControl>
             <Box marginBottom={4}>

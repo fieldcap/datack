@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Input, Select } from '@chakra-ui/react';
+import { FormControl, FormHelperText, FormLabel, Input, Select } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
 import { JobTaskUploadS3Settings } from '../../models/job-task';
 
@@ -118,6 +118,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     <option value="us-iso-west-1">US ISO WEST</option>
                     <option value="us-isob-east-1">US ISOB East (Ohio)</option>
                 </Select>
+                <FormHelperText>The AWS S3 bucket region.</FormHelperText>
             </FormControl>
             <FormControl id="bucket" marginBottom={4}>
                 <FormLabel>Bucket</FormLabel>
@@ -126,6 +127,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.bucket || ''}
                     onChange={(evt) => handleBucketChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>The AWS S3 bucket name.</FormHelperText>
             </FormControl>
             <FormControl id="fileName" marginBottom={4}>
                 <FormLabel>Key</FormLabel>
@@ -134,6 +136,17 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.fileName || ''}
                     onChange={(evt) => handleFilenameChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    The S3 key to upload the file to. The following tokens are supported:
+                    <br />
+                    &#123;ItemName&#125; The item name of the job task
+                    <br />
+                    &#123;0:yyyyMMddHHmm&#125; The date and time of the start date of the job task
+                    <br />
+                    Example:
+                    <br />
+                    /&#123;ItemName&#125;/&#123;ItemName&#125;-&#123;0:yyyyMMddHHmm&#125;-Full.7z
+                </FormHelperText>
             </FormControl>
             <FormControl id="accessKey" marginBottom={4}>
                 <FormLabel>Access Key</FormLabel>
@@ -142,6 +155,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.accessKey || ''}
                     onChange={(evt) => handleAccessKeyChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>The AWS S3 access key.</FormHelperText>
             </FormControl>
             <FormControl id="secret" marginBottom={4}>
                 <FormLabel>Secret</FormLabel>
@@ -150,6 +164,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.secret || ''}
                     onChange={(evt) => handleSecretChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>The AWS S3 access key secret. This setting is stored encrypted.</FormHelperText>
             </FormControl>
             <FormControl id="tag" marginBottom={4}>
                 <FormLabel>Tag</FormLabel>
@@ -158,6 +173,9 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.tag || ''}
                     onChange={(evt) => handleTagChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    An optional tag to write on the object.
+                </FormHelperText>
             </FormControl>
         </>
     );

@@ -1,4 +1,4 @@
-import { Checkbox, FormControl } from '@chakra-ui/react';
+import { Checkbox, FormControl, FormHelperText } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
 import { JobTaskDeleteSettings } from '../../models/job-task';
 
@@ -37,6 +37,9 @@ const JobTaskDeleteFile: FC<Props> = (props) => {
                 >
                     Ignore deletion of files that are not found.
                 </Checkbox>
+                <FormHelperText>
+                    When checked and the file is not found continue as a succesful task.
+                </FormHelperText>
             </FormControl>
         </>
     );

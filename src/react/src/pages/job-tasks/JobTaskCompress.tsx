@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Input, Select } from '@chakra-ui/react';
+import { FormControl, FormHelperText, FormLabel, Input, Select } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
 import { JobTaskCompressSettings } from '../../models/job-task';
 
@@ -82,6 +82,17 @@ const JobTaskCompress: FC<Props> = (props) => {
                     value={props.settings?.fileName || ''}
                     onChange={(evt) => handleFilenameChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    The full file path to write the compressed file to. The following tokens are supported:
+                    <br />
+                    &#123;ItemName&#125; The item name of the job task
+                    <br />
+                    &#123;0:yyyyMMddHHmm&#125; The date and time of the start date of the job task
+                    <br />
+                    Example:
+                    <br />
+                    C:\Temp\Backups\&#123;ItemName&#125;\&#123;ItemName&#125;-&#123;0:yyyyMMddHHmm&#125;-Full.7z
+                </FormHelperText>
             </FormControl>
             <FormControl id="archiveType" marginBottom={4}>
                 <FormLabel>Archive Type</FormLabel>
@@ -97,6 +108,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                     <option value="bzip2">bzip2</option>
                     <option value="tar">tar</option>
                 </Select>
+                <FormHelperText>The archive type used by 7zip.</FormHelperText>
             </FormControl>
             <FormControl id="compressionLevel" marginBottom={4}>
                 <FormLabel>Compression Level</FormLabel>
@@ -111,6 +123,9 @@ const JobTaskCompress: FC<Props> = (props) => {
                     <option value="7">Maximum</option>
                     <option value="9">Ultra</option>
                 </Select>
+                <FormHelperText>
+                    The the higher the compression level the longer it takes. Higher than 5 (normal) is not recommended.
+                </FormHelperText>
             </FormControl>
             <FormControl id="multithreadMode" marginBottom={4}>
                 <FormLabel>Multithread Mode</FormLabel>
@@ -126,6 +141,13 @@ const JobTaskCompress: FC<Props> = (props) => {
                         </option>
                     ))}
                 </Select>
+                <FormHelperText>
+                    On: use all cores on the agent
+                    <br />
+                    Off: use a single core on the agent
+                    <br />
+                    Or specify the amount of cores allowed to be used.
+                </FormHelperText>
             </FormControl>
             <FormControl id="password" marginBottom={4}>
                 <FormLabel>Password</FormLabel>
@@ -134,6 +156,9 @@ const JobTaskCompress: FC<Props> = (props) => {
                     value={props.settings?.password || ''}
                     onChange={(evt) => handlePasswordChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    Password to protect the archive. On 7z AES-256 is used. This setting is stored encrypted.
+                </FormHelperText>
             </FormControl>
         </>
     );

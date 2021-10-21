@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Input, Radio, RadioGroup, Select, Stack } from '@chakra-ui/react';
+import { FormControl, FormHelperText, FormLabel, Input, Radio, RadioGroup, Select, Stack } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
 import { JobTaskDeleteS3Settings } from '../../models/job-task';
 
@@ -140,6 +140,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     <option value="us-iso-west-1">US ISO WEST</option>
                     <option value="us-isob-east-1">US ISOB East (Ohio)</option>
                 </Select>
+                <FormHelperText>The AWS S3 bucket region.</FormHelperText>
             </FormControl>
             <FormControl id="bucket" marginBottom={4}>
                 <FormLabel>Bucket</FormLabel>
@@ -148,6 +149,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.bucket || ''}
                     onChange={(evt) => handleBucketChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>The AWS S3 bucket name.</FormHelperText>
             </FormControl>
             <FormControl id="fileName" marginBottom={4}>
                 <FormLabel>Root Key</FormLabel>
@@ -156,6 +158,17 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.fileName || ''}
                     onChange={(evt) => handleFilenameChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    The S3 root path to delete objects from. The following tokens are supported:
+                    <br />
+                    &#123;ItemName&#125; The item name of the job task
+                    <br />
+                    &#123;0:yyyyMMddHHmm&#125; The date and time of the start date of the job task
+                    <br />
+                    Example:
+                    <br />
+                    /&#123;ItemName&#125;/
+                </FormHelperText>
             </FormControl>
             <FormControl id="accessKey" marginBottom={4}>
                 <FormLabel>Access Key</FormLabel>
@@ -164,6 +177,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.accessKey || ''}
                     onChange={(evt) => handleAccessKeyChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>The AWS S3 access key.</FormHelperText>
             </FormControl>
             <FormControl id="secret" marginBottom={4}>
                 <FormLabel>Secret</FormLabel>
@@ -172,6 +186,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.secret || ''}
                     onChange={(evt) => handleSecretChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>The AWS S3 access key secret. This setting is stored encrypted.</FormHelperText>
             </FormControl>
             <FormControl id="tag" marginBottom={4}>
                 <FormLabel>Tag</FormLabel>
@@ -180,9 +195,13 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     value={props.settings?.tag || ''}
                     onChange={(evt) => handleTagChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    The tag used to identify objects for deletion. When set, only objects found with this tag value set
+                    will be eligable for deletion.
+                </FormHelperText>
             </FormControl>
             <FormControl id="timeSpan1" marginBottom={4}>
-                <FormLabel>Delete files older than</FormLabel>
+                <FormLabel>Delete objects older than</FormLabel>
                 <Input
                     type="number"
                     min="0"
@@ -204,6 +223,9 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                         <Radio value="Minute">Minutes</Radio>
                     </Stack>
                 </RadioGroup>
+                <FormHelperText>
+                    The tag "Datack:JobDate" is used to determine the backup date.
+                </FormHelperText>
             </FormControl>
         </>
     );

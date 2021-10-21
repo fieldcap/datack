@@ -77,6 +77,10 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
                 },
             },
             {
+                Header: 'Use artifact',
+                accessor: (a) => JobTasks.map(a.usePreviousTaskArtifactsFromJobTask?.type),
+            },
+            {
                 Header: 'Agent',
                 accessor: (a) => a.agent?.name,
             },

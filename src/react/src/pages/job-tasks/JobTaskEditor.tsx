@@ -166,7 +166,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         }
 
         switch (type) {
-            case 'create_backup':
+            case 'createBackup':
                 return (
                     <JobTaskCreateBackup
                         settings={settings.createBackup}
@@ -275,12 +275,12 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 <FormControl id="type" isRequired marginBottom={4}>
                     <FormLabel>Type</FormLabel>
                     <Select placeholder="Select a type" value={type} onChange={(e) => setType(e.target.value)}>
-                        <option value="create_backup">Create Backup</option>
-                        <option value="compress">Compress</option>
-                        <option value="delete">Delete File</option>
-                        <option value="delete_s3">Delete S3</option>
-                        <option value="upload_s3">Upload to S3</option>
-                        <option value="upload_azure">Upload to Azure</option>
+                        <option value="createBackup">{JobTasks.map('createBackup')}</option>
+                        <option value="compress">{JobTasks.map('compress')}</option>
+                        <option value="deleteFile">{JobTasks.map('deleteFile')}</option>
+                        <option value="deleteS3">{JobTasks.map('deleteS3')}</option>
+                        <option value="uploadAzure">{JobTasks.map('uploadAzure')}</option>
+                        <option value="uploadS3">{JobTasks.map('uploadS3')}</option>
                     </Select>
                     <FormHelperText>The type of the task.</FormHelperText>
                 </FormControl>
@@ -295,7 +295,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             setParallel(Number(e.target.value));
                         }}
                     />
-                    <FormHelperText>The amount of tasks that execute in parallel.</FormHelperText>
+                    <FormHelperText>The amount of items that will be executed in parallel.</FormHelperText>
                 </FormControl>
                 <FormControl id="usePreviousTaskArtifacts" marginBottom={4}>
                     <FormLabel>Use artifact results from previous task</FormLabel>
@@ -310,7 +310,10 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             </option>
                         ))}
                     </Select>
-                    <FormHelperText>The artifacts from this task will be used for this task.</FormHelperText>
+                    <FormHelperText>
+                        The output artifacts from this task will be used as inputs for this task. You can only uses
+                        tasks that are executed before this task.
+                    </FormHelperText>
                 </FormControl>
                 <FormControl id="timeout" marginBottom={4}>
                     <FormLabel>Timeout</FormLabel>

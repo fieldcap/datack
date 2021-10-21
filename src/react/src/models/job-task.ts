@@ -12,6 +12,7 @@ export type JobTask = {
     order: number;
     timeout: number | null;
     usePreviousTaskArtifactsFromJobTaskId: string | null;
+    usePreviousTaskArtifactsFromJobTask?: JobTask | null;
     settings: JobTaskSettings;
     agentId: string;
     agent?: Agent | null;

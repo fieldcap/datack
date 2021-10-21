@@ -3,7 +3,10 @@ import { DatabaseListTestResult } from '../models/database-list-test-result';
 import { JobTask } from '../models/job-task';
 
 export namespace JobTasks {
-    export const map = (name: string): string => {
+    export const map = (name: string | null | undefined): string => {
+        if (name == null) {
+            return '';
+        }
         switch (name) {
             case 'createBackup':
                 return 'Create Database Backup';

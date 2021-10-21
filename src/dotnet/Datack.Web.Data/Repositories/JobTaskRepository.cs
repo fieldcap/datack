@@ -22,6 +22,7 @@ namespace Datack.Web.Data.Repositories
             return await _dataContext.JobTasks
                                      .AsNoTracking()
                                      .Include(m => m.Agent)
+                                     .Include(m => m.UsePreviousTaskArtifactsFromJobTask)
                                      .Where(m => m.JobId == jobId)
                                      .OrderBy(m => m.Order)
                                      .ToListAsync(cancellationToken);
