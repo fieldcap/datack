@@ -3,7 +3,7 @@ import React, { FC, useEffect } from 'react';
 import { JobTaskUploadS3Settings } from '../../models/job-task';
 
 type Props = {
-    serverId: string;
+    agentId: string;
     settings: JobTaskUploadS3Settings | undefined | null;
     onSettingsChanged: (settings: JobTaskUploadS3Settings) => void;
 };

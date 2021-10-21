@@ -4,11 +4,11 @@ namespace Datack.Web.Service.Models
 {
     public class ClientConnectEvent
     {
-        public String ServerKey { get; set; }
+        public String AgentKey { get; set; }
     }
 
     public class ClientDisconnectEvent
     {
-        public String ServerKey { get; set; }
+        public String AgentKey { get; set; }
     }
 }

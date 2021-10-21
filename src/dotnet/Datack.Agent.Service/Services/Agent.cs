@@ -21,8 +21,6 @@ namespace Datack.Agent.Services
 
         private CancellationToken _cancellationToken;
 
-        private Server _server;
-
         public AgentHostedService(ILogger<AgentHostedService> logger,
                                   AppSettings appSettings,
                                   DatabaseAdapter databaseAdapter,
@@ -54,10 +52,10 @@ namespace Datack.Agent.Services
             _rpcService.OnConnect += (_, _) => Connect();
 
             _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
-            _rpcService.Subscribe("GetDatabaseList", () => GetDatabaseList());
+            _rpcService.Subscribe<String, String>("GetDatabaseList", (connectionString, password) => GetDatabaseList(connectionString, password));
             _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
-            _rpcService.Subscribe<ServerDbSettings>("TestSqlServer", serverDbSettings => TestSqlServer(serverDbSettings));
+            _rpcService.Subscribe<String, String>("TestDatabaseConnection", (connectionString, password) => TestDatabaseConnection(connectionString, password));
 
             _rpcService.StartAsync(cancellationToken);
 
@@ -78,8 +76,6 @@ namespace Datack.Agent.Services
             _logger.LogTrace("Connect");
 
             var response = await _rpcService.Send<RpcUpdate>("RpcUpdate");
-
-            _server = response.Server;
         }
 
         private async Task<String> Encrypt(String input)
@@ -91,39 +87,33 @@ namespace Datack.Agent.Services
             return _dataProtector.Encrypt(input);
         }
 
-        private async Task<IList<Database>> GetDatabaseList()
+        private async Task<IList<Database>> GetDatabaseList(String connectionString, String password)
         {
             _logger.LogTrace("GetDatabaseList");
 
-            return await _databaseAdapter.GetDatabaseList(_server.DbSettings, CancellationToken.None);
+            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, true);
+
+            return await _databaseAdapter.GetDatabaseList(fullConnectionString, CancellationToken.None);
         }
 
-        private async Task<String> TestSqlServer(ServerDbSettings serverDbSettings)
+        private async Task<String> TestDatabaseConnection(String connectionString, String password)
         {
-            _logger.LogTrace("TestSqlServer");
+            _logger.LogTrace("TestDatabaseConnection");
 
-            return await _databaseAdapter.TestConnection(serverDbSettings, CancellationToken.None);
+            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, false);
+
+            return await _databaseAdapter.TestConnection(fullConnectionString, CancellationToken.None);
         }
 
         private async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
         {
-            if (_server == null)
-            {
-                throw new Exception($"No server settings found");
-            }
-
-            await _jobRunner.ExecuteJobRunTask(_server, jobRunTask, previousTask, _cancellationToken);
+            await _jobRunner.ExecuteJobRunTask(jobRunTask, previousTask, _cancellationToken);
 
             return "Success";
         }
 
         private Task<String> Stop(Guid jobRunTaskId)
         {
-            if (_server == null)
-            {
-                throw new Exception($"No server settings found");
-            }
-
             _jobRunner.StopTask(jobRunTaskId);
 
             return Task.FromResult("Success");

@@ -17,10 +17,10 @@ import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { v4 } from 'uuid';
 import useCancellationToken from '../../hooks/useCancellationToken';
+import { Agent } from '../../models/agent';
 import { JobTask, JobTaskSettings } from '../../models/job-task';
-import { Server } from '../../models/server';
+import Agents from '../../services/agents';
 import JobTasks from '../../services/jobTasks';
-import Servers from '../../services/servers';
 import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
 import JobTaskDelete from './JobTaskDelete';
@@ -40,7 +40,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const [isAdd, setIsAdd] = useState<boolean>(false);
 
-    const [servers, setServers] = useState<Server[]>([]);
+    const [agents, setAgents] = useState<Agent[]>([]);
 
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
@@ -51,7 +51,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         string | null
     >(null);
     const [settings, setSettings] = useState<JobTaskSettings | null>(null);
-    const [serverId, setServerId] = useState<string>('');
+    const [agentId, setAgentId] = useState<string>('');
 
     const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +81,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     result.usePreviousTaskArtifactsFromJobTaskId
                 );
                 setSettings(result.settings);
-                setServerId(result.serverId || '');
+                setAgentId(result.agentId || '');
                 setTimeout(result.timeout);
             })();
         }
@@ -95,8 +95,8 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         })();
 
         (async () => {
-            const servers = await Servers.getList(cancelToken);
-            setServers(servers);
+            const agents = await Agents.getList(cancelToken);
+            setAgents(agents);
         })();
     }, [props.match.params.id, props.match.params.jobId, cancelToken]);
 
@@ -116,7 +116,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     timeout: timeout,
                     usePreviousTaskArtifactsFromJobTaskId: null,
                     settings: settings || {},
-                    serverId: serverId,
+                    agentId: agentId,
                 };
 
                 const result = await JobTasks.add(newJobTask);
@@ -129,7 +129,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 jobTask.description = description;
                 jobTask.type = type;
                 jobTask.settings = settings || {};
-                jobTask.serverId = serverId;
+                jobTask.agentId = agentId;
                 jobTask.parallel = parallel;
                 jobTask.timeout = timeout;
 
@@ -164,7 +164,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 return (
                     <JobTaskCreateBackup
                         settings={settings.createBackup}
-                        serverId={serverId}
+                        agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 ...settings,
@@ -177,7 +177,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 return (
                     <JobTaskCompress
                         settings={settings.compress}
-                        serverId={serverId}
+                        agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 ...settings,
@@ -190,7 +190,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 return (
                     <JobTaskDelete
                         settings={settings.delete}
-                        serverId={serverId}
+                        agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 ...settings,
@@ -203,7 +203,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 return (
                     <JobTaskDeleteS3
                         settings={settings.deleteS3}
-                        serverId={serverId}
+                        agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 ...settings,
@@ -216,7 +216,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 return (
                     <JobTaskUploadS3
                         settings={settings.uploadS3}
-                        serverId={serverId}
+                        agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 ...settings,
@@ -229,7 +229,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 return (
                     <JobTaskUploadAzure
                         settings={settings.uploadAzure}
-                        serverId={serverId}
+                        agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 ...settings,
@@ -270,19 +270,19 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         onChange={(e) => setDescription(e.target.value)}
                     />
                 </FormControl>
-                <FormControl id="serverId" isRequired marginBottom={4}>
-                    <FormLabel>Server</FormLabel>
+                <FormControl id="agentId" isRequired marginBottom={4}>
+                    <FormLabel>Agent</FormLabel>
                     <Select
-                        placeholder="Select a server"
-                        value={serverId}
-                        onChange={(e) => setServerId(e.target.value)}
+                        placeholder="Select an agent"
+                        value={agentId}
+                        onChange={(e) => setAgentId(e.target.value)}
                     >
-                        {servers.map((server) => (
+                        {agents.map((agent) => (
                             <option
-                                value={server.serverId}
-                                key={server.serverId}
+                                value={agent.agentId}
+                                key={agent.agentId}
                             >
-                                {server.name}
+                                {agent.name}
                             </option>
                         ))}
                     </Select>

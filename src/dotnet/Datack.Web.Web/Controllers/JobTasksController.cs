@@ -16,12 +16,12 @@ namespace Datack.Web.Web.Controllers
     public class JobTasksController : Controller
     {
         private readonly JobTasks _jobTasks;
-        private readonly Servers _servers;
+        private readonly Agents _agents;
 
-        public JobTasksController(JobTasks jobTasks, Servers servers)
+        public JobTasksController(JobTasks jobTasks, Agents agents)
         {
             _jobTasks = jobTasks;
-            _servers = servers;
+            _agents = agents;
         }
 
         [HttpGet]
@@ -37,14 +37,14 @@ namespace Datack.Web.Web.Controllers
         [Route("GetById/{jobTaskId:guid}")]
         public async Task<ActionResult> GetById(Guid jobTaskId, CancellationToken cancellationToken)
         {
-            var server = await _jobTasks.GetById(jobTaskId, cancellationToken);
+            var agent = await _jobTasks.GetById(jobTaskId, cancellationToken);
 
-            if (server == null)
+            if (agent == null)
             {
                 return NotFound();
             }
 
-            return Ok(server);
+            return Ok(agent);
         }
 
         [HttpPost]
@@ -78,7 +78,7 @@ namespace Datack.Web.Web.Controllers
         [Route("TestDatabaseRegex")]
         public async Task<ActionResult> TestDatabaseRegex([FromBody] JobTasksTestDatabaseRegexRequest request, CancellationToken cancellationToken)
         {
-            var databases = await _servers.GetDatabaseList(request.ServerId, cancellationToken);
+            var databases = await _agents.GetDatabaseList(request.AgentId, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
 
             var result = DatabaseHelper.FilterDatabases(databases,
                                                         request.BackupDefaultExclude,
@@ -110,7 +110,9 @@ namespace Datack.Web.Web.Controllers
         public String BackupExcludeRegex { get; set; }
         public String BackupIncludeManual { get; set; }
         public String BackupExcludeManual { get; set; }
-        public Guid ServerId { get; set; }
+        public Guid AgentId { get; set; }
+        public String ConnectionString { get; set; }
+        public String ConnectionStringPassword { get; set; }
     }
 
     public class JobTaskReOrderRequest

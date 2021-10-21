@@ -11,7 +11,7 @@ import React, { FC, useEffect } from 'react';
 import { JobTaskDeleteS3Settings } from '../../models/job-task';
 
 type Props = {
-    serverId: string;
+    agentId: string;
     settings: JobTaskDeleteS3Settings | undefined | null;
     onSettingsChanged: (settings: JobTaskDeleteS3Settings) => void;
 };

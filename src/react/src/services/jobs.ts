@@ -11,13 +11,13 @@ export namespace Jobs {
         return result.data;
     };
 
-    export const getForServer = async (
-        serverId: string,
+    export const getForAgent = async (
+        agentId: string,
         cancelToken: CancelTokenSource
     ): Promise<Job[]> => {
         const config = { cancelToken: cancelToken.token };
         const result = await axios.get<Job[]>(
-            `/api/Jobs/GetForServer/${serverId}`,
+            `/api/Jobs/GetForAgent/${agentId}`,
             config
         );
         return result.data;

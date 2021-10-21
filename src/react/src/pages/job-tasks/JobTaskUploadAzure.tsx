@@ -3,7 +3,7 @@ import React, { FC, useEffect } from 'react';
 import { JobTaskUploadAzureSettings } from '../../models/job-task';
 
 type Props = {
-    serverId: string;
+    agentId: string;
     settings: JobTaskUploadAzureSettings | undefined | null;
     onSettingsChanged: (settings: JobTaskUploadAzureSettings) => void;
 };

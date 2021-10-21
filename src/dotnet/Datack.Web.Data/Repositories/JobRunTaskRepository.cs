@@ -31,7 +31,7 @@ namespace Datack.Web.Data.Repositories
             return await _dataContext.JobRunTasks
                                      .AsNoTracking()
                                      .Include(m => m.JobTask)
-                                     .Include(m => m.JobTask.Server)
+                                     .Include(m => m.JobTask.Agent)
                                      .Include(m => m.JobRun)
                                      .Where(m => m.JobRunId == jobRunId)
                                      .OrderBy(m => m.TaskOrder)

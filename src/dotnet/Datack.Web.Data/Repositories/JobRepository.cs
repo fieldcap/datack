@@ -25,11 +25,11 @@ namespace Datack.Web.Data.Repositories
                                      .ToListAsync(cancellationToken);
         }
 
-        public async Task<IList<Job>> GetForServer(Guid serverId, CancellationToken cancellationToken)
+        public async Task<IList<Job>> GetForAgent(Guid agentId, CancellationToken cancellationToken)
         {
             return await _dataContext.JobTasks
                                      .AsNoTracking()
-                                     .Where(m => m.ServerId == serverId)
+                                     .Where(m => m.AgentId == agentId)
                                      .Select(m => m.Job)
                                      .Distinct()
                                      .OrderBy(m => m.Name)
@@ -106,7 +106,7 @@ namespace Datack.Web.Data.Repositories
                 Order = dbJobTask.Order,
                 UsePreviousTaskArtifactsFromJobTaskId = dbJobTask.UsePreviousTaskArtifactsFromJobTaskId,
                 Settings = dbJobTask.Settings,
-                ServerId = dbJobTask.ServerId
+                AgentId = dbJobTask.AgentId
             });
 
             await _dataContext.Jobs.AddAsync(newJob, cancellationToken);

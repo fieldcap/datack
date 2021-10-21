@@ -2,15 +2,15 @@ import { ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { Route, Switch } from 'react-router-dom';
+import AgentAdd from '../pages/agents/AgentAdd';
+import AgentList from '../pages/agents/AgentList';
+import AgentOverview from '../pages/agents/AgentOverview';
 import History from '../pages/history/History';
 import JobRunOverview from '../pages/job-runs/JobRunOverview';
 import JobTaskEditor from '../pages/job-tasks/JobTaskEditor';
 import JobAdd from '../pages/jobs/JobAdd';
 import JobList from '../pages/jobs/JobList';
 import JobOverview from '../pages/jobs/JobOverview';
-import ServerAdd from '../pages/servers/ServerAdd';
-import ServerList from '../pages/servers/ServerList';
-import ServerOverview from '../pages/servers/ServerOverview';
 import SettingsOverview from '../pages/settings/SettingsOverview';
 import NavLayout from './NavLayout';
 
@@ -54,16 +54,16 @@ const MainLayout: FC = () => {
                         render={(props) => <SettingsOverview {...props} />}
                     />
                     <Route
-                        path="/servers"
-                        render={(props) => <ServerList {...props} />}
+                        path="/agents"
+                        render={(props) => <AgentList {...props} />}
                     />
                     <Route
-                        path="/server/new"
-                        render={(props) => <ServerAdd {...props} />}
+                        path="/agent/new"
+                        render={(props) => <AgentAdd {...props} />}
                     />
                     <Route
-                        path="/server/:id"
-                        render={(props) => <ServerOverview {...props} />}
+                        path="/agent/:id"
+                        render={(props) => <AgentOverview {...props} />}
                     />
                     <Route
                         path="/jobs"

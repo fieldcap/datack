@@ -23,7 +23,7 @@ namespace Datack.Agent.Services.Tasks
             _dataProtector = dataProtector;
         }
 
-        public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {

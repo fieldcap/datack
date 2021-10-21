@@ -33,10 +33,10 @@ namespace Datack.Web.Web.Controllers
         }
 
         [HttpGet]
-        [Route("GetForServer/{serverId:guid}")]
-        public async Task<ActionResult> GetForServer(Guid serverId, CancellationToken cancellationToken)
+        [Route("GetForAgent/{agentId:guid}")]
+        public async Task<ActionResult> GetForAgent(Guid agentId, CancellationToken cancellationToken)
         {
-            var result = await _jobs.GetForServer(serverId, cancellationToken);
+            var result = await _jobs.GetForAgent(agentId, cancellationToken);
             return Ok(result);
         }
         

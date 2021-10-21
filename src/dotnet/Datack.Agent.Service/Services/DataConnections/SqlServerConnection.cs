@@ -12,23 +12,16 @@ namespace Datack.Agent.Services.DataConnections
 {
     public class SqlServerConnection
     {
-        private static String BuildConnectionString(ServerDbSettings serverDbSettings)
+        public async Task Test(String connectionString, CancellationToken cancellationToken)
         {
-            return $"Server={serverDbSettings.Server};User Id={serverDbSettings.UserName};Password={serverDbSettings.Password};Timeout={serverDbSettings.ConnectionTimeout}";
-        }
-        
-        public async Task Test(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
-        {
-            var connectionString = BuildConnectionString(serverDbSettings);
-            
             await using var sqlConnection = new SqlConnection(connectionString);
 
             await sqlConnection.OpenAsync(cancellationToken);
         }
 
-        public async Task<IList<Database>> GetDatabaseList(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
+        public async Task<IList<Database>> GetDatabaseList(String connectionString, CancellationToken cancellationToken)
         {
-            await using var sqlConnection = new SqlConnection(BuildConnectionString(serverDbSettings));
+            await using var sqlConnection = new SqlConnection(connectionString);
 
             await sqlConnection.OpenAsync(cancellationToken);
 
@@ -41,28 +34,9 @@ FROM
             return result.ToList();
         }
 
-        public async Task<IList<File>> GetFileList(ServerDbSettings serverDbSettings, CancellationToken cancellationToken)
+        public async Task CreateBackup(String connectionString, String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
         {
-            await using var sqlConnection = new SqlConnection(BuildConnectionString(serverDbSettings));
-
-            await sqlConnection.OpenAsync(cancellationToken);
-
-            var result = await sqlConnection.QueryAsync<File>(@"SELECT 
-	DB_NAME(database_id) AS 'DatabaseName',
-	[type] as 'Type',
-	[physical_name] as 'PhysicalName',
-	size as 'Size'
-FROM
-	sys.master_files
-ORDER BY 
-	DB_NAME(database_id)");
-
-            return result.ToList();
-        }
-
-        public async Task CreateBackup(ServerDbSettings serverDbSettings, String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
-        {
-            await using var sqlConnection = new SqlConnection(BuildConnectionString(serverDbSettings));
+            await using var sqlConnection = new SqlConnection(connectionString);
 
             var backupName = $"{databaseName} Backup";
 

@@ -20,29 +20,29 @@ namespace Datack.Web.Service.Services
             _hub = hub;
         }
 
-        public async Task<String> TestSqlServerConnection(Server server, CancellationToken cancellationToken)
+        public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String password, CancellationToken cancellationToken)
         {
-            return await Send<String>(server.Key, "TestSqlServer", cancellationToken, server.DbSettings);
+            return await Send<String>(agent.Key, "TestDatabaseConnection", cancellationToken, connectionString, password);
         }
         
-        public async Task<IList<Database>> GetDatabaseList(Server server, CancellationToken cancellationToken)
+        public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String password, CancellationToken cancellationToken)
         {
-            return await Send<List<Database>>(server.Key, "GetDatabaseList", cancellationToken);
+            return await Send<List<Database>>(agent.Key, "GetDatabaseList", cancellationToken, connectionString, password);
         }
         
         public async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
-            return await Send<String>(jobRunTask.JobTask.Server.Key, "Run", cancellationToken, jobRunTask, previousTask);
+            return await Send<String>(jobRunTask.JobTask.Agent.Key, "Run", cancellationToken, jobRunTask, previousTask);
         }
 
         public async Task<String> Stop(JobRunTask jobRunTask, CancellationToken cancellationToken)
         {
-            return await Send<String>(jobRunTask.JobTask.Server.Key, "Stop", cancellationToken, jobRunTask.JobRunTaskId);
+            return await Send<String>(jobRunTask.JobTask.Agent.Key, "Stop", cancellationToken, jobRunTask.JobRunTaskId);
         }
 
-        public async Task<String> Encrypt(Server server, String input, CancellationToken cancellationToken)
+        public async Task<String> Encrypt(Agent agent, String input, CancellationToken cancellationToken)
         {
-            return await Send<String>(server.Key, "Encrypt", cancellationToken, input);
+            return await Send<String>(agent.Key, "Encrypt", cancellationToken, input);
         }
 
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
@@ -51,7 +51,7 @@ namespace Datack.Web.Service.Services
 
             if (!hasConnection)
             {
-                throw new Exception($"No connection found for server {key}");
+                throw new Exception($"No connection found for agent with key {key}");
             }
 
             return await SendWithConnection<T>(connectionId, method, cancellationToken, payload);

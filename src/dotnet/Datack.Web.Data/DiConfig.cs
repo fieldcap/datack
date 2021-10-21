@@ -12,7 +12,7 @@ namespace Datack.Web.Data
             services.AddScoped<JobRunTaskLogRepository>();
             services.AddScoped<JobRunTaskRepository>();
             services.AddScoped<JobTaskRepository>();
-            services.AddScoped<ServerRepository>();
+            services.AddScoped<AgentRepository>();
             services.AddScoped<SettingRepository>();
             services.AddScoped<UserRepository>();
         }

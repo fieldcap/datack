@@ -1,19 +1,19 @@
 import React, { FC, useEffect } from 'react';
 import useCancellationToken from '../../hooks/useCancellationToken';
-import { Server } from '../../models/server';
+import { Agent } from '../../models/agent';
 
 type Props = {
-    server: Server;
+    agent: Agent;
 };
 
-const ServerSummaryTab: FC<Props> = (props) => {
+const AgentSummaryTab: FC<Props> = (props) => {
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
         (async () => {})();
-    }, [props.server, cancelToken]);
+    }, [props.agent, cancelToken]);
 
     return <h1>Summary</h1>;
 };
 
-export default ServerSummaryTab;
+export default AgentSummaryTab;

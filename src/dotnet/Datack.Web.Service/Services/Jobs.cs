@@ -21,9 +21,9 @@ namespace Datack.Web.Service.Services
             return await _jobRepository.GetList(cancellationToken);
         }
 
-        public async Task<IList<Job>> GetForServer(Guid serverId, CancellationToken cancellationToken)
+        public async Task<IList<Job>> GetForAgent(Guid agentId, CancellationToken cancellationToken)
         {
-            return await _jobRepository.GetForServer(serverId, cancellationToken);
+            return await _jobRepository.GetForAgent(agentId, cancellationToken);
         }
 
         public async Task<Job> GetById(Guid jobId, CancellationToken cancellationToken)

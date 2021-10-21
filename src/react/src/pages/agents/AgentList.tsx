@@ -2,6 +2,7 @@ import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import {
     Button,
     chakra,
+    Heading,
     Skeleton,
     Table,
     Tbody,
@@ -11,19 +12,14 @@ import {
     Tr
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import useCancellationToken from '../../hooks/useCancellationToken';
-import { Job } from '../../models/job';
-import { Server } from '../../models/server';
-import Jobs from '../../services/jobs';
+import { Agent } from '../../models/agent';
+import Agents from '../../services/agents';
 
-type Props = {
-    server: Server;
-};
-
-const ServerJobList: FC<Props> = (props) => {
-    const [jobs, setJobs] = useState<Job[]>([]);
+const AgentList: FC<RouteComponentProps> = () => {
+    const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
     const history = useHistory();
@@ -32,50 +28,37 @@ const ServerJobList: FC<Props> = (props) => {
 
     useEffect(() => {
         (async () => {
-            const jobs = await Jobs.getForServer(
-                props.server.serverId,
-                cancelToken
-            );
-            setJobs(jobs);
+            const agents = await Agents.getList(cancelToken);
+            setAgents(agents);
             setIsLoaded(true);
         })();
-    }, [props.server, cancelToken]);
+    }, [cancelToken]);
 
-    const rowClick = (jobId: string): void => {
-        history.push(`/job/${jobId}`);
+    const rowClick = (agentId: string): void => {
+        history.push(`/agent/${agentId}`);
     };
 
-    const handleAddNewJobClick = () => {
-        history.push(`/job/new`);
+    const handleAddNewAgentClick = () => {
+        history.push(`/agent/new`);
     };
 
     const columns = React.useMemo(() => {
-        const columns: Column<Job>[] = [
+        const columns: Column<Agent>[] = [
             {
                 Header: 'Name',
                 accessor: 'name',
-            },
-            {
-                Header: 'Name',
-                accessor: 'name',
-            },
-            {
-                Header: 'Group',
-                accessor: 'group',
-            },
-            {
-                Header: 'Priority',
-                accessor: 'priority',
             },
         ];
         return columns;
     }, []);
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<Job>({ columns, data: jobs }, useSortBy);
+        useTable<Agent>({ columns, data: agents }, useSortBy);
 
     return (
         <Skeleton isLoaded={isLoaded}>
+            <Heading marginBottom="24px">Agents</Heading>
+
             <Table {...getTableProps()}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
@@ -107,7 +90,7 @@ const ServerJobList: FC<Props> = (props) => {
                         return (
                             <Tr
                                 {...row.getRowProps()}
-                                onClick={() => rowClick(row.original.jobId)}
+                                onClick={() => rowClick(row.original.agentId)}
                                 style={{ cursor: 'pointer' }}
                             >
                                 {row.cells.map((cell) => (
@@ -121,11 +104,11 @@ const ServerJobList: FC<Props> = (props) => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px" onClick={handleAddNewJobClick}>
-                Add new job
+            <Button marginTop="24px" onClick={handleAddNewAgentClick}>
+                Add new agent
             </Button>
         </Skeleton>
     );
 };
 
-export default ServerJobList;
+export default AgentList;

@@ -34,9 +34,9 @@ namespace Datack.Common.Models.Data
 
         public JobTaskSettings Settings { get; set; }
 
-        public Guid ServerId { get; set; }
+        public Guid AgentId { get; set; }
 
-        [ForeignKey("ServerId")]
-        public Server Server { get; set; }
+        [ForeignKey("AgentId")]
+        public Agent Agent { get; set; }
     }
 }

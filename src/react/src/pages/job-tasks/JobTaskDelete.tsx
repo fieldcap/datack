@@ -3,7 +3,7 @@ import React, { FC, useEffect } from 'react';
 import { JobTaskDeleteSettings } from '../../models/job-task';
 
 type Props = {
-    serverId: string;
+    agentId: string;
     settings: JobTaskDeleteSettings | undefined | null;
     onSettingsChanged: (settings: JobTaskDeleteSettings) => void;
 };

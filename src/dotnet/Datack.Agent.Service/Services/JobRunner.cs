@@ -87,7 +87,7 @@ namespace Datack.Agent.Services
             }
         }
 
-        public async Task ExecuteJobRunTask(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public async Task ExecuteJobRunTask(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             _logger.LogDebug("Running job run task {jobRunTaskId}", jobRunTask.JobRunTaskId);
 
@@ -132,7 +132,7 @@ namespace Datack.Agent.Services
 
                         _runningTasks.Add(jobRunTask.JobRunTaskId, cancellationTokenSource);
 
-                        return task.Run(server, jobRunTask, previousTask, cancellationTokenSource.Token);
+                        return task.Run(jobRunTask, previousTask, cancellationTokenSource.Token);
                     }, cancellationToken);
                 }
                 finally

@@ -1,5 +1,5 @@
+import { Agent } from './agent';
 import { Job } from './job';
-import { Server } from './server';
 
 export type JobTask = {
     jobTaskId: string;
@@ -13,8 +13,8 @@ export type JobTask = {
     timeout: number | null;
     usePreviousTaskArtifactsFromJobTaskId: string | null;
     settings: JobTaskSettings;
-    serverId: string;
-    server?: Server | null;
+    agentId: string;
+    agent?: Agent | null;
 };
 
 export type JobTaskSettings = {

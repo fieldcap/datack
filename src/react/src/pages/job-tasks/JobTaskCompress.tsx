@@ -3,7 +3,7 @@ import React, { FC, useEffect } from 'react';
 import { JobTaskCompressSettings } from '../../models/job-task';
 
 type Props = {
-    serverId: string;
+    agentId: string;
     settings: JobTaskCompressSettings | undefined | null;
     onSettingsChanged: (settings: JobTaskCompressSettings) => void;
 };

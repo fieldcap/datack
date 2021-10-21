@@ -9,59 +9,58 @@ import {
     Heading,
     HStack,
     Input,
+    Skeleton,
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
-import { v4 } from 'uuid';
-import { Server } from '../../models/server';
-import Servers from '../../services/servers';
+import { Agent } from '../../models/agent';
+import Agents from '../../services/agents';
 
-type RouteParams = {};
+type Props = {
+    agent: Agent;
+};
 
-const ServerAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
-    const [name, setName] = useState<string>('');
-    const [key, setKey] = useState<string>('');
-    const [description, setDescription] = useState<string>('');
-    const [isSaving, setIsSaving] = useState<boolean>(false);
+const AgentSettingsTab: FC<Props> = (props) => {
+    const [name, setName] = useState<string>(props.agent.name ?? '');
+
+    const [description, setDescription] = useState<string>(
+        props.agent.description ?? ''
+    );
+
+    const [key, setKey] = useState<string>(props.agent.key ?? '');
+
     const [error, setError] = useState<string | null>(null);
-
-    const history = useHistory();
+    const [success, setSuccess] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        setIsSaving(false);
+        setIsSaving(true);
         setError(null);
-
-        const server: Server = {
-            serverId: v4(),
-            name,
-            description,
-            key,
-            dbSettings: {},
-            settings: {},
-        };
+        setSuccess(null);
 
         try {
-            setIsSaving(true);
-            const newServer = await Servers.add(server);
-            history.push(`/server/${newServer.serverId}`);
-        } catch (err: any) {
+            const newAgent: Agent = {
+                agentId: props.agent!.agentId,
+                name,
+                description,
+                key,
+                settings: {},
+            };
+
+            await Agents.update(newAgent);
             setIsSaving(false);
+        } catch (err: any) {
             setError(err);
+            setIsSaving(false);
         }
     };
 
-    const handleCancel = (event: React.FormEvent<HTMLButtonElement>) => {
-        history.push(`/server`);
-    };
-
     return (
-        <>
-            <Heading marginBottom="24px">Add new server</Heading>
+        <Skeleton isLoaded={props.agent != null}>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
-                    <FormLabel>Server Name</FormLabel>
+                    <FormLabel>Agent Name</FormLabel>
                     <Input
                         type="text"
                         maxLength={100}
@@ -86,15 +85,22 @@ const ServerAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         onChange={(e) => setKey(e.target.value)}
                     />
                     <FormHelperText>
-                        The key can be found when installing the agent on the
-                        server.
+                        Only change the key when installing a new agent.
                     </FormHelperText>
                 </FormControl>
-
+                <Heading size="md" marginBottom={2} marginTop={6}>
+                    Agent settings
+                </Heading>
                 {error != null ? (
                     <Alert marginTop="24px" status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                ) : null}
+                {success != null ? (
+                    <Alert marginTop="24px" status="success">
+                        <AlertIcon />
+                        <AlertDescription>{success}</AlertDescription>
                     </Alert>
                 ) : null}
                 <HStack marginTop="24px">
@@ -104,17 +110,10 @@ const ServerAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                     >
                         Save
                     </Button>
-                    <Button
-                        onClick={handleCancel}
-                        isLoading={isSaving}
-                        variant="outline"
-                    >
-                        Cancel
-                    </Button>
                 </HStack>
             </form>
-        </>
+        </Skeleton>
     );
 };
 
-export default ServerAdd;
+export default AgentSettingsTab;

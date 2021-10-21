@@ -10,37 +10,37 @@ import {
 import React, { FC, useEffect } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
-import { Server } from '../../models/server';
-import Servers from '../../services/servers';
-import ServerJobList from './ServerJobList';
-import ServerSettingsTab from './ServerSettingsTab';
-import ServerSummaryTab from './ServerSummaryTab';
+import { Agent } from '../../models/agent';
+import Agents from '../../services/agents';
+import AgentJobList from './AgentJobList';
+import AgentSettingsTab from './AgentSettingsTab';
+import AgentSummaryTab from './AgentSummaryTab';
 
 type RouteParams = {
     id: string;
 };
 
-const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [server, setServer] = React.useState<Server | null>(null);
+const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
+    let [agent, setAgent] = React.useState<Agent | null>(null);
 
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
         const fetchData = async () => {
-            const result = await Servers.getById(
+            const result = await Agents.getById(
                 props.match.params.id,
                 cancelToken
             );
-            setServer(result);
+            setAgent(result);
         };
         fetchData();
     }, [props.match.params.id, cancelToken]);
 
     return (
-        <Skeleton isLoaded={server != null}>
-            {server != null ? (
+        <Skeleton isLoaded={agent != null}>
+            {agent != null ? (
                 <>
-                    <Heading marginBottom="24px">{server?.name}</Heading>
+                    <Heading marginBottom="24px">{agent?.name}</Heading>
                     <Tabs>
                         <TabList>
                             <Tab>Summary</Tab>
@@ -50,13 +50,13 @@ const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
                         <TabPanels>
                             <TabPanel>
-                                <ServerSummaryTab server={server} />
+                                <AgentSummaryTab agent={agent} />
                             </TabPanel>
                             <TabPanel>
-                                <ServerJobList server={server} />
+                                <AgentJobList agent={agent} />
                             </TabPanel>
                             <TabPanel>
-                                <ServerSettingsTab server={server} />
+                                <AgentSettingsTab agent={agent} />
                             </TabPanel>
                         </TabPanels>
                     </Tabs>
@@ -66,4 +66,4 @@ const ServerOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     );
 };
 
-export default ServerOverview;
+export default AgentOverview;

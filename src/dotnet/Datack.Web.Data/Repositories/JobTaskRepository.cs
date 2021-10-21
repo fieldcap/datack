@@ -21,20 +21,12 @@ namespace Datack.Web.Data.Repositories
         {
             return await _dataContext.JobTasks
                                      .AsNoTracking()
-                                     .Include(m => m.Server)
+                                     .Include(m => m.Agent)
                                      .Where(m => m.JobId == jobId)
                                      .OrderBy(m => m.Order)
                                      .ToListAsync(cancellationToken);
         }
-
-        public async Task<IList<JobTask>> GetForServer(Guid serverId, CancellationToken cancellationToken)
-        {
-            return await _dataContext.JobTasks
-                                     .AsNoTracking()
-                                     .Where(m => m.ServerId == serverId)
-                                     .ToListAsync(cancellationToken);
-        }
-
+        
         public async Task<JobTask> GetById(Guid jobTaskId, CancellationToken cancellationToken)
         {
             return await _dataContext.JobTasks
@@ -77,7 +69,7 @@ namespace Datack.Web.Data.Repositories
             dbJobTask.Parallel = jobTask.Parallel;
             dbJobTask.Timeout = jobTask.Timeout;
             dbJobTask.Settings = jobTask.Settings;
-            dbJobTask.ServerId = jobTask.ServerId;
+            dbJobTask.AgentId = jobTask.AgentId;
 
             await _dataContext.SaveChangesAsync(cancellationToken);
         }

@@ -13,13 +13,13 @@ namespace Datack.Web.Service.Services
     public class JobTasks
     {
         private readonly JobTaskRepository _jobTaskRepository;
-        private readonly Servers _servers;
+        private readonly Agents _agents;
         private readonly RemoteService _remoteService;
 
-        public JobTasks(JobTaskRepository jobTaskRepository, Servers servers, RemoteService remoteService)
+        public JobTasks(JobTaskRepository jobTaskRepository, Agents agents, RemoteService remoteService)
         {
             _jobTaskRepository = jobTaskRepository;
-            _servers = servers;
+            _agents = agents;
             _remoteService = remoteService;
         }
 
@@ -27,12 +27,7 @@ namespace Datack.Web.Service.Services
         {
             return await _jobTaskRepository.GetForJob(jobId, cancellationToken);
         }
-
-        public async Task<IList<JobTask>> GetForServer(Guid serverId, CancellationToken cancellationToken)
-        {
-            return await _jobTaskRepository.GetForServer(serverId, cancellationToken);
-        }
-
+        
         public async Task<JobTask> GetById(Guid jobTaskId, CancellationToken cancellationToken)
         {
             return await _jobTaskRepository.GetById(jobTaskId, cancellationToken);
@@ -45,10 +40,10 @@ namespace Datack.Web.Service.Services
 
         public async Task Update(JobTask jobTask, CancellationToken cancellationToken)
         {
-            var server = await _servers.GetById(jobTask.ServerId, cancellationToken);
+            var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
             var dbJobTask = await GetById(jobTask.JobTaskId, cancellationToken);
 
-            await EncryptSettings(server, jobTask.Settings, dbJobTask.Settings, cancellationToken);
+            await EncryptSettings(agent, jobTask.Settings, dbJobTask.Settings, cancellationToken);
 
             await _jobTaskRepository.Update(jobTask, cancellationToken);
         }
@@ -58,7 +53,7 @@ namespace Datack.Web.Service.Services
             await _jobTaskRepository.ReOrder(jobId, jobTaskIds, cancellationToken);
         }
 
-        private async Task EncryptSettings(Server server, JobTaskSettings newJobTaskSettings, JobTaskSettings currentJobTaskSettings, CancellationToken cancellationToken)
+        private async Task EncryptSettings(Agent agent, JobTaskSettings newJobTaskSettings, JobTaskSettings currentJobTaskSettings, CancellationToken cancellationToken)
         {
             var properties = typeof(JobTaskSettings).GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
@@ -105,7 +100,7 @@ namespace Datack.Web.Service.Services
                         continue;
                     }
 
-                    var encryptedSettingValue = await _remoteService.Encrypt(server, newSettingValueString, cancellationToken);
+                    var encryptedSettingValue = await _remoteService.Encrypt(agent, newSettingValueString, cancellationToken);
 
                     settingKey.SetValue(newSetting, encryptedSettingValue);
                 }

@@ -8,6 +8,21 @@ namespace Datack.Web.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "Agents",
+                columns: table => new
+                {
+                    AgentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Key = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Agents", x => x.AgentId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -52,7 +67,11 @@ namespace Datack.Web.Data.Migrations
                 {
                     JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Group = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Priority = table.Column<int>(type: "int", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Cron = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeleteLogsAfter = table.Column<int>(type: "int", nullable: false),
                     Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -61,28 +80,12 @@ namespace Datack.Web.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Servers",
-                columns: table => new
-                {
-                    ServerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Key = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DbSettings = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Servers", x => x.ServerId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Settings",
                 columns: table => new
                 {
                     SettingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Secure = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -201,9 +204,9 @@ namespace Datack.Web.Data.Migrations
                 {
                     JobRunId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    BackupType = table.Column<int>(type: "int", nullable: false),
                     Started = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     Completed = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    RunTime = table.Column<long>(type: "bigint", nullable: true),
                     IsError = table.Column<bool>(type: "bit", nullable: false),
                     Result = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -230,13 +233,20 @@ namespace Datack.Web.Data.Migrations
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Order = table.Column<int>(type: "int", nullable: false),
+                    Timeout = table.Column<int>(type: "int", nullable: true),
                     UsePreviousTaskArtifactsFromJobTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     Settings = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ServerId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    AgentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_JobTasks", x => x.JobTaskId);
+                    table.ForeignKey(
+                        name: "FK_JobTasks_Agents_AgentId",
+                        column: x => x.AgentId,
+                        principalTable: "Agents",
+                        principalColumn: "AgentId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_JobTasks_Jobs_JobId",
                         column: x => x.JobId,
@@ -249,12 +259,6 @@ namespace Datack.Web.Data.Migrations
                         principalTable: "JobTasks",
                         principalColumn: "JobTaskId",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_JobTasks_Servers_ServerId",
-                        column: x => x.ServerId,
-                        principalTable: "Servers",
-                        principalColumn: "ServerId",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -266,6 +270,7 @@ namespace Datack.Web.Data.Migrations
                     JobRunId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Started = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     Completed = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    RunTime = table.Column<long>(type: "bigint", nullable: true),
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ItemName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TaskOrder = table.Column<int>(type: "int", nullable: false),
@@ -374,14 +379,14 @@ namespace Datack.Web.Data.Migrations
                 column: "JobTaskId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_JobTasks_AgentId",
+                table: "JobTasks",
+                column: "AgentId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_JobTasks_JobId",
                 table: "JobTasks",
                 column: "JobId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_JobTasks_ServerId",
-                table: "JobTasks",
-                column: "ServerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobTasks_UsePreviousTaskArtifactsFromJobTaskId",
@@ -428,10 +433,10 @@ namespace Datack.Web.Data.Migrations
                 name: "JobTasks");
 
             migrationBuilder.DropTable(
-                name: "Jobs");
+                name: "Agents");
 
             migrationBuilder.DropTable(
-                name: "Servers");
+                name: "Jobs");
         }
     }
 }

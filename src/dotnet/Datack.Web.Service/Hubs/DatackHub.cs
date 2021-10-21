@@ -15,12 +15,12 @@ namespace Datack.Web.Service.Hubs
         public static event EventHandler<ClientConnectEvent> OnClientConnect;
         public static event EventHandler<ClientDisconnectEvent> OnClientDisconnect;
 
-        private readonly Servers _servers;
+        private readonly Agents _agents;
         private readonly JobRunner _jobRunner;
 
-        public DatackHub(Servers servers, JobRunner jobRunner)
+        public DatackHub(Agents agents, JobRunner jobRunner)
         {
-            _servers = servers;
+            _agents = agents;
             _jobRunner = jobRunner;
         }
 
@@ -34,7 +34,7 @@ namespace Datack.Web.Service.Hubs
                 if (value == Context.ConnectionId)
                 {
                     Users.TryRemove(key, out _);
-                    OnClientDisconnect?.Invoke(this, new ClientDisconnectEvent{ ServerKey = key });
+                    OnClientDisconnect?.Invoke(this, new ClientDisconnectEvent{ AgentKey = key });
                     break;
                 }
             }
@@ -44,14 +44,14 @@ namespace Datack.Web.Service.Hubs
 
         public async Task Connect(String key)
         {
-            var server = await _servers.GetByKey(key, CancellationToken.None);
+            var agent = await _agents.GetByKey(key, CancellationToken.None);
 
-            if (server == null)
+            if (agent == null)
             {
-                throw new Exception($"Server with key {key} was not found");
+                throw new Exception($"Agent with key {key} was not found");
             }
 
-            OnClientConnect?.Invoke(this, new ClientConnectEvent{ ServerKey = key });
+            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
 
             Users.TryAdd(key, Context.ConnectionId);
         }
@@ -63,11 +63,11 @@ namespace Datack.Web.Service.Hubs
 
         public async Task<RpcUpdate> RpcUpdate(String key)
         {
-            var server = await _servers.GetByKey(key, CancellationToken.None);
+            var agent = await _agents.GetByKey(key, CancellationToken.None);
 
             return new RpcUpdate
             {
-                Server = server
+                Agent = agent
             };
         }
 

@@ -73,11 +73,11 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
                 Home
             </Button>
             <Button
-                onClick={() => handleNavigate('/servers')}
+                onClick={() => handleNavigate('/agents')}
                 w="100%"
-                isActive={activeRoute === '/servers'}
+                isActive={activeRoute === '/agents'}
             >
-                Servers
+                Agents
             </Button>
             <Button
                 onClick={() => handleNavigate('/jobs')}

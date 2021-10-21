@@ -21,7 +21,7 @@ namespace Datack.Agent.Services.Tasks
             _databaseAdapter = databaseAdapter;
         }
         
-        public override async Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {
@@ -92,7 +92,9 @@ namespace Datack.Agent.Services.Tasks
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Creating backup of database {jobRunTask.ItemName}");
 
-                await _databaseAdapter.CreateBackup(server.DbSettings,
+                var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.CreateBackup.ConnectionString, jobRunTask.Settings.CreateBackup.ConnectionStringPassword, true);
+
+                await _databaseAdapter.CreateBackup(connectionString,
                                                     jobRunTask.ItemName,
                                                     storePath,
                                                     evt =>

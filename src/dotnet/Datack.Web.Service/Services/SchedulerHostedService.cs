@@ -25,8 +25,8 @@ namespace Datack.Web.Service.Services
         {
             _serviceProvider = serviceProvider;
 
-            DatackHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.ServerKey);
-            DatackHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.ServerKey);
+            DatackHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
+            DatackHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -143,25 +143,25 @@ namespace Datack.Web.Service.Services
         /// <summary>
         /// Handle the connection of an agent.
         /// </summary>
-        private async void HandleClientConnect(String serverKey)
+        private async void HandleClientConnect(String agentKey)
         {
             using var serviceScope = _serviceProvider.CreateScope();
 
-            var serversService = serviceScope.ServiceProvider.GetRequiredService<Servers>();
+            var agentsService = serviceScope.ServiceProvider.GetRequiredService<Agents>();
             var jobRunTaskLogsService = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
             var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
             var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
 
-            var server = await serversService.GetByKey(serverKey, _cancellationToken);
+            var agent = await agentsService.GetByKey(agentKey, _cancellationToken);
 
             var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
 
-            // Check if this server has running tasks, if it does, reset the task and execute them again.
+            // Check if this agent has running tasks, if it does, reset the task and execute them again.
             foreach (var runningJob in runningJobs)
             {
                 var runningTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, _cancellationToken);
 
-                runningTasks = runningTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.ServerId == server.ServerId).ToList();
+                runningTasks = runningTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.AgentId == agent.AgentId).ToList();
 
                 if (runningTasks.Count > 0)
                 {
@@ -173,7 +173,7 @@ namespace Datack.Web.Service.Services
                                                         {
                                                             JobRunTaskId = runningTask.JobRunTaskId,
                                                             DateTime = DateTimeOffset.Now,
-                                                            Message = $"Server '{server.Name}' is connected",
+                                                            Message = $"Agent '{agent.Name}' is connected",
                                                             IsError = false
                                                         },
                                                         _cancellationToken);
@@ -192,16 +192,16 @@ namespace Datack.Web.Service.Services
         /// <summary>
         /// Handle the disconnect of an agent.
         /// </summary>
-        private async void HandleClientDisconnect(String serverKey)
+        private async void HandleClientDisconnect(String agentKey)
         {
             using var serviceScope = _serviceProvider.CreateScope();
 
-            var serversService = serviceScope.ServiceProvider.GetRequiredService<Servers>();
+            var agentsService = serviceScope.ServiceProvider.GetRequiredService<Agents>();
             var jobRunTaskLogsService = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
             var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
             var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
 
-            var server = await serversService.GetByKey(serverKey, _cancellationToken);
+            var agent = await agentsService.GetByKey(agentKey, _cancellationToken);
 
             var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
 
@@ -209,13 +209,13 @@ namespace Datack.Web.Service.Services
             {
                 var runningTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, _cancellationToken);
 
-                foreach (var runningTask in runningTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.ServerId == server.ServerId))
+                foreach (var runningTask in runningTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.AgentId == agent.AgentId))
                 {
                     await jobRunTaskLogsService.Add(new JobRunTaskLog
                     {
                         JobRunTaskId = runningTask.JobRunTaskId,
                         DateTime = DateTimeOffset.Now,
-                        Message = $"Server '{server.Name}' has disconnected",
+                        Message = $"Agent '{agent.Name}' has disconnected",
                         IsError = false
                     }, _cancellationToken);
                 }

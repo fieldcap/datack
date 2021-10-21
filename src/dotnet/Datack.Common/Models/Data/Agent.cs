@@ -4,10 +4,10 @@ using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Models.Data
 {
-    public class Server
+    public class Agent
     {
         [Key]
-        public Guid ServerId { get; set; }
+        public Guid AgentId { get; set; }
 
         public String Name { get; set; }
 
@@ -15,8 +15,6 @@ namespace Datack.Common.Models.Data
 
         public String Key { get; set; }
         
-        public ServerDbSettings DbSettings { get; set; }
-
-        public ServerSettings Settings { get; set; }
+        public AgentSettings Settings { get; set; }
     }
 }

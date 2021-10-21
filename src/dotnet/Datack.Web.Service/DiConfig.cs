@@ -20,7 +20,7 @@ namespace Datack.Web.Service
             services.AddScoped<Jobs>();
             services.AddScoped<JobTasks>();
             services.AddScoped<RemoteService>();
-            services.AddScoped<Servers>();
+            services.AddScoped<Agents>();
             services.AddScoped<Settings>();
 
             services.AddScoped<CreateBackupTask>();

@@ -55,7 +55,7 @@ export namespace JobTasks {
         backupExcludeSystemDatabases: boolean,
         backupIncludeManual: string,
         backupExcludeManual: string,
-        serverId: string
+        agentId: string
     ): Promise<DatabaseListTestResult[]> => {
         try {
             const result = await axios.post<DatabaseListTestResult[]>(
@@ -67,7 +67,7 @@ export namespace JobTasks {
                     backupExcludeSystemDatabases,
                     backupIncludeManual,
                     backupExcludeManual,
-                    serverId,
+                    agentId,
                 }
             );
             return result.data;

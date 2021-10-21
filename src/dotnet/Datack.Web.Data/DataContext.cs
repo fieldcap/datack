@@ -26,12 +26,12 @@ namespace Datack.Web.Data
         {
         }
 
+        public DbSet<Agent> Agents { get; set; }
         public DbSet<Job> Jobs { get; set; }
         public DbSet<JobRun> JobRuns { get; set; }
         public DbSet<JobRunTask> JobRunTasks { get; set; }
         public DbSet<JobRunTaskLog> JobRunTaskLogs { get; set; }
         public DbSet<JobTask> JobTasks { get; set; }
-        public DbSet<Server> Servers { get; set; }
         public DbSet<Setting> Settings { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
@@ -70,8 +70,7 @@ namespace Datack.Web.Data
             modelBuilder.ApplyConfiguration(new JobRunDbConfiguration());
             modelBuilder.ApplyConfiguration(new JobRunTaskDbConfiguration());
             modelBuilder.ApplyConfiguration(new JobTaskDbConfiguration());
-            modelBuilder.ApplyConfiguration(new ServerConfiguration());
-            modelBuilder.ApplyConfiguration(new ServerDbConfiguration());
+            modelBuilder.ApplyConfiguration(new AgentConfiguration());
 
             base.OnModelCreating(modelBuilder);
         }
@@ -110,18 +109,6 @@ namespace Datack.Web.Data
                 {
                     SettingId = "Email:Smtp:From",
                     Value = ""
-                },
-                new Setting
-                {
-                    SettingId = "AWS:S3:Secret",
-                    Value = "",
-                    Secure = true
-                },
-                new Setting
-                {
-                    SettingId = "Azure:Blob:ConnectionString",
-                    Value = "",
-                    Secure = true
                 }
             };
 
@@ -137,181 +124,6 @@ namespace Datack.Web.Data
                     await SaveChangesAsync();
                 }
             }
-
-#if DEBUG
-            if (!Servers.Any())
-            {
-                var server = new Server
-                {
-                    ServerId = Guid.Parse("FC1005A3-6941-4BC2-A4C1-4A3863F3F7BA"),
-                    Key = "5026d123-0b7a-4ecc-9b97-4950324f161f",
-                    Name = "Local SQL Server",
-                    Description = "Test Server",
-                    DbSettings = new ServerDbSettings
-                    {
-                        Server = ".",
-                        UserName = "Test",
-                        Password = "test"
-                    },
-                    Settings = new ServerSettings
-                    {
-                        TempPath = @"C:\Temp"
-                    }
-                };
-                
-                var job = new Job
-                {
-                    JobId = Guid.Parse("6b9e6002-13ef-454a-92a2-23818a5737ac"),
-                    Description = "Create full database backup",
-                    Name = "Full backup",
-                    Group = "SQL Group 1",
-                    Priority = 1,
-                    Cron = "0 4 * * *",
-                    DeleteLogsAfter = 7,
-                    Settings = new JobSettings()
-                };
-
-                var jobTask1 = new JobTask
-                {
-                    JobTaskId = Guid.Parse("FF1F7DFF-12A5-4CAB-8EFC-181805D1BC48"),
-                    JobId = job.JobId,
-                    ServerId = server.ServerId,
-                    Description = "Creates a backup",
-                    Name = "Create Database Backups",
-                    Order = 0,
-                    Parallel = 2,
-                    Type = "create_backup",
-                    Settings = new JobTaskSettings
-                    {
-                        CreateBackup = new JobTaskCreateDatabaseSettings
-                        {
-                            FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}.bak",
-                            BackupDefaultExclude = true,
-                            BackupExcludeManual = "",
-                            BackupExcludeRegex = "",
-                            BackupExcludeSystemDatabases = true,
-                            BackupIncludeManual = "Datack",
-                            BackupIncludeRegex = ""
-                        }
-                    }
-                };
-
-                var jobTask2 = new JobTask
-                {
-                    JobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
-                    JobId = job.JobId,
-                    ServerId = server.ServerId,
-                    Description = "Compress the backups with 7z",
-                    Name = "Compress backups",
-                    Order = 1,
-                    Parallel = 2,
-                    Type = "compress",
-                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("FF1F7DFF-12A5-4CAB-8EFC-181805D1BC48"),
-                    Settings = new JobTaskSettings
-                    {
-                        Compress = new JobTaskCompressSettings
-                        {
-                            FileName = @"C:\Temp\datack\backups\{DatabaseName}-{0:yyyyMMddHHmm}.7z",
-                            ArchiveType = "7z",
-                            CompressionLevel = "5",
-                            MultithreadMode = "on",
-                            Password = "test"
-                        }
-                    }
-                };
-                
-                var jobTask3 = new JobTask
-                {
-                    JobTaskId = Guid.Parse("010B8915-B1B3-4864-B7B2-34DE98F7E535"),
-                    JobId = job.JobId,
-                    ServerId = server.ServerId,
-                    Description = "Upload compressed backup to S3",
-                    Name = "Upload to S3",
-                    Order = 2,
-                    Parallel = 2,
-                    Type = "upload_s3",
-                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
-                    Settings = new JobTaskSettings
-                    {
-                        UploadS3 = new JobTaskUploadS3Settings
-                        {
-                            FileName = @"{DatabaseName}/{0:yyyyMMddHHmm}.7z",
-                            Region = "",
-                            Bucket = "",
-                            AccessKey = "",
-                            Secret = ""
-                        }
-                    }
-                };
-
-                var jobTask4 = new JobTask
-                {
-                    JobTaskId = Guid.Parse("DA2E4E4E-C98F-43F8-9F6C-9BA66D1233FA"),
-                    JobId = job.JobId,
-                    ServerId = server.ServerId,
-                    Description = "Upload compressed backup to Azure",
-                    Name = "Upload to Azure",
-                    Order = 3,
-                    Parallel = 2,
-                    Type = "upload_azure",
-                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
-                    Settings = new JobTaskSettings
-                    {
-                        UploadAzure = new JobTaskUploadAzureSettings
-                        {
-                            FileName = @"{DatabaseName}/{0:yyyyMMddHHmm}.7z",
-                            ContainerName = "",
-                            ConnectionString = ""
-                        }
-                    }
-                };
-
-                var jobTask5 = new JobTask
-                {
-                    JobTaskId = Guid.Parse("E1F55FC5-A335-4A46-8D79-1F07A86393CF"),
-                    JobId = job.JobId,
-                    ServerId = server.ServerId,
-                    Description = "Delete backup",
-                    Name = "Delete backup",
-                    Order = 4,
-                    Parallel = 2,
-                    Type = "delete",
-                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("FF1F7DFF-12A5-4CAB-8EFC-181805D1BC48"),
-                    Settings = new JobTaskSettings
-                    {
-                        Delete = new JobTaskDeleteSettings()
-                    }
-                };
-                
-                var jobTask6 = new JobTask
-                {
-                    JobTaskId = Guid.Parse("AFE2AF25-A004-4E82-90F0-7BCA4434DA5D"),
-                    JobId = job.JobId,
-                    ServerId = server.ServerId,
-                    Description = "Delete zip",
-                    Name = "Delete zip",
-                    Order = 5,
-                    Parallel = 2,
-                    Type = "delete",
-                    UsePreviousTaskArtifactsFromJobTaskId = Guid.Parse("D39DF0FE-7E6D-4BE5-B224-69DBDE88BE8A"),
-                    Settings = new JobTaskSettings
-                    {
-                        Delete = new JobTaskDeleteSettings()
-                    }
-                };
-
-                await Servers.AddAsync(server);
-                await Jobs.AddAsync(job);
-                await JobTasks.AddAsync(jobTask1);
-                await JobTasks.AddAsync(jobTask2);
-                await JobTasks.AddAsync(jobTask3);
-                await JobTasks.AddAsync(jobTask4);
-                await JobTasks.AddAsync(jobTask5);
-                await JobTasks.AddAsync(jobTask6);
-
-                await SaveChangesAsync();
-            }
-#endif
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
@@ -320,6 +132,16 @@ namespace Datack.Web.Data
             throw new NotSupportedException();
         }
 #pragma warning restore IDE0060 // Remove unused parameter
+
+        public class AgentConfiguration : IEntityTypeConfiguration<Agent>
+        {
+            public void Configure(EntityTypeBuilder<Agent> builder)
+            {
+                builder.Property(e => e.Settings)
+                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
+                                      v => JsonSerializer.Deserialize<AgentSettings>(v, SerializerOptions));
+            }
+        }
 
         public class JobConfiguration : IEntityTypeConfiguration<Job>
         {
@@ -358,26 +180,6 @@ namespace Datack.Web.Data
                 builder.Property(e => e.Settings)
                        .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
                                       v => JsonSerializer.Deserialize<JobTaskSettings>(v, SerializerOptions));
-            }
-        }
-
-        public class ServerConfiguration : IEntityTypeConfiguration<Server>
-        {
-            public void Configure(EntityTypeBuilder<Server> builder)
-            {
-                builder.Property(e => e.Settings)
-                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
-                                      v => JsonSerializer.Deserialize<ServerSettings>(v, SerializerOptions));
-            }
-        }
-
-        public class ServerDbConfiguration : IEntityTypeConfiguration<Server>
-        {
-            public void Configure(EntityTypeBuilder<Server> builder)
-            {
-                builder.Property(e => e.DbSettings)
-                       .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
-                                      v => JsonSerializer.Deserialize<ServerDbSettings>(v, SerializerOptions));
             }
         }
     }

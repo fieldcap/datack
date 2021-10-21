@@ -44,7 +44,9 @@ axios.interceptors.response.use(
         handleDates(request.data);
         return request;
     },
-    (error) => Promise.reject(error)
+    (error) => {
+        Promise.reject(error)
+    }
 );
 
 const PrivateRoute: FC<PrivateRouteProps> = (props) => {

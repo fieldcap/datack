@@ -13,7 +13,7 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class DeleteTask : BaseTask
     {
-        public override Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public override Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {

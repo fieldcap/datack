@@ -19,6 +19,29 @@ namespace Datack.Web.Data.Migrations
                 .HasAnnotation("ProductVersion", "5.0.11")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+            modelBuilder.Entity("Datack.Common.Models.Data.Agent", b =>
+                {
+                    b.Property<Guid>("AgentId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Key")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Settings")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("AgentId");
+
+                    b.ToTable("Agents");
+                });
+
             modelBuilder.Entity("Datack.Common.Models.Data.Job", b =>
                 {
                     b.Property<Guid>("JobId")
@@ -171,6 +194,9 @@ namespace Datack.Web.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("AgentId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -186,9 +212,6 @@ namespace Datack.Web.Data.Migrations
                     b.Property<int>("Parallel")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("ServerId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Settings")
                         .HasColumnType("nvarchar(max)");
 
@@ -203,39 +226,13 @@ namespace Datack.Web.Data.Migrations
 
                     b.HasKey("JobTaskId");
 
-                    b.HasIndex("JobId");
+                    b.HasIndex("AgentId");
 
-                    b.HasIndex("ServerId");
+                    b.HasIndex("JobId");
 
                     b.HasIndex("UsePreviousTaskArtifactsFromJobTaskId");
 
                     b.ToTable("JobTasks");
-                });
-
-            modelBuilder.Entity("Datack.Common.Models.Data.Server", b =>
-                {
-                    b.Property<Guid>("ServerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("DbSettings")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Key")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Settings")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("ServerId");
-
-                    b.ToTable("Servers");
                 });
 
             modelBuilder.Entity("Datack.Common.Models.Data.Setting", b =>
@@ -493,15 +490,15 @@ namespace Datack.Web.Data.Migrations
 
             modelBuilder.Entity("Datack.Common.Models.Data.JobTask", b =>
                 {
-                    b.HasOne("Datack.Common.Models.Data.Job", "Job")
+                    b.HasOne("Datack.Common.Models.Data.Agent", "Agent")
                         .WithMany()
-                        .HasForeignKey("JobId")
+                        .HasForeignKey("AgentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Datack.Common.Models.Data.Server", "Server")
+                    b.HasOne("Datack.Common.Models.Data.Job", "Job")
                         .WithMany()
-                        .HasForeignKey("ServerId")
+                        .HasForeignKey("JobId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -509,9 +506,9 @@ namespace Datack.Web.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UsePreviousTaskArtifactsFromJobTaskId");
 
-                    b.Navigation("Job");
+                    b.Navigation("Agent");
 
-                    b.Navigation("Server");
+                    b.Navigation("Job");
 
                     b.Navigation("UsePreviousTaskArtifactsFromJobTask");
                 });

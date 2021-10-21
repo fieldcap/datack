@@ -55,11 +55,18 @@ namespace Datack.Common.Models.Internal
 
     public class JobTaskCreateDatabaseSettings
     {
-        [JsonPropertyName("fileName")]
-        public String FileName { get; set; }
+        [JsonPropertyName("connectionString")]
+        public String ConnectionString { get; set; }
+
+        [JsonPropertyName("connectionStringPassword")]
+        [Protected]
+        public String ConnectionStringPassword { get; set; }
 
         [JsonPropertyName("backupType")]
         public String BackupType { get; set; }
+
+        [JsonPropertyName("fileName")]
+        public String FileName { get; set; }
 
         [JsonPropertyName("backupDefaultExclude")]
         public Boolean BackupDefaultExclude { get; set; }

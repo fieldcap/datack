@@ -19,7 +19,7 @@ import { JobTaskCreateDatabaseSettings } from '../../models/job-task';
 import JobTasks from '../../services/jobTasks';
 
 type Props = {
-    serverId: string;
+    agentId: string;
     settings: JobTaskCreateDatabaseSettings | undefined | null;
     onSettingsChanged: (settings: JobTaskCreateDatabaseSettings) => void;
 };
@@ -45,7 +45,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
     }, [props.settings, onSettingsChanged]);
 
     useEffect(() => {
-        if (props.serverId == null || props.serverId === '') {
+        if (props.agentId == null || props.agentId === '') {
             return;
         }
 
@@ -57,7 +57,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 props.settings!.backupExcludeSystemDatabases,
                 props.settings!.backupIncludeManual,
                 props.settings!.backupExcludeManual,
-                props.serverId
+                props.agentId
             );
             setTestResult(result);
         })();
@@ -69,7 +69,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.settings?.backupIncludeRegex,
         props.settings?.backupIncludeManual,
         props.settings?.backupExcludeManual,
-        props.serverId,
+        props.agentId,
     ]);
 
     const handleBackupTypeChanged = (value: string) => {

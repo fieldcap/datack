@@ -11,7 +11,7 @@ namespace Datack.Agent.Services.Tasks
         public event EventHandler<ProgressEvent> OnProgressEvent;
         public event EventHandler<CompleteEvent> OnCompleteEvent;
         
-        public abstract Task Run(Server server, JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken);
+        public abstract Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken);
         
         private DateTime _lastProgressUpdate = DateTime.UtcNow;
         private String _lastProgressMessage;
