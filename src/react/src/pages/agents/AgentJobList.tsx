@@ -56,8 +56,8 @@ const AgentJobList: FC<Props> = (props) => {
                 accessor: 'name',
             },
             {
-                Header: 'Name',
-                accessor: 'name',
+                Header: 'Description',
+                accessor: 'description',
             },
             {
                 Header: 'Group',

@@ -1,6 +1,5 @@
 import axios, { CancelTokenSource } from 'axios';
 import { Agent } from '../models/agent';
-import { ErrorHelper } from './error';
 
 export namespace Agents {
     export const getList = async (
@@ -23,39 +22,13 @@ export namespace Agents {
         return result.data;
     };
 
-    export const add = async (agent: Agent): Promise<Agent> => {
-        try {
-            const result = await axios.post<Agent>(`/api/Agents/Add/`, agent);
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+    export const add = async (agent: Agent): Promise<string> => {
+        const result = await axios.post<string>(`/api/Agents/Add/`, agent);
+        return result.data;
     };
 
     export const update = async (agent: Agent): Promise<void> => {
-        try {
-            await axios.put(`/api/Agents/Update/`, agent);
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
-    };
-
-    export const testDatabaseConnection = async (
-        agentId: string,
-        connectionString: string
-    ): Promise<string> => {
-        try {
-            const result = await axios.post<string>(
-                `/api/Agents/TestDatabaseConnection/`,
-                {
-                    agentId,
-                    connectionString,
-                }
-            );
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        await axios.put(`/api/Agents/Update/`, agent);
     };
 }
 

@@ -48,6 +48,16 @@ export namespace JobTasks {
         }
     };
 
+    export const reOrder = async (
+        jobId: string,
+        jobTaskIds: string[]
+    ): Promise<void> => {
+        await axios.post<DatabaseListTestResult[]>(`/api/JobTasks/ReOrder/`, {
+            jobId,
+            jobTaskIds,
+        });
+    };
+
     export const testDatabaseRegex = async (
         backupDefaultExclude: boolean,
         backupIncludeRegex: string,
@@ -76,14 +86,22 @@ export namespace JobTasks {
         }
     };
 
-    export const reOrder = async (
-        jobId: string,
-        jobTaskIds: string[]
-    ): Promise<void> => {
-        await axios.post<DatabaseListTestResult[]>(`/api/JobTasks/ReOrder/`, {
-            jobId,
-            jobTaskIds,
-        });
+    export const testDatabaseConnection = async (
+        agentId: string,
+        connectionString: string
+    ): Promise<string> => {
+        try {
+            const result = await axios.post<string>(
+                `/api/JobTasks/TestDatabaseConnection/`,
+                {
+                    agentId,
+                    connectionString,
+                }
+            );
+            return result.data;
+        } catch (err) {
+            throw ErrorHelper.getError(err);
+        }
     };
 }
 

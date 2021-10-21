@@ -50,8 +50,8 @@ axios.interceptors.response.use(
         if (error && error.response && error.response.status === 401) {
             Auth.logout();
         }
-        const formatterError = ErrorHelper.getError(error);
-        Promise.reject(formatterError);
+        const formattedError = ErrorHelper.getError(error);
+        throw formattedError;
     }
 );
 

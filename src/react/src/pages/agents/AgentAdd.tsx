@@ -30,6 +30,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
+
         setIsSaving(false);
         setError(null);
 
@@ -43,8 +44,8 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         try {
             setIsSaving(true);
-            const newAgent = await Agents.add(agent);
-            history.push(`/agent/${newAgent.agentId}`);
+            const newAgentId = await Agents.add(agent);
+            history.push(`/agent/${newAgentId}`);
         } catch (err: any) {
             setIsSaving(false);
             setError(err);
@@ -68,6 +69,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
+                    <FormHelperText>A name for the agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
@@ -76,6 +78,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
+                    <FormHelperText>Description for this agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="key" marginBottom={4} isRequired>
                     <FormLabel>Key</FormLabel>
@@ -96,6 +99,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
+
                 <HStack marginTop="24px">
                     <Button
                         onClick={(evt) => handleSave(evt)}

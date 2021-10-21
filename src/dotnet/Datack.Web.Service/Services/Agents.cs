@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
-using Datack.Common.Models.Internal;
 using Datack.Web.Data.Repositories;
 
 namespace Datack.Web.Service.Services
@@ -11,12 +11,10 @@ namespace Datack.Web.Service.Services
     public class Agents
     {
         private readonly AgentRepository _agentRepository;
-        private readonly RemoteService _remoteService;
 
-        public Agents(AgentRepository agentRepository, RemoteService remoteService)
+        public Agents(AgentRepository agentRepository)
         {
             _agentRepository = agentRepository;
-            _remoteService = remoteService;
         }
 
         public async Task<IList<Agent>> GetAll(CancellationToken cancellationToken)
@@ -36,26 +34,60 @@ namespace Datack.Web.Service.Services
         
         public async Task<Guid> Add(Agent agent, CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(agent.Name))
+            {
+                throw new Exception("Name cannot be empty");
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.Key))
+            {
+                throw new Exception("Key cannot be empty");
+            }
+
+            var allAgents = await _agentRepository.GetAll(cancellationToken);
+            var sameNameAgents = allAgents.Any(m => String.Equals(m.Name, agent.Name, StringComparison.CurrentCultureIgnoreCase));
+            var sameKeyAgents = allAgents.Any(m => String.Equals(m.Key, agent.Key, StringComparison.CurrentCultureIgnoreCase));
+
+            if (sameNameAgents)
+            {
+                throw new Exception($"An agent with this name already exists");
+            }
+
+            if (sameKeyAgents)
+            {
+                throw new Exception($"An agent with this key already exists");
+            }
+
             return await _agentRepository.Add(agent, cancellationToken);
         }
 
         public async Task Update(Agent agent, CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(agent.Name))
+            {
+                throw new Exception("Name cannot be empty");
+            }
+
+            if (String.IsNullOrWhiteSpace(agent.Key))
+            {
+                throw new Exception("Key cannot be empty");
+            }
+
+            var allAgents = await _agentRepository.GetAll(cancellationToken);
+            var sameNameAgents = allAgents.Any(m => String.Equals(m.Name, agent.Name, StringComparison.CurrentCultureIgnoreCase));
+            var sameKeyAgents = allAgents.Any(m => String.Equals(m.Key, agent.Key, StringComparison.CurrentCultureIgnoreCase));
+
+            if (sameNameAgents)
+            {
+                throw new Exception($"An agent with this name already exists");
+            }
+
+            if (sameKeyAgents)
+            {
+                throw new Exception($"An agent with this key already exists");
+            }
+
             await _agentRepository.Update(agent, cancellationToken);
-        }
-
-        public async Task<String> TestDatabaseConnection(Guid agentId, String connectionString, String connectionStringPassword, CancellationToken cancellationToken)
-        {
-            var agent = await _agentRepository.GetById(agentId, cancellationToken);
-
-            return await _remoteService.TestDatabaseConnection(agent, connectionString, connectionStringPassword, cancellationToken);
-        }
-
-        public async Task<IList<Database>> GetDatabaseList(Guid agentId, String connectionString, String connectionStringPassword, CancellationToken cancellationToken)
-        {
-            var agent = await GetById(agentId, cancellationToken);
-
-            return await _remoteService.GetDatabaseList(agent, connectionString, connectionStringPassword, cancellationToken);
         }
     }
 }

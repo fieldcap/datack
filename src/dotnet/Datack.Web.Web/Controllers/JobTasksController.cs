@@ -17,11 +17,13 @@ namespace Datack.Web.Web.Controllers
     {
         private readonly JobTasks _jobTasks;
         private readonly Agents _agents;
+        private readonly RemoteService _remoteService;
 
-        public JobTasksController(JobTasks jobTasks, Agents agents)
+        public JobTasksController(JobTasks jobTasks, Agents agents, RemoteService remoteService)
         {
             _jobTasks = jobTasks;
             _agents = agents;
+            _remoteService = remoteService;
         }
 
         [HttpGet]
@@ -74,11 +76,43 @@ namespace Datack.Web.Web.Controllers
             return Ok();
         }
 
+        [Route("ReOrder")]
+        [HttpPost]
+        public async Task<ActionResult> ReOrder([FromBody] JobTaskReOrderRequest request, CancellationToken cancellationToken)
+        {
+            await _jobTasks.ReOrder(request.JobId, request.JobTaskIds, cancellationToken);
+
+            return Ok();
+        }
+
+        [HttpPost]
+        [Route("TestDatabaseConnection")]
+        public async Task<ActionResult<String>> TestDatabaseConnection([FromBody] AgentsTestDatabaseConnectionRequest request, CancellationToken cancellationToken)
+        {
+            var agent = await _agents.GetById(request.AgentId, cancellationToken);
+
+            if (agent == null)
+            {
+                throw new Exception($"Agent with ID {request.AgentId} not found");
+            }
+
+            var result = await _remoteService.TestDatabaseConnection(agent, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
+
+            return Ok(result);
+        }
+
         [HttpPost]
         [Route("TestDatabaseRegex")]
         public async Task<ActionResult> TestDatabaseRegex([FromBody] JobTasksTestDatabaseRegexRequest request, CancellationToken cancellationToken)
         {
-            var databases = await _agents.GetDatabaseList(request.AgentId, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
+            var agent = await _agents.GetById(request.AgentId, cancellationToken);
+
+            if (agent == null)
+            {
+                throw new Exception($"Agent with ID {request.AgentId} not found");
+            }
+
+            var databases = await _remoteService.GetDatabaseList(agent, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
 
             var result = DatabaseHelper.FilterDatabases(databases,
                                                         request.BackupDefaultExclude,
@@ -89,16 +123,6 @@ namespace Datack.Web.Web.Controllers
                                                         request.BackupExcludeManual);
 
             return Ok(result);
-        }
-
-        
-        [Route("ReOrder")]
-        [HttpPost]
-        public async Task<ActionResult> ReOrder([FromBody] JobTaskReOrderRequest request, CancellationToken cancellationToken)
-        {
-            await _jobTasks.ReOrder(request.JobId, request.JobTaskIds, cancellationToken);
-
-            return Ok();
         }
     }
 

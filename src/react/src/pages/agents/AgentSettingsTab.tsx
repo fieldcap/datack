@@ -5,9 +5,7 @@ import {
     Button,
     FormControl,
     FormHelperText,
-    FormLabel,
-    Heading,
-    HStack,
+    FormLabel, HStack,
     Input,
     Skeleton,
     Textarea
@@ -88,9 +86,6 @@ const AgentSettingsTab: FC<Props> = (props) => {
                         Only change the key when installing a new agent.
                     </FormHelperText>
                 </FormControl>
-                <Heading size="md" marginBottom={2} marginTop={6}>
-                    Agent settings
-                </Heading>
                 {error != null ? (
                     <Alert marginTop="24px" status="error">
                         <AlertIcon />

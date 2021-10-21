@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
@@ -45,6 +46,15 @@ namespace Datack.Web.Web.Controllers
         [Route("Add")]
         public async Task<ActionResult<Guid>> Add([FromBody] Agent agent, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Select(x => x.Value.Errors)
+                                       .Where(y => y.Count > 0)
+                                       .ToList();
+
+                return BadRequest(errors);
+            }
+
             var result = await _agents.Add(agent, cancellationToken);
 
             return Ok(result);
@@ -54,18 +64,18 @@ namespace Datack.Web.Web.Controllers
         [Route("Update")]
         public async Task<ActionResult> Update([FromBody] Agent agent, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Select(x => x.Value.Errors)
+                                       .Where(y => y.Count > 0)
+                                       .ToList();
+
+                return BadRequest(errors);
+            }
+
             await _agents.Update(agent, cancellationToken);
 
             return Ok();
-        }
-        
-        [HttpPost]
-        [Route("TestDatabaseConnection")]
-        public async Task<ActionResult<String>> TestDatabaseConnection([FromBody] AgentsTestDatabaseConnectionRequest request, CancellationToken cancellationToken)
-        {
-            var result = await _agents.TestDatabaseConnection(request.AgentId, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
-
-            return Ok(result);
         }
     }
 
