@@ -1,14 +1,17 @@
 import {
+    Alert,
+    AlertDescription,
+    AlertIcon,
     Heading,
-    Skeleton,
     Tab,
     TabList,
     TabPanel,
     TabPanels,
     Tabs
 } from '@chakra-ui/react';
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import Agents from '../../services/agents';
@@ -21,48 +24,59 @@ type RouteParams = {
 };
 
 const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [agent, setAgent] = React.useState<Agent | null>(null);
+    const [agent, setAgent] = useState<Agent | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
         const fetchData = async () => {
-            const result = await Agents.getById(
-                props.match.params.id,
-                cancelToken
-            );
-            setAgent(result);
+            setError(null);
+            try {
+                const result = await Agents.getById(
+                    props.match.params.id,
+                    cancelToken
+                );
+                setAgent(result);
+            } catch (err: any) {
+                setError(err);
+            }
         };
         fetchData();
     }, [props.match.params.id, cancelToken]);
 
-    return (
-        <Skeleton isLoaded={agent != null}>
-            {agent != null ? (
-                <>
-                    <Heading marginBottom="24px">{agent?.name}</Heading>
-                    <Tabs>
-                        <TabList>
-                            <Tab>Summary</Tab>
-                            <Tab>Jobs</Tab>
-                            <Tab>Settings</Tab>
-                        </TabList>
+    if (error) {
+        return (
+            <Alert marginTop="24px" status="error">
+                <AlertIcon />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
 
-                        <TabPanels>
-                            <TabPanel>
-                                <AgentSummaryTab agent={agent} />
-                            </TabPanel>
-                            <TabPanel>
-                                <AgentJobList agent={agent} />
-                            </TabPanel>
-                            <TabPanel>
-                                <AgentSettingsTab agent={agent} />
-                            </TabPanel>
-                        </TabPanels>
-                    </Tabs>
-                </>
-            ) : null}
-        </Skeleton>
+    return (
+        <Loader isLoaded={agent != null}>
+            <Heading marginBottom="24px">{agent?.name}</Heading>
+            <Tabs>
+                <TabList>
+                    <Tab>Summary</Tab>
+                    <Tab>Jobs</Tab>
+                    <Tab>Settings</Tab>
+                </TabList>
+
+                <TabPanels>
+                    <TabPanel>
+                        <AgentSummaryTab agent={agent!} />
+                    </TabPanel>
+                    <TabPanel>
+                        <AgentJobList agent={agent!} />
+                    </TabPanel>
+                    <TabPanel>
+                        <AgentSettingsTab agent={agent!} />
+                    </TabPanel>
+                </TabPanels>
+            </Tabs>
+        </Loader>
     );
 };
 

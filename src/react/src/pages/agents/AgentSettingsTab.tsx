@@ -5,12 +5,12 @@ import {
     Button,
     FormControl,
     FormHelperText,
-    FormLabel, HStack,
-    Input,
-    Skeleton,
-    Textarea
+    FormLabel,
+    HStack,
+    Input, Textarea
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
+import Loader from '../../components/loader';
 import { Agent } from '../../models/agent';
 import Agents from '../../services/agents';
 
@@ -55,7 +55,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
     };
 
     return (
-        <Skeleton isLoaded={props.agent != null}>
+        <Loader isLoaded={props.agent != null}>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Agent Name</FormLabel>
@@ -65,6 +65,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
+                    <FormHelperText>A name for the agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
@@ -73,6 +74,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
+                    <FormHelperText>Description for this agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="key" marginBottom={4} isRequired>
                     <FormLabel>Key</FormLabel>
@@ -107,7 +109,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
                     </Button>
                 </HStack>
             </form>
-        </Skeleton>
+        </Loader>
     );
 };
 

@@ -1,8 +1,10 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import {
+    Alert,
+    AlertDescription,
+    AlertIcon,
     Button,
     chakra,
-    Skeleton,
     Table,
     Tbody,
     Td,
@@ -13,6 +15,7 @@ import {
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import { Job } from '../../models/job';
@@ -25,6 +28,7 @@ type Props = {
 const AgentJobList: FC<Props> = (props) => {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const history = useHistory();
 
@@ -32,12 +36,16 @@ const AgentJobList: FC<Props> = (props) => {
 
     useEffect(() => {
         (async () => {
-            const jobs = await Jobs.getForAgent(
-                props.agent.agentId,
-                cancelToken
-            );
-            setJobs(jobs);
-            setIsLoaded(true);
+            try {
+                const jobs = await Jobs.getForAgent(
+                    props.agent.agentId,
+                    cancelToken
+                );
+                setJobs(jobs);
+                setIsLoaded(true);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [props.agent, cancelToken]);
 
@@ -74,8 +82,17 @@ const AgentJobList: FC<Props> = (props) => {
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
         useTable<Job>({ columns, data: jobs }, useSortBy);
 
+    if (error) {
+        return (
+            <Alert marginTop="24px" status="error">
+                <AlertIcon />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
+
     return (
-        <Skeleton isLoaded={isLoaded}>
+        <Loader isLoaded={isLoaded}>
             <Table {...getTableProps()}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
@@ -124,7 +141,7 @@ const AgentJobList: FC<Props> = (props) => {
             <Button marginTop="24px" onClick={handleAddNewJobClick}>
                 Add new job
             </Button>
-        </Skeleton>
+        </Loader>
     );
 };
 
