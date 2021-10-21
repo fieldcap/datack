@@ -52,10 +52,10 @@ namespace Datack.Agent.Services
             _rpcService.OnConnect += (_, _) => Connect();
 
             _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
-            _rpcService.Subscribe<String, String>("GetDatabaseList", (connectionString, password) => GetDatabaseList(connectionString, password));
+            _rpcService.Subscribe<String, String, Boolean>("GetDatabaseList", (connectionString, password, decryptPassword) => GetDatabaseList(connectionString, password, decryptPassword));
             _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
-            _rpcService.Subscribe<String, String>("TestDatabaseConnection", (connectionString, password) => TestDatabaseConnection(connectionString, password));
+            _rpcService.Subscribe<String, String, Boolean>("TestDatabaseConnection", (connectionString, password, decryptPassword) => TestDatabaseConnection(connectionString, password, decryptPassword));
 
             _rpcService.StartAsync(cancellationToken);
 
@@ -87,20 +87,20 @@ namespace Datack.Agent.Services
             return _dataProtector.Encrypt(input);
         }
 
-        private async Task<IList<Database>> GetDatabaseList(String connectionString, String password)
+        private async Task<IList<Database>> GetDatabaseList(String connectionString, String password, Boolean decryptPassword)
         {
             _logger.LogTrace("GetDatabaseList");
 
-            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, true);
+            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 
             return await _databaseAdapter.GetDatabaseList(fullConnectionString, CancellationToken.None);
         }
 
-        private async Task<String> TestDatabaseConnection(String connectionString, String password)
+        private async Task<String> TestDatabaseConnection(String connectionString, String password, Boolean decryptPassword)
         {
             _logger.LogTrace("TestDatabaseConnection");
 
-            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, false);
+            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 
             return await _databaseAdapter.TestConnection(fullConnectionString, CancellationToken.None);
         }

@@ -71,6 +71,11 @@ namespace Datack.Agent.Services
             _requestMethods.Add(methodName, method);
         }
 
+        public void Subscribe<T1, T2, T3>(String methodName, Expression<Func<T1, T2, T3, Task>> method)
+        {
+            _requestMethods.Add(methodName, method);
+        }
+
         private Task Connect(CancellationToken cancellationToken)
         {
             _ = Task.Run(async () =>

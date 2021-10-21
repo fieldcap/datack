@@ -10,7 +10,7 @@ using Datack.Web.Service.Services;
 namespace Datack.Web.Service.Tasks
 {
     /// <summary>
-    /// This task backs up databases based on the parameters given.
+    ///     This task backs up databases based on the parameters given.
     /// </summary>
     public class CreateBackupTask : IBaseTask
     {
@@ -23,9 +23,13 @@ namespace Datack.Web.Service.Tasks
 
         public async Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, Guid jobRunId, CancellationToken cancellationToken)
         {
-            var allDatabases = await _remoteService.GetDatabaseList(jobTask.Agent, jobTask.Settings.CreateBackup.ConnectionString, jobTask.Settings.CreateBackup.ConnectionStringPassword, cancellationToken);
+            var allDatabases = await _remoteService.GetDatabaseList(jobTask.Agent,
+                                                                    jobTask.Settings.CreateBackup.ConnectionString,
+                                                                    jobTask.Settings.CreateBackup.ConnectionStringPassword,
+                                                                    true,
+                                                                    cancellationToken);
 
-            var filteredDatabases = DatabaseHelper.FilterDatabases(allDatabases, 
+            var filteredDatabases = DatabaseHelper.FilterDatabases(allDatabases,
                                                                    jobTask.Settings.CreateBackup.BackupDefaultExclude,
                                                                    jobTask.Settings.CreateBackup.BackupExcludeSystemDatabases,
                                                                    jobTask.Settings.CreateBackup.BackupIncludeRegex,

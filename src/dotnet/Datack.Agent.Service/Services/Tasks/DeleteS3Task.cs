@@ -53,7 +53,7 @@ namespace Datack.Agent.Services.Tasks
 
                 var tokenValues = new
                 {
-                    DatabaseName = jobRunTask.ItemName
+                    ItemName = jobRunTask.ItemName
                 };
 
                 keyPath = keyPath.FormatToken(tokenValues);

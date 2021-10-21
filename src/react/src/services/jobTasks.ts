@@ -74,6 +74,9 @@ export namespace JobTasks {
         backupIncludeManual: string,
         backupExcludeManual: string,
         agentId: string,
+        jobTaskId: string,
+        connectionString: string,
+        connectionStringPassword: string | null,
         cancelToken: CancelTokenSource
     ): Promise<DatabaseListTestResult[]> => {
         const config = { cancelToken: cancelToken.token };
@@ -87,6 +90,9 @@ export namespace JobTasks {
                 backupIncludeManual,
                 backupExcludeManual,
                 agentId,
+                jobTaskId,
+                connectionString,
+                connectionStringPassword,
             },
             config
         );
@@ -95,7 +101,9 @@ export namespace JobTasks {
 
     export const testDatabaseConnection = async (
         agentId: string,
+        jobTaskId: string,
         connectionString: string,
+        connectionStringPassword: string | null,
         cancelToken: CancelTokenSource
     ): Promise<string> => {
         const config = { cancelToken: cancelToken.token };
@@ -103,7 +111,9 @@ export namespace JobTasks {
             `/api/JobTasks/TestDatabaseConnection/`,
             {
                 agentId,
+                jobTaskId,
                 connectionString,
+                connectionStringPassword,
             },
             config
         );

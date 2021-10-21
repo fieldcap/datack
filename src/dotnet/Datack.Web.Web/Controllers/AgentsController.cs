@@ -87,11 +87,4 @@ namespace Datack.Web.Web.Controllers
             return Ok();
         }
     }
-
-    public class AgentsTestDatabaseConnectionRequest
-    {
-        public Guid AgentId { get; set; }
-        public String ConnectionString { get; set; }
-        public String ConnectionStringPassword { get; set; }
-    }
 }

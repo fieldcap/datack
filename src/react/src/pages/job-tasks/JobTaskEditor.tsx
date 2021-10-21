@@ -171,6 +171,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     <JobTaskCreateBackup
                         settings={settings.createBackup}
                         agentId={agentId}
+                        jobTaskId={jobTask!.jobTaskId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
                                 createBackup: newSettings,
@@ -190,7 +191,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskCompress>
                 );
-            case 'delete':
+            case 'deleteFile':
                 return (
                     <JobTaskDeleteFile
                         settings={settings.deleteFile}
@@ -202,7 +203,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskDeleteFile>
                 );
-            case 'delete_s3':
+            case 'deleteS3':
                 return (
                     <JobTaskDeleteS3
                         settings={settings.deleteS3}
@@ -214,7 +215,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskDeleteS3>
                 );
-            case 'upload_s3':
+            case 'uploadS3':
                 return (
                     <JobTaskUploadS3
                         settings={settings.uploadS3}
@@ -226,7 +227,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         }}
                     ></JobTaskUploadS3>
                 );
-            case 'upload_azure':
+            case 'uploadAzure':
                 return (
                     <JobTaskUploadAzure
                         settings={settings.uploadAzure}

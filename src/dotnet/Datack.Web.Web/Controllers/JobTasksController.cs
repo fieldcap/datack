@@ -115,7 +115,17 @@ namespace Datack.Web.Web.Controllers
                 throw new Exception($"Agent with ID {request.AgentId} not found");
             }
 
-            var result = await _remoteService.TestDatabaseConnection(agent, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
+            var password = request.ConnectionStringPassword;
+            var decryptPassword = false;
+            if (request.ConnectionStringPassword == "******")
+            {
+                var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
+
+                password = jobTask.Settings.CreateBackup.ConnectionStringPassword;
+                decryptPassword = true;
+            }
+
+            var result = await _remoteService.TestDatabaseConnection(agent, request.ConnectionString, password, decryptPassword, cancellationToken);
 
             return Ok(result);
         }
@@ -136,7 +146,17 @@ namespace Datack.Web.Web.Controllers
                 return Ok(new List<DatabaseTestResult>());
             }
 
-            var databases = await _remoteService.GetDatabaseList(agent, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);
+            var password = request.ConnectionStringPassword;
+            var decryptPassword = false;
+            if (request.ConnectionStringPassword == "******")
+            {
+                var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
+
+                password = jobTask.Settings.CreateBackup.ConnectionStringPassword;
+                decryptPassword = true;
+            }
+
+            var databases = await _remoteService.GetDatabaseList(agent, request.ConnectionString, password, decryptPassword, cancellationToken);
 
             var result = DatabaseHelper.FilterDatabases(databases,
                                                         request.BackupDefaultExclude,
@@ -150,6 +170,14 @@ namespace Datack.Web.Web.Controllers
         }
     }
 
+    public class AgentsTestDatabaseConnectionRequest
+    {
+        public Guid AgentId { get; set; }
+        public Guid JobTaskId { get; set; }
+        public String ConnectionString { get; set; }
+        public String ConnectionStringPassword { get; set; }
+    }
+
     public class JobTasksTestDatabaseRegexRequest
     {
         public Boolean BackupDefaultExclude { get; set; }
@@ -159,6 +187,7 @@ namespace Datack.Web.Web.Controllers
         public String BackupIncludeManual { get; set; }
         public String BackupExcludeManual { get; set; }
         public Guid AgentId { get; set; }
+        public Guid JobTaskId { get; set; }
         public String ConnectionString { get; set; }
         public String ConnectionStringPassword { get; set; }
     }

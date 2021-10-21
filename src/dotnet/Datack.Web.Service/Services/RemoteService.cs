@@ -20,14 +20,14 @@ namespace Datack.Web.Service.Services
             _hub = hub;
         }
 
-        public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String password, CancellationToken cancellationToken)
+        public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
         {
-            return await Send<String>(agent.Key, "TestDatabaseConnection", cancellationToken, connectionString, password);
+            return await Send<String>(agent.Key, "TestDatabaseConnection", cancellationToken, connectionString, password, decryptPassword);
         }
         
-        public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String password, CancellationToken cancellationToken)
+        public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
         {
-            return await Send<List<Database>>(agent.Key, "GetDatabaseList", cancellationToken, connectionString, password);
+            return await Send<List<Database>>(agent.Key, "GetDatabaseList", cancellationToken, connectionString, password, decryptPassword);
         }
         
         public async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)

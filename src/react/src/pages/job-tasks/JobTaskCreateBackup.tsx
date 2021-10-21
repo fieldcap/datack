@@ -1,13 +1,21 @@
 import {
+    Alert,
+    AlertDescription,
+    AlertIcon,
+    Box,
+    Button,
     Checkbox,
     CheckboxGroup,
     FormControl,
+    FormHelperText,
     FormLabel,
+    Heading,
     Input,
     Select,
     Table,
     Tbody,
     Td,
+    Text,
     Thead,
     Tr,
     VStack
@@ -21,6 +29,7 @@ import JobTasks from '../../services/jobTasks';
 
 type Props = {
     agentId: string;
+    jobTaskId: string;
     settings: JobTaskCreateDatabaseSettings | undefined | null;
     onSettingsChanged: (settings: JobTaskCreateDatabaseSettings) => void;
 };
@@ -47,6 +56,8 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 backupIncludeRegex: '',
                 backupIncludeManual: '',
                 backupExcludeManual: '',
+                connectionString: '',
+                connectionStringPassword: null,
             });
         }
     }, [props.settings, onSettingsChanged]);
@@ -65,6 +76,9 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 props.settings!.backupIncludeManual,
                 props.settings!.backupExcludeManual,
                 props.agentId,
+                props.jobTaskId,
+                props.settings!.connectionString,
+                props.settings!.connectionStringPassword,
                 cancelToken
             );
             setTestResult(result);
@@ -80,19 +94,26 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.agentId,
     ]);
 
-    const handleTestConnection = async (event: React.FormEvent<HTMLButtonElement>) => {
+    const handleTestDatabaseConnection = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsTesting(true);
         setTestingError(null);
         setTestingSuccess(null);
 
         try {
-            /*const testResult = await Agents.testDatabaseConnection(
-                newAgent.agentId,
-                connectionString
+            const testResult = await JobTasks.testDatabaseConnection(
+                props.agentId,
+                props.jobTaskId,
+                props.settings!.connectionString,
+                props.settings!.connectionStringPassword,
+                cancelToken
             );
 
-            setTestingSuccess(testResult);*/
+            if (testResult !== 'Success') {
+                setTestingError(testResult);
+            } else {
+                setTestingSuccess(testResult);
+            }
         } catch (err: any) {
             setTestingError(err);
         }
@@ -136,6 +157,26 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.onSettingsChanged({
             ...props.settings,
             backupExcludeSystemDatabases: checked,
+        });
+    };
+
+    const handleConnectionStringChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            connectionString: value,
+        });
+    };
+
+    const handleConnectionStringPasswordChanged = (value: string) => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            connectionStringPassword: value,
         });
     };
 
@@ -280,6 +321,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                     <option value="Transaction">Transaction</option>
                     <option value="Log">Log</option>
                 </Select>
+                <FormHelperText>The type of backup that will be made of the database.</FormHelperText>
             </FormControl>
             <FormControl id="fileName" marginBottom={4}>
                 <FormLabel>File name</FormLabel>
@@ -288,7 +330,72 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                     value={props.settings?.fileName || ''}
                     onChange={(evt) => handleFilenameChanged(evt.target.value)}
                 ></Input>
+                <FormHelperText>
+                    The full file path to write the backup to. The following tokens are supported:
+                    <br />
+                    &#123;ItemName&#125; The item name of the job task
+                    <br />
+                    &#123;0:yyyyMMddHHmm&#125; The date and time of the start date of the job task
+                    <br />
+                    Example:
+                    <br />
+                    C:\Temp\Backups\&#123;ItemName&#125;\&#123;ItemName&#125;-&#123;0:yyyyMMddHHmm&#125;-Full.bak
+                </FormHelperText>
             </FormControl>
+            <Heading size="md" marginBottom={4}>
+                Database Connection
+            </Heading>
+            <FormControl id="databaseConnectionString" marginBottom={4}>
+                <FormLabel>Database Connection String</FormLabel>
+                <Input
+                    type="text"
+                    value={props.settings?.connectionString || ''}
+                    onChange={(evt) => handleConnectionStringChanged(evt.target.value)}
+                ></Input>
+                <FormHelperText>
+                    The connection string to connect to the database. When adding the token &#123;Password&#125; it will
+                    be replaced with the password below.
+                    <br />
+                    Example: <br />
+                    Data Source=127.0.0.1;Persist Security Info=True;User
+                    Id=Backup;Password=&#123;Password&#125;;Connect Timeout=30;
+                </FormHelperText>
+            </FormControl>
+            <FormControl id="databaseConnectionStringPassword" marginBottom={4}>
+                <FormLabel>Database Connection String Password</FormLabel>
+                <Input
+                    type="password"
+                    value={props.settings?.connectionStringPassword || ''}
+                    onChange={(evt) => handleConnectionStringPasswordChanged(evt.target.value)}
+                ></Input>
+                <FormHelperText>
+                    The password token value for the connection string. Is stored encrypted.
+                </FormHelperText>
+            </FormControl>
+            <Box marginBottom={4}>
+                <Button onClick={handleTestDatabaseConnection} isLoading={isTesting}>
+                    Test database connection
+                </Button>
+                {testingError != null ? (
+                    <Alert marginTop="24px" status="error">
+                        <AlertIcon />
+                        <AlertDescription>{testingError}</AlertDescription>
+                    </Alert>
+                ) : null}
+                {testingSuccess != null ? (
+                    <Alert marginTop="24px" status="success">
+                        <AlertIcon />
+                        <AlertDescription>{testingSuccess}</AlertDescription>
+                    </Alert>
+                ) : null}
+            </Box>
+            <Heading size="md" marginBottom={4}>
+                Item generation settings
+            </Heading>
+            <Text marginBottom={4}>
+                The following settings determine for which databases a backup is created. Each backup will result in a
+                separate job run task. The artifact of the task will be the filename specified above.
+            </Text>
             <FormControl id="backupDefaultExclude" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.backupDefaultExclude}

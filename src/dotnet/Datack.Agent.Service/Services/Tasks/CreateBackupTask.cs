@@ -42,7 +42,7 @@ namespace Datack.Agent.Services.Tasks
 
                 var tokenValues = new
                 {
-                    DatabaseName = jobRunTask.ItemName
+                    ItemName = jobRunTask.ItemName
                 };
 
                 var rawFileName = Path.GetFileName(jobRunTask.Settings.CreateBackup.FileName);
