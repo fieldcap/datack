@@ -30,7 +30,7 @@ import Agents from '../../services/agents';
 import JobTasks from '../../services/jobTasks';
 import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
-import JobTaskDelete from './JobTaskDelete';
+import JobTaskDeleteFile from './JobTaskDeleteFile';
 import JobTaskDeleteS3 from './JobTaskDeleteS3';
 import JobTaskUploadAzure from './JobTaskUploadAzure';
 import JobTaskUploadS3 from './JobTaskUploadS3';
@@ -173,7 +173,6 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
-                                ...settings,
                                 createBackup: newSettings,
                             });
                         }}
@@ -186,7 +185,6 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
-                                ...settings,
                                 compress: newSettings,
                             });
                         }}
@@ -194,16 +192,15 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 );
             case 'delete':
                 return (
-                    <JobTaskDelete
-                        settings={settings.delete}
+                    <JobTaskDeleteFile
+                        settings={settings.deleteFile}
                         agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
-                                ...settings,
-                                delete: newSettings,
+                                deleteFile: newSettings,
                             });
                         }}
-                    ></JobTaskDelete>
+                    ></JobTaskDeleteFile>
                 );
             case 'delete_s3':
                 return (
@@ -212,7 +209,6 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
-                                ...settings,
                                 deleteS3: newSettings,
                             });
                         }}
@@ -225,7 +221,6 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         agentId={agentId}
                         onSettingsChanged={(newSettings) => {
                             setSettings({
-                                ...settings,
                                 uploadS3: newSettings,
                             });
                         }}

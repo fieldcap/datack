@@ -8,7 +8,7 @@ type Props = {
     onSettingsChanged: (settings: JobTaskDeleteSettings) => void;
 };
 
-const JobTaskDelete: FC<Props> = (props) => {
+const JobTaskDeleteFile: FC<Props> = (props) => {
     const { onSettingsChanged } = props;
 
     useEffect(() => {
@@ -42,4 +42,4 @@ const JobTaskDelete: FC<Props> = (props) => {
     );
 };
 
-export default JobTaskDelete;
+export default JobTaskDeleteFile;

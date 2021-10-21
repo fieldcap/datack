@@ -20,10 +20,10 @@ export type JobTask = {
 export type JobTaskSettings = {
     createBackup?: JobTaskCreateDatabaseSettings;
     compress?: JobTaskCompressSettings;
+    deleteFile?: JobTaskDeleteSettings;
     deleteS3?: JobTaskDeleteS3Settings;
-    delete?: JobTaskDeleteSettings;
-    uploadS3?: JobTaskUploadS3Settings;
     uploadAzure?: JobTaskUploadAzureSettings;
+    uploadS3?: JobTaskUploadS3Settings;
 };
 
 export type JobTaskCreateDatabaseSettings = {
