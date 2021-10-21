@@ -101,5 +101,14 @@ namespace Datack.Web.Data.Repositories
 
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task DeleteForJob(Guid jobId, CancellationToken cancellationToken)
+        {
+            var jobTasks = await _dataContext.JobTasks.Where(m => m.JobId == jobId).ToListAsync(cancellationToken);
+
+            _dataContext.JobTasks.RemoveRange(jobTasks);
+
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

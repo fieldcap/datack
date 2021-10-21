@@ -62,9 +62,9 @@ namespace Datack.Web.Service.Services
             await _jobRunRepository.UpdateStop(jobRunId, cancellationToken);
         }
 
-        public async Task Delete(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
+        public async Task DeleteForJob(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
         {
-            await _jobRunRepository.Delete(jobId, keepDays, cancellationToken);
+            await _jobRunRepository.DeleteForJob(jobId, keepDays, cancellationToken);
         }
     }
 }

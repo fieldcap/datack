@@ -123,7 +123,7 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task Delete(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
+        public async Task DeleteForJob(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
         {
             var fromDate = DateTimeOffset.Now.AddDays(-keepDays);
 

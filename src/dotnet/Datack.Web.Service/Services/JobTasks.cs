@@ -106,5 +106,10 @@ namespace Datack.Web.Service.Services
                 }
             }
         }
+
+        public async Task DeleteForJob(Guid jobId, CancellationToken cancellationToken)
+        {
+            await _jobTaskRepository.DeleteForJob(jobId, cancellationToken);
+        }
     }
 }

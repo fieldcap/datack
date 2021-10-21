@@ -17,12 +17,14 @@ namespace Datack.Web.Web.Controllers
         private readonly Jobs _jobs;
         private readonly JobRuns _jobRuns;
         private readonly JobRunner _jobRunner;
+        private readonly JobTasks _jobTasks;
 
-        public JobsController(Jobs jobs, JobRuns jobRuns, JobRunner jobRunner)
+        public JobsController(Jobs jobs, JobRuns jobRuns, JobRunner jobRunner, JobTasks jobTasks)
         {
             _jobs = jobs;
             _jobRuns = jobRuns;
             _jobRunner = jobRunner;
+            _jobTasks = jobTasks;
         }
 
         [HttpGet]
@@ -104,7 +106,8 @@ namespace Datack.Web.Web.Controllers
         [Route("Delete/{jobId:guid}")]
         public async Task<ActionResult<Job>> Delete(Guid jobId, CancellationToken cancellationToken)
         {
-            await _jobRuns.Delete(jobId, -1, cancellationToken);
+            await _jobRuns.DeleteForJob(jobId, -1, cancellationToken);
+            await _jobTasks.DeleteForJob(jobId, cancellationToken);
             await _jobs.Delete(jobId, cancellationToken);
 
             return Ok();
@@ -120,7 +123,7 @@ namespace Datack.Web.Web.Controllers
             
             return Ok(new
             {
-                resultFull = description, next
+                description, next
             });
         }
 
