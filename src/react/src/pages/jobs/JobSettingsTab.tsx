@@ -37,17 +37,15 @@ type Props = {
 
 const JobSettingsTab: FC<Props> = (props) => {
     const [name, setName] = useState<string>(props.job?.name ?? '');
-    const [description, setDescription] = useState<string>(
-        props.job?.description ?? ''
-    );
+    const [description, setDescription] = useState<string>(props.job?.description ?? '');
     const [group, setGroup] = useState<string>(props.job?.group ?? '');
     const [priority, setPriority] = useState<number>(props.job?.priority ?? 0);
-    const [deleteLogsTimeSpanAmount, setDeleteLogsTimeSpanAmount] = useState<
-        number | null
-    >(props.job?.deleteLogsTimeSpanAmount ?? null);
-    const [deleteLogsTimeSpanType, setDeleteLogsTimeSpanType] = useState<
-        string | null
-    >(props.job?.deleteLogsTimeSpanType ?? null);
+    const [deleteLogsTimeSpanAmount, setDeleteLogsTimeSpanAmount] = useState<number | null>(
+        props.job?.deleteLogsTimeSpanAmount ?? null
+    );
+    const [deleteLogsTimeSpanType, setDeleteLogsTimeSpanType] = useState<string | null>(
+        props.job?.deleteLogsTimeSpanType ?? null
+    );
     const [cron, setCron] = useState<string>(props.job?.cron ?? '');
     const [cronOccurrences, setCronOccurrences] = useState<Date[]>([]);
     const [settings, setSettings] = useState<JobSettings | null>(null);
@@ -164,38 +162,22 @@ const JobSettingsTab: FC<Props> = (props) => {
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Job Name</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={100}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input type="text" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
                     <FormHelperText>The name of the job.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
-                    <Textarea
-                        lines={4}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
+                    <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
                     <FormHelperText>A description for this job.</FormHelperText>
                 </FormControl>
                 <FormControl id="group" marginBottom={4}>
                     <FormLabel>Job Group</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={100}
-                        value={group}
-                        onChange={(e) => setGroup(e.target.value)}
-                    />
+                    <Input type="text" maxLength={100} value={group} onChange={(e) => setGroup(e.target.value)} />
                     <FormHelperText>
-                        The group for this job. When multiple jobs in the same
-                        group try to execute at the same time, only the job with
-                        the highest priority will start.
+                        The group for this job. When multiple jobs in the same group try to execute at the same time,
+                        only the job with the highest priority will start.
                         <br />
-                        Only a single job in the same group can be running at
-                        the same time.
+                        Only a single job in the same group can be running at the same time.
                     </FormHelperText>
                 </FormControl>
                 <FormControl id="priority" marginBottom={4}>
@@ -207,9 +189,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                         value={priority}
                         onChange={(e) => setPriority(+e.target.value)}
                     />
-                    <FormHelperText>
-                        The priority of this job within the group.
-                    </FormHelperText>
+                    <FormHelperText>The priority of this job within the group.</FormHelperText>
                 </FormControl>
 
                 <FormControl id="timeSpan1" marginBottom={4}>
@@ -222,15 +202,10 @@ const JobSettingsTab: FC<Props> = (props) => {
                             step="1"
                             value={deleteLogsTimeSpanAmount || ''}
                             onChange={(evt) => {
-                                if (
-                                    evt.target.value == null ||
-                                    evt.target.value === ''
-                                ) {
+                                if (evt.target.value == null || evt.target.value === '') {
                                     setDeleteLogsTimeSpanAmount(null);
                                 } else {
-                                    setDeleteLogsTimeSpanAmount(
-                                        +evt.target.value
-                                    );
+                                    setDeleteLogsTimeSpanAmount(+evt.target.value);
                                 }
                             }}
                             marginBottom="12px"
@@ -262,11 +237,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                     />
                     <FormHelperText>
                         The schedule based on cron expressions. Use{' '}
-                        <a
-                            href="https://crontab.guru/"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
+                        <a href="https://crontab.guru/" target="_blank" rel="noreferrer">
                             https://crontab.guru/
                         </a>{' '}
                         as a cheat sheet.
@@ -275,15 +246,9 @@ const JobSettingsTab: FC<Props> = (props) => {
                 </FormControl>
 
                 <FormLabel>Occurrences for next 2 weeks</FormLabel>
-                <UnorderedList
-                    overflowY="auto"
-                    maxHeight="300px"
-                    marginBottom={4}
-                >
+                <UnorderedList overflowY="auto" maxHeight="300px" marginBottom={4}>
                     {cronOccurrences.map((m) => (
-                        <ListItem key={m.toISOString()}>
-                            {format(m, 'd MMMM yyyy HH:mm')}
-                        </ListItem>
+                        <ListItem key={m.toISOString()}>{format(m, 'd MMMM yyyy HH:mm')}</ListItem>
                     ))}
                 </UnorderedList>
 
@@ -327,8 +292,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                         }}
                     />
                     <FormHelperText>
-                        The recipient of the emails sent for this job, can be
-                        comma separated for multiple recipients.
+                        The recipient of the emails sent for this job, can be comma separated for multiple recipients.
                     </FormHelperText>
                 </FormControl>
 
@@ -339,61 +303,38 @@ const JobSettingsTab: FC<Props> = (props) => {
                     </Alert>
                 ) : null}
                 <HStack>
-                    <Button
-                        onClick={(evt) => handleSave(evt)}
-                        isLoading={isSaving}
-                    >
+                    <Button onClick={(evt) => handleSave(evt)} isLoading={isSaving}>
                         Save
                     </Button>
                     {occurrencesMax < cronOccurrences.length ? (
-                        <Button onClick={() => handleMoreOccurrences()}>
-                            Show more occurrences
-                        </Button>
+                        <Button onClick={() => handleMoreOccurrences()}>Show more occurrences</Button>
                     ) : null}
-                    <Button
-                        onClick={() => handleDuplicate()}
-                        isLoading={isSaving}
-                        colorScheme="blue"
-                    >
+                    <Button onClick={() => handleDuplicate()} isLoading={isSaving} colorScheme="blue">
                         Duplicate
                     </Button>
-                    <Button
-                        onClick={handleDeleteJob}
-                        isLoading={isSaving}
-                        colorScheme="red"
-                    >
+                    <Button onClick={handleDeleteJob} isLoading={isSaving} colorScheme="red">
                         Delete
                     </Button>
                 </HStack>
             </form>
-            <Modal
-                isOpen={showDeleteModal}
-                onClose={handleDeleteCancel}
-                size="lg"
-            >
+            <Modal isOpen={showDeleteModal} onClose={handleDeleteCancel} size="lg">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Delete job</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <p>
-                            When deleting this job, all tasks, runs and logs
-                            will be deleted associated with this job.
+                            When deleting this job, all tasks, runs and logs will be deleted associated with this job.
                         </p>
                         <p>Are you sure you want to delete this job?</p>
                     </ModalBody>
 
                     <ModalFooter>
                         <HStack>
-                            <Button
-                                onClick={() => handleDeleteOk()}
-                                colorScheme="red"
-                            >
+                            <Button onClick={() => handleDeleteOk()} colorScheme="red">
                                 Delete
                             </Button>
-                            <Button onClick={() => handleDeleteCancel()}>
-                                Cancel
-                            </Button>
+                            <Button onClick={() => handleDeleteCancel()}>Cancel</Button>
                         </HStack>
                     </ModalFooter>
                 </ModalContent>

@@ -1,11 +1,4 @@
-import {
-    Heading,
-    Tab,
-    TabList,
-    TabPanel,
-    TabPanels,
-    Tabs
-} from '@chakra-ui/react';
+import { Heading, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import Loader from '../../components/loader';
@@ -30,10 +23,7 @@ const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         const fetchData = async () => {
             setError(null);
             try {
-                const result = await Agents.getById(
-                    props.match.params.id,
-                    cancelToken
-                );
+                const result = await Agents.getById(props.match.params.id, cancelToken);
                 setAgent(result);
             } catch (err: any) {
                 setError(err);

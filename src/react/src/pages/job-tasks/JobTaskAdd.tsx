@@ -31,9 +31,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [type, setType] = useState<string>('');
-    const [agentId, setAgentId] = useState<string>(
-        '00000000-0000-0000-0000-000000000000'
-    );
+    const [agentId, setAgentId] = useState<string>('00000000-0000-0000-0000-000000000000');
 
     const [agents, setAgents] = useState<Agent[]>([]);
 
@@ -75,9 +73,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
 
             const result = await JobTasks.add(newJobTask, cancelToken);
 
-            history.push(
-                `/job/${props.match.params.jobId}/task/${result.jobTaskId}`
-            );
+            history.push(`/job/${props.match.params.jobId}/task/${result.jobTaskId}`);
         } catch (err: any) {
             setError(err);
         }
@@ -96,67 +92,34 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Task Name</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={100}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input type="text" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
                     <FormHelperText>The name of the task.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
-                    <Textarea
-                        lines={4}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                    <FormHelperText>
-                        A description of what the task does.
-                    </FormHelperText>
+                    <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+                    <FormHelperText>A description of what the task does.</FormHelperText>
                 </FormControl>
                 <FormControl id="agentId" isRequired marginBottom={4}>
                     <FormLabel>Agent</FormLabel>
-                    <Select
-                        placeholder="Select an agent"
-                        value={agentId}
-                        onChange={(e) => setAgentId(e.target.value)}
-                    >
+                    <Select placeholder="Select an agent" value={agentId} onChange={(e) => setAgentId(e.target.value)}>
                         {agents.map((agent) => (
                             <option value={agent.agentId} key={agent.agentId}>
                                 {agent.name}
                             </option>
                         ))}
                     </Select>
-                    <FormHelperText>
-                        The agent this task should execute on.
-                    </FormHelperText>
+                    <FormHelperText>The agent this task should execute on.</FormHelperText>
                 </FormControl>
                 <FormControl id="type" isRequired marginBottom={4}>
                     <FormLabel>Type</FormLabel>
-                    <Select
-                        placeholder="Select a type"
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                    >
-                        <option value="createBackup">
-                            {JobTasks.map('createBackup')}
-                        </option>
-                        <option value="compress">
-                            {JobTasks.map('compress')}
-                        </option>
-                        <option value="deleteFile">
-                            {JobTasks.map('deleteFile')}
-                        </option>
-                        <option value="deleteS3">
-                            {JobTasks.map('deleteS3')}
-                        </option>
-                        <option value="uploadAzure">
-                            {JobTasks.map('uploadAzure')}
-                        </option>
-                        <option value="uploadS3">
-                            {JobTasks.map('uploadS3')}
-                        </option>
+                    <Select placeholder="Select a type" value={type} onChange={(e) => setType(e.target.value)}>
+                        <option value="createBackup">{JobTasks.map('createBackup')}</option>
+                        <option value="compress">{JobTasks.map('compress')}</option>
+                        <option value="deleteFile">{JobTasks.map('deleteFile')}</option>
+                        <option value="deleteS3">{JobTasks.map('deleteS3')}</option>
+                        <option value="uploadAzure">{JobTasks.map('uploadAzure')}</option>
+                        <option value="uploadS3">{JobTasks.map('uploadS3')}</option>
                     </Select>
                     <FormHelperText>The type of the task.</FormHelperText>
                 </FormControl>
@@ -170,11 +133,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                     <Button onClick={() => save()} isLoading={isSaving}>
                         Add task
                     </Button>
-                    <Button
-                        onClick={() => cancel()}
-                        isLoading={isSaving}
-                        variant="outline"
-                    >
+                    <Button onClick={() => cancel()} isLoading={isSaving} variant="outline">
                         Cancel
                     </Button>
                 </HStack>

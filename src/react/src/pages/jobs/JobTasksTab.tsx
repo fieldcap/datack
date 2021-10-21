@@ -1,25 +1,7 @@
-import {
-    ArrowUpDownIcon,
-    TriangleDownIcon,
-    TriangleUpIcon
-} from '@chakra-ui/icons';
-import {
-    Button,
-    chakra,
-    Table,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr
-} from '@chakra-ui/react';
+import { ArrowUpDownIcon, TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
+import { Button, chakra, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import {
-    DragDropContext,
-    Draggable,
-    Droppable,
-    DropResult
-} from 'react-beautiful-dnd';
+import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
 import { useHistory } from 'react-router-dom';
 import { Column, useExpanded, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
@@ -51,10 +33,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
                 setJobTasks([]);
                 setIsLoaded(false);
                 setError(null);
-                const result = await JobTasks.getForJob(
-                    props.job!.jobId,
-                    cancelToken
-                );
+                const result = await JobTasks.getForJob(props.job!.jobId, cancelToken);
                 setJobTasks(result);
                 setIsLoaded(true);
             } catch (err: any) {
@@ -105,8 +84,11 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
         return columns;
     }, []);
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<JobTask>({ columns, data: jobTasks }, useSortBy, useExpanded);
+    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<JobTask>(
+        { columns, data: jobTasks },
+        useSortBy,
+        useExpanded
+    );
 
     const handleDragEnd = async (result: DropResult) => {
         const { source, destination } = result;
@@ -132,11 +114,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map((column) => (
-                                <Th
-                                    {...column.getHeaderProps(
-                                        column.getSortByToggleProps()
-                                    )}
-                                >
+                                <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
                                     {column.render('Header')}
                                     <chakra.span pl="4">
                                         {column.isSorted ? (
@@ -155,11 +133,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
                 <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId="table-body">
                         {(provided, snapshot) => (
-                            <Tbody
-                                {...getTableBodyProps()}
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}
-                            >
+                            <Tbody {...getTableBodyProps()} {...provided.droppableProps} ref={provided.innerRef}>
                                 {rows.map((row) => {
                                     prepareRow(row);
                                     return (
@@ -175,41 +149,21 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
                                                         {...provided.draggableProps}
                                                         ref={provided.innerRef}
                                                     >
-                                                        {row.cells.map(
-                                                            (cell, index) => (
-                                                                <Td
-                                                                    onClick={() =>
-                                                                        rowClick(
-                                                                            cell
-                                                                                .row
-                                                                                .original
-                                                                                .jobTaskId
-                                                                        )
-                                                                    }
-                                                                    {...cell.getCellProps(
-                                                                        {
-                                                                            style: {
-                                                                                cursor:
-                                                                                    index >
-                                                                                    0
-                                                                                        ? 'pointer'
-                                                                                        : 'move',
-                                                                            },
-                                                                        }
-                                                                    )}
-                                                                >
-                                                                    {cell.render(
-                                                                        'Cell',
-                                                                        {
-                                                                            dragHandleProps:
-                                                                                provided.dragHandleProps,
-                                                                            isSomethingDragging:
-                                                                                snapshot.isDragging,
-                                                                        }
-                                                                    )}
-                                                                </Td>
-                                                            )
-                                                        )}
+                                                        {row.cells.map((cell, index) => (
+                                                            <Td
+                                                                onClick={() => rowClick(cell.row.original.jobTaskId)}
+                                                                {...cell.getCellProps({
+                                                                    style: {
+                                                                        cursor: index > 0 ? 'pointer' : 'move',
+                                                                    },
+                                                                })}
+                                                            >
+                                                                {cell.render('Cell', {
+                                                                    dragHandleProps: provided.dragHandleProps,
+                                                                    isSomethingDragging: snapshot.isDragging,
+                                                                })}
+                                                            </Td>
+                                                        ))}
                                                     </Tr>
                                                 );
                                             }}

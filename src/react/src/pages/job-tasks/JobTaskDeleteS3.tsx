@@ -1,12 +1,4 @@
-import {
-    FormControl,
-    FormLabel,
-    Input,
-    Radio,
-    RadioGroup,
-    Select,
-    Stack
-} from '@chakra-ui/react';
+import { FormControl, FormLabel, Input, Radio, RadioGroup, Select, Stack } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
 import { JobTaskDeleteS3Settings } from '../../models/job-task';
 
@@ -118,22 +110,15 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         <>
             <FormControl id="region" marginBottom={4}>
                 <FormLabel>Region</FormLabel>
-                <Select
-                    value={props.settings?.region || ''}
-                    onChange={(e) => handleRegionChanged(e.target.value)}
-                >
+                <Select value={props.settings?.region || ''} onChange={(e) => handleRegionChanged(e.target.value)}>
                     <option value="af-south-1">Africa (Cape Town)</option>
                     <option value="ap-east-1">Asia Pacific (Hong Kong)</option>
                     <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
                     <option value="ap-northeast-2">Asia Pacific (Seoul)</option>
                     <option value="ap-northeast-3">Asia Pacific (Osaka)</option>
                     <option value="ap-south-1">Asia Pacific (Mumbai)</option>
-                    <option value="ap-southeast-1">
-                        Asia Pacific (Singapore)
-                    </option>
-                    <option value="ap-southeast-2">
-                        Asia Pacific (Sydney)
-                    </option>
+                    <option value="ap-southeast-1">Asia Pacific (Singapore)</option>
+                    <option value="ap-southeast-2">Asia Pacific (Sydney)</option>
                     <option value="ca-central-1">Canada (Central)</option>
                     <option value="eu-central-1">Europe (Frankfurt)</option>
                     <option value="eu-north-1">Europe (Stockholm)</option>
@@ -149,12 +134,8 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     <option value="us-west-2">US West (Oregon)</option>
                     <option value="cn-north-1">China (Beijing)</option>
                     <option value="cn-northwest-1">China (Ningxia)</option>
-                    <option value="us-gov-east-1">
-                        AWS GovCloud (US-East)
-                    </option>
-                    <option value="us-gov-west-1">
-                        AWS GovCloud (US-West)
-                    </option>
+                    <option value="us-gov-east-1">AWS GovCloud (US-East)</option>
+                    <option value="us-gov-west-1">AWS GovCloud (US-West)</option>
                     <option value="us-iso-east-1">US ISO East</option>
                     <option value="us-iso-west-1">US ISO WEST</option>
                     <option value="us-isob-east-1">US ISOB East (Ohio)</option>
@@ -208,9 +189,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     max="9999999"
                     step="1"
                     value={props.settings?.timeSpanAmount || ''}
-                    onChange={(evt) =>
-                        handleTimeSpanAmountChanged(+evt.target.value)
-                    }
+                    onChange={(evt) => handleTimeSpanAmountChanged(+evt.target.value)}
                     marginBottom="12px"
                 ></Input>
                 <RadioGroup

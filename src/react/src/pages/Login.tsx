@@ -14,7 +14,8 @@ import {
     InputLeftElement,
     Link,
     Spinner,
-    Stack, useColorModeValue
+    Stack,
+    useColorModeValue
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { FaLock, FaUserAlt } from 'react-icons/fa';
@@ -74,12 +75,7 @@ const Login: FC<RouteComponentProps> = () => {
 
     const loadingForm = (
         <>
-            <Flex
-                flexDirection="column"
-                width="100%"
-                justifyContent="center"
-                alignItems="center"
-            >
+            <Flex flexDirection="column" width="100%" justifyContent="center" alignItems="center">
                 <LogoIcon boxSize={20} />
                 <Heading>Datack SQL</Heading>
                 <Spinner />
@@ -89,28 +85,19 @@ const Login: FC<RouteComponentProps> = () => {
 
     const loginForm = (
         <>
-            <Flex
-                flexDirection="column"
-                width="100%"
-                justifyContent="center"
-                alignItems="center"
-            >
+            <Flex flexDirection="column" width="100%" justifyContent="center" alignItems="center">
                 <LogoIcon boxSize={20} />
                 <Heading>Datack SQL</Heading>
             </Flex>
             {!isSetup ? (
                 <Alert status="info">
                     Welcome to Datack! <br />
-                    To setup the first account please enter a username and
-                    password to continue.
+                    To setup the first account please enter a username and password to continue.
                 </Alert>
             ) : null}
             <FormControl>
                 <InputGroup>
-                    <InputLeftElement
-                        pointerEvents="none"
-                        children={<CFaUserAlt />}
-                    />
+                    <InputLeftElement pointerEvents="none" children={<CFaUserAlt />} />
                     <Input
                         type="text"
                         placeholder="Username"
@@ -121,15 +108,8 @@ const Login: FC<RouteComponentProps> = () => {
             </FormControl>
             <FormControl>
                 <InputGroup>
-                    <InputLeftElement
-                        pointerEvents="none"
-                        children={<CFaLock />}
-                    />
-                    <Input
-                        type="password"
-                        placeholder="Password"
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <InputLeftElement pointerEvents="none" children={<CFaLock />} />
+                    <Input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
                 </InputGroup>
                 <FormHelperText textAlign="right">
                     <Link>forgot password?</Link>
@@ -137,10 +117,7 @@ const Login: FC<RouteComponentProps> = () => {
             </FormControl>
             <FormControl>
                 <InputGroup>
-                    <Checkbox
-                        defaultIsChecked
-                        onChange={(e) => setRememberMe(e.target.checked)}
-                    >
+                    <Checkbox defaultIsChecked onChange={(e) => setRememberMe(e.target.checked)}>
                         Remember me?
                     </Checkbox>
                 </InputGroup>
@@ -176,20 +153,10 @@ const Login: FC<RouteComponentProps> = () => {
             backgroundPosition="50%"
             backgroundSize="cover"
         >
-            <Stack
-                flexDir="column"
-                mb="2"
-                justifyContent="center"
-                alignItems="center"
-            >
+            <Stack flexDir="column" mb="2" justifyContent="center" alignItems="center">
                 <Box minW={{ base: '90%', md: '468px' }}>
                     <form onSubmit={handleSubmit}>
-                        <Stack
-                            spacing={4}
-                            p="1rem"
-                            boxShadow="md"
-                            backgroundColor={bg}
-                        >
+                        <Stack spacing={4} p="1rem" boxShadow="md" backgroundColor={bg}>
                             {isLoading ? loadingForm : loginForm}
                         </Stack>
                     </form>

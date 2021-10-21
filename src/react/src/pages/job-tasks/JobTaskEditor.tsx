@@ -52,13 +52,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [type, setType] = useState<string>('');
     const [parallel, setParallel] = useState<number>(1);
     const [timeout, setTimeout] = useState<number | null>(null);
-    const [usePreviousTaskArtifacts, setUsePreviousTaskArtifacts] = useState<
-        string | null
-    >(null);
+    const [usePreviousTaskArtifacts, setUsePreviousTaskArtifacts] = useState<string | null>(null);
     const [settings, setSettings] = useState<JobTaskSettings | null>(null);
-    const [agentId, setAgentId] = useState<string>(
-        '00000000-0000-0000-0000-000000000000'
-    );
+    const [agentId, setAgentId] = useState<string>('00000000-0000-0000-0000-000000000000');
 
     const [error, setError] = useState<string | null>(null);
 
@@ -72,18 +68,13 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     useEffect(() => {
         (async () => {
-            const result = await JobTasks.getById(
-                props.match.params.id!,
-                cancelToken
-            );
+            const result = await JobTasks.getById(props.match.params.id!, cancelToken);
             setJobTask(result);
             setName(result.name);
             setDescription(result.description);
             setType(result.type);
             setParallel(result.parallel);
-            setUsePreviousTaskArtifacts(
-                result.usePreviousTaskArtifactsFromJobTaskId
-            );
+            setUsePreviousTaskArtifacts(result.usePreviousTaskArtifactsFromJobTaskId);
             setSettings(result.settings);
             setAgentId(result.agentId);
             setTimeout(result.timeout);
@@ -91,10 +82,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         (async () => {
             try {
-                const result = await JobTasks.getForJob(
-                    props.match.params.jobId,
-                    cancelToken
-                );
+                const result = await JobTasks.getForJob(props.match.params.jobId, cancelToken);
                 setAllJobTasks(result);
             } catch (err: any) {
                 setError(`Cannot get job tasks: ${err}`);
@@ -130,8 +118,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             if (!usePreviousTaskArtifacts) {
                 jobTask.usePreviousTaskArtifactsFromJobTaskId = null;
             } else {
-                jobTask.usePreviousTaskArtifactsFromJobTaskId =
-                    usePreviousTaskArtifacts;
+                jobTask.usePreviousTaskArtifactsFromJobTaskId = usePreviousTaskArtifacts;
             }
 
             await JobTasks.update(jobTask, cancelToken);
@@ -270,49 +257,28 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Task Name</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={100}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input type="text" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
                     <FormHelperText>The name of the task.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
-                    <Textarea
-                        lines={4}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
-                    <FormHelperText>
-                        A description of what the task does.
-                    </FormHelperText>
+                    <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
+                    <FormHelperText>A description of what the task does.</FormHelperText>
                 </FormControl>
                 <FormControl id="agentId" isRequired marginBottom={4}>
                     <FormLabel>Agent</FormLabel>
-                    <Select
-                        placeholder="Select an agent"
-                        value={agentId}
-                        onChange={(e) => setAgentId(e.target.value)}
-                    >
+                    <Select placeholder="Select an agent" value={agentId} onChange={(e) => setAgentId(e.target.value)}>
                         {agents.map((agent) => (
                             <option value={agent.agentId} key={agent.agentId}>
                                 {agent.name}
                             </option>
                         ))}
                     </Select>
-                    <FormHelperText>
-                        The agent this task should execute on.
-                    </FormHelperText>
+                    <FormHelperText>The agent this task should execute on.</FormHelperText>
                 </FormControl>
                 <FormControl id="type" isRequired marginBottom={4}>
                     <FormLabel>Type</FormLabel>
-                    <Select
-                        placeholder="Select a type"
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                    >
+                    <Select placeholder="Select a type" value={type} onChange={(e) => setType(e.target.value)}>
                         <option value="create_backup">Create Backup</option>
                         <option value="compress">Compress</option>
                         <option value="delete">Delete File</option>
@@ -333,35 +299,22 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             setParallel(Number(e.target.value));
                         }}
                     />
-                    <FormHelperText>
-                        The amount of tasks that execute in parallel.
-                    </FormHelperText>
+                    <FormHelperText>The amount of tasks that execute in parallel.</FormHelperText>
                 </FormControl>
                 <FormControl id="usePreviousTaskArtifacts" marginBottom={4}>
-                    <FormLabel>
-                        Use artifact results from previous task
-                    </FormLabel>
+                    <FormLabel>Use artifact results from previous task</FormLabel>
                     <Select
                         value={usePreviousTaskArtifacts || ''}
-                        onChange={(e) =>
-                            setUsePreviousTaskArtifacts(e.target.value)
-                        }
+                        onChange={(e) => setUsePreviousTaskArtifacts(e.target.value)}
                     >
-                        <option value="">
-                            Don't use artifactes from previous tasks
-                        </option>
+                        <option value="">Don't use artifactes from previous tasks</option>
                         {allJobTasks.map((jobTask) => (
-                            <option
-                                value={jobTask.jobTaskId}
-                                key={jobTask.jobTaskId}
-                            >
+                            <option value={jobTask.jobTaskId} key={jobTask.jobTaskId}>
                                 Task: {jobTask.name}
                             </option>
                         ))}
                     </Select>
-                    <FormHelperText>
-                        The artifacts from this task will be used for this task.
-                    </FormHelperText>
+                    <FormHelperText>The artifacts from this task will be used for this task.</FormHelperText>
                 </FormControl>
                 <FormControl id="timeout" marginBottom={4}>
                     <FormLabel>Timeout</FormLabel>
@@ -390,50 +343,30 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     <Button onClick={() => save()} isLoading={isSaving}>
                         Save
                     </Button>
-                    <Button
-                        onClick={() => cancel()}
-                        isLoading={isSaving}
-                        variant="outline"
-                    >
+                    <Button onClick={() => cancel()} isLoading={isSaving} variant="outline">
                         Cancel
                     </Button>
-                    <Button
-                        onClick={handleDeleteTask}
-                        isLoading={isSaving}
-                        colorScheme="red"
-                    >
+                    <Button onClick={handleDeleteTask} isLoading={isSaving} colorScheme="red">
                         Delete task
                     </Button>
                 </HStack>
             </form>
-            <Modal
-                isOpen={showDeleteModal}
-                onClose={handleDeleteCancel}
-                size="lg"
-            >
+            <Modal isOpen={showDeleteModal} onClose={handleDeleteCancel} size="lg">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Delete task</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <p>
-                            When deleting this task, all runs and logs will be
-                            deleted associated with this task.
-                        </p>
+                        <p>When deleting this task, all runs and logs will be deleted associated with this task.</p>
                         <p>Are you sure you want to delete this task?</p>
                     </ModalBody>
 
                     <ModalFooter>
                         <HStack>
-                            <Button
-                                onClick={() => handleDeleteOk()}
-                                colorScheme="red"
-                            >
+                            <Button onClick={() => handleDeleteOk()} colorScheme="red">
                                 Delete
                             </Button>
-                            <Button onClick={() => handleDeleteCancel()}>
-                                Cancel
-                            </Button>
+                            <Button onClick={() => handleDeleteCancel()}>Cancel</Button>
                         </HStack>
                     </ModalFooter>
                 </ModalContent>

@@ -3,9 +3,7 @@ import { Setting } from '../models/setting';
 import { ErrorHelper } from './error';
 
 export namespace Settings {
-    export const getList = async (
-        cancelToken: CancelTokenSource
-    ): Promise<Setting[]> => {
+    export const getList = async (cancelToken: CancelTokenSource): Promise<Setting[]> => {
         const config = { cancelToken: cancelToken.token };
         const result = await axios.get<Setting[]>(`/api/Settings`, config);
         return result.data;

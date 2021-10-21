@@ -1,7 +1,4 @@
-import {
-    TriangleDownIcon,
-    TriangleUpIcon
-} from '@chakra-ui/icons';
+import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
@@ -41,8 +38,10 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
         return columns;
     }, []);
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<JobRunTaskLog>({ columns, data: jobRunTaskLogs }, useSortBy);
+    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<JobRunTaskLog>(
+        { columns, data: jobRunTaskLogs },
+        useSortBy
+    );
 
     return (
         <Table {...getTableProps()} style={{ width: 'auto' }} size="sm">
@@ -50,11 +49,7 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
                 {headerGroups.map((headerGroup) => (
                     <Tr {...headerGroup.getHeaderGroupProps()}>
                         {headerGroup.headers.map((column) => (
-                            <Th
-                                {...column.getHeaderProps(
-                                    column.getSortByToggleProps()
-                                )}
-                            >
+                            <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
                                 {column.render('Header')}
                                 <chakra.span pl="4">
                                     {column.isSorted ? (
@@ -76,9 +71,7 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
                     return (
                         <Tr {...row.getRowProps()}>
                             {row.cells.map((cell) => (
-                                <Td {...cell.getCellProps()}>
-                                    {cell.render('Cell')}
-                                </Td>
+                                <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
                             ))}
                         </Tr>
                     );

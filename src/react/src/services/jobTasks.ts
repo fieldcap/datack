@@ -22,55 +22,30 @@ export namespace JobTasks {
         }
     };
 
-    export const getForJob = async (
-        jobId: string,
-        cancelToken: CancelTokenSource
-    ): Promise<JobTask[]> => {
+    export const getForJob = async (jobId: string, cancelToken: CancelTokenSource): Promise<JobTask[]> => {
         const config = { cancelToken: cancelToken.token };
-        const result = await axios.get<JobTask[]>(
-            `/api/JobTasks/GetForJob/${jobId}`,
-            config
-        );
+        const result = await axios.get<JobTask[]>(`/api/JobTasks/GetForJob/${jobId}`, config);
         return result.data;
     };
 
-    export const getById = async (
-        jobTaskId: string,
-        cancelToken: CancelTokenSource
-    ): Promise<JobTask> => {
+    export const getById = async (jobTaskId: string, cancelToken: CancelTokenSource): Promise<JobTask> => {
         const config = { cancelToken: cancelToken.token };
-        const result = await axios.get<JobTask>(
-            `/api/JobTasks/GetById/${jobTaskId}`,
-            config
-        );
+        const result = await axios.get<JobTask>(`/api/JobTasks/GetById/${jobTaskId}`, config);
         return result.data;
     };
 
-    export const add = async (
-        jobTask: JobTask,
-        cancelToken: CancelTokenSource
-    ): Promise<JobTask> => {
+    export const add = async (jobTask: JobTask, cancelToken: CancelTokenSource): Promise<JobTask> => {
         const config = { cancelToken: cancelToken.token };
-        const result = await axios.post<JobTask>(
-            `/api/JobTasks/Add/`,
-            jobTask,
-            config
-        );
+        const result = await axios.post<JobTask>(`/api/JobTasks/Add/`, jobTask, config);
         return result.data;
     };
 
-    export const update = async (
-        jobTask: JobTask,
-        cancelToken: CancelTokenSource
-    ): Promise<void> => {
+    export const update = async (jobTask: JobTask, cancelToken: CancelTokenSource): Promise<void> => {
         const config = { cancelToken: cancelToken.token };
         await axios.put(`/api/JobTasks/Update/`, jobTask, config);
     };
 
-    export const deleteJobTask = async (
-        jobTaskId: string,
-        cancelToken: CancelTokenSource
-    ): Promise<void> => {
+    export const deleteJobTask = async (jobTaskId: string, cancelToken: CancelTokenSource): Promise<void> => {
         const config = { cancelToken: cancelToken.token };
         await axios.delete(`/api/JobTasks/Delete/${jobTaskId}`, config);
     };

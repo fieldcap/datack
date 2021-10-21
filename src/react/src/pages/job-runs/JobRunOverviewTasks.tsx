@@ -1,9 +1,4 @@
-import {
-    CheckIcon,
-    TriangleDownIcon,
-    TriangleUpIcon,
-    WarningIcon
-} from '@chakra-ui/icons';
+import { CheckIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
 import { Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
@@ -80,8 +75,10 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
         return columns;
     }, []);
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<JobRunTask>({ columns, data: jobRunTasks }, useSortBy);
+    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<JobRunTask>(
+        { columns, data: jobRunTasks },
+        useSortBy
+    );
 
     return (
         <Table {...getTableProps()} style={{ width: 'auto' }} size="sm">
@@ -89,11 +86,7 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
                 {headerGroups.map((headerGroup) => (
                     <Tr {...headerGroup.getHeaderGroupProps()}>
                         {headerGroup.headers.map((column) => (
-                            <Th
-                                {...column.getHeaderProps(
-                                    column.getSortByToggleProps()
-                                )}
-                            >
+                            <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
                                 {column.render('Header')}
                                 <chakra.span pl="4">
                                     {column.isSorted ? (
@@ -115,15 +108,11 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
                     return (
                         <Tr
                             {...row.getRowProps()}
-                            onClick={() =>
-                                onRowClick(row.original.jobRunTaskId)
-                            }
+                            onClick={() => onRowClick(row.original.jobRunTaskId)}
                             style={{ cursor: 'pointer' }}
                         >
                             {row.cells.map((cell) => (
-                                <Td {...cell.getCellProps()}>
-                                    {cell.render('Cell')}
-                                </Td>
+                                <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
                             ))}
                         </Tr>
                     );

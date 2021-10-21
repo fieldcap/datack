@@ -1,13 +1,4 @@
-import {
-    Box,
-    Button,
-    Heading,
-    Tab,
-    TabList,
-    TabPanel,
-    TabPanels,
-    Tabs
-} from '@chakra-ui/react';
+import { Box, Button, Heading, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import Loader from '../../components/loader';
@@ -34,10 +25,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         (async () => {
             try {
                 setError(null);
-                const result = await Jobs.getById(
-                    props.match.params.id,
-                    cancelToken
-                );
+                const result = await Jobs.getById(props.match.params.id, cancelToken);
                 setJob(result);
             } catch (err: any) {
                 setError(err);

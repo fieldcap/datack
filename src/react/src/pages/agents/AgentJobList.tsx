@@ -1,14 +1,5 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import {
-    Button,
-    chakra,
-    Table,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr
-} from '@chakra-ui/react';
+import { Button, chakra, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
@@ -34,10 +25,7 @@ const AgentJobList: FC<Props> = (props) => {
     useEffect(() => {
         (async () => {
             try {
-                const jobs = await Jobs.getForAgent(
-                    props.agent.agentId,
-                    cancelToken
-                );
+                const jobs = await Jobs.getForAgent(props.agent.agentId, cancelToken);
                 setJobs(jobs);
                 setIsLoaded(true);
             } catch (err: any) {
@@ -76,8 +64,10 @@ const AgentJobList: FC<Props> = (props) => {
         return columns;
     }, []);
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<Job>({ columns, data: jobs }, useSortBy);
+    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<Job>(
+        { columns, data: jobs },
+        useSortBy
+    );
 
     return (
         <Loader isLoaded={isLoaded} error={error}>
@@ -86,11 +76,7 @@ const AgentJobList: FC<Props> = (props) => {
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map((column) => (
-                                <Th
-                                    {...column.getHeaderProps(
-                                        column.getSortByToggleProps()
-                                    )}
-                                >
+                                <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
                                     {column.render('Header')}
                                     <chakra.span pl="4">
                                         {column.isSorted ? (
@@ -116,9 +102,7 @@ const AgentJobList: FC<Props> = (props) => {
                                 style={{ cursor: 'pointer' }}
                             >
                                 {row.cells.map((cell) => (
-                                    <Td {...cell.getCellProps()}>
-                                        {cell.render('Cell')}
-                                    </Td>
+                                    <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
                                 ))}
                             </Tr>
                         );

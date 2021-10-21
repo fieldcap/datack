@@ -58,39 +58,18 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
                     icon={<SettingsIcon />}
                     onClick={() => handleNavigate('/settings')}
                 />
-                <IconButton
-                    aria-label="Sign out"
-                    title="Sign out"
-                    icon={<FaSignOutAlt />}
-                    onClick={() => logout()}
-                />
+                <IconButton aria-label="Sign out" title="Sign out" icon={<FaSignOutAlt />} onClick={() => logout()} />
             </HStack>
-            <Button
-                onClick={() => handleNavigate('/')}
-                w="100%"
-                isActive={activeRoute === '/'}
-            >
+            <Button onClick={() => handleNavigate('/')} w="100%" isActive={activeRoute === '/'}>
                 Home
             </Button>
-            <Button
-                onClick={() => handleNavigate('/agents')}
-                w="100%"
-                isActive={activeRoute === '/agents'}
-            >
+            <Button onClick={() => handleNavigate('/agents')} w="100%" isActive={activeRoute === '/agents'}>
                 Agents
             </Button>
-            <Button
-                onClick={() => handleNavigate('/jobs')}
-                w="100%"
-                isActive={activeRoute === '/jobs'}
-            >
+            <Button onClick={() => handleNavigate('/jobs')} w="100%" isActive={activeRoute === '/jobs'}>
                 Jobs
             </Button>
-            <Button
-                onClick={() => handleNavigate('/history')}
-                w="100%"
-                isActive={activeRoute === '/history'}
-            >
+            <Button onClick={() => handleNavigate('/history')} w="100%" isActive={activeRoute === '/history'}>
                 History
             </Button>
         </VStack>

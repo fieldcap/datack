@@ -6,6 +6,4 @@ export type Agent = {
     settings: AgentSettings;
 };
 
-export type AgentSettings = {
-
-};
+export type AgentSettings = {};

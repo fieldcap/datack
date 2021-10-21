@@ -52,11 +52,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
     }, [props.settings, onSettingsChanged]);
 
     useEffect(() => {
-        if (
-            props.agentId == null ||
-            props.agentId === '' ||
-            props.settings == null
-        ) {
+        if (props.agentId == null || props.agentId === '' || props.settings == null) {
             return;
         }
 
@@ -84,9 +80,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.agentId,
     ]);
 
-    const handleTestConnection = async (
-        event: React.FormEvent<HTMLButtonElement>
-    ) => {
+    const handleTestConnection = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsTesting(true);
         setTestingError(null);
@@ -189,9 +183,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         }
 
         let includedDatabases = props.settings.backupIncludeManual.split(',');
-        includedDatabases = includedDatabases.filter(
-            (m) => m !== name && m !== ''
-        );
+        includedDatabases = includedDatabases.filter((m) => m !== name && m !== '');
         if (checked) {
             includedDatabases.push(name);
         }
@@ -226,9 +218,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         }
 
         let excludedDatabases = props.settings.backupExcludeManual.split(',');
-        excludedDatabases = excludedDatabases.filter(
-            (m) => m !== name && m !== ''
-        );
+        excludedDatabases = excludedDatabases.filter((m) => m !== name && m !== '');
         if (checked) {
             excludedDatabases.push(name);
         }
@@ -247,11 +237,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
             database.isSystemDatabase ||
             database.isBackupDefaultExcluded
         ) {
-            return (
-                <span style={{ textDecoration: 'line-through' }}>
-                    {database.databaseName}
-                </span>
-            );
+            return <span style={{ textDecoration: 'line-through' }}>{database.databaseName}</span>;
         }
 
         return <span>{database.databaseName}</span>;
@@ -306,23 +292,15 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
             <FormControl id="backupDefaultExclude" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.backupDefaultExclude}
-                    onChange={(evt) =>
-                        handleBackupDefaultExclude(evt.target.checked)
-                    }
+                    onChange={(evt) => handleBackupDefaultExclude(evt.target.checked)}
                 >
                     By default exclude all non matched databases
                 </Checkbox>
             </FormControl>
-            <FormControl
-                id="backupAllNonSystemDatabases"
-                marginBottom={4}
-                isRequired
-            >
+            <FormControl id="backupAllNonSystemDatabases" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.backupExcludeSystemDatabases}
-                    onChange={(evt) =>
-                        handleBackupExcludeSystemDatabases(evt.target.checked)
-                    }
+                    onChange={(evt) => handleBackupExcludeSystemDatabases(evt.target.checked)}
                 >
                     Exclude all system databases
                 </Checkbox>
@@ -332,9 +310,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.backupIncludeRegex || ''}
-                    onChange={(evt) =>
-                        handleBackupIncludeRegex(evt.target.value)
-                    }
+                    onChange={(evt) => handleBackupIncludeRegex(evt.target.value)}
                 ></Input>
             </FormControl>
             <FormControl id="backupExcludeRegex" marginBottom={4}>
@@ -342,9 +318,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.backupExcludeRegex || ''}
-                    onChange={(evt) =>
-                        handleBackupExcludeRegex(evt.target.value)
-                    }
+                    onChange={(evt) => handleBackupExcludeRegex(evt.target.value)}
                 ></Input>
             </FormControl>
             <Table width="100%">
@@ -362,30 +336,16 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                             <Td>{getDatabaseTestResult(m)}</Td>
                             <Td>
                                 <Checkbox
-                                    isChecked={getCheckBoxIncludeValue(
-                                        m.databaseName
-                                    )}
-                                    onChange={(e) =>
-                                        onCheckBoxIncludeChange(
-                                            m.databaseName,
-                                            e.currentTarget.checked
-                                        )
-                                    }
+                                    isChecked={getCheckBoxIncludeValue(m.databaseName)}
+                                    onChange={(e) => onCheckBoxIncludeChange(m.databaseName, e.currentTarget.checked)}
                                 >
                                     <FaPlus></FaPlus>
                                 </Checkbox>
                             </Td>
                             <Td>
                                 <Checkbox
-                                    isChecked={getCheckBoxExcludeValue(
-                                        m.databaseName
-                                    )}
-                                    onChange={(e) =>
-                                        onCheckBoxExcludeChange(
-                                            m.databaseName,
-                                            e.currentTarget.checked
-                                        )
-                                    }
+                                    isChecked={getCheckBoxExcludeValue(m.databaseName)}
+                                    onChange={(e) => onCheckBoxExcludeChange(m.databaseName, e.currentTarget.checked)}
                                 >
                                     <FaMinus></FaMinus>
                                 </Checkbox>

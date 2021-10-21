@@ -1,20 +1,5 @@
-import {
-    CheckIcon,
-    TimeIcon,
-    TriangleDownIcon,
-    TriangleUpIcon,
-    WarningIcon
-} from '@chakra-ui/icons';
-import {
-    chakra,
-    Spinner,
-    Table,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr
-} from '@chakra-ui/react';
+import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
+import { chakra, Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import { format, formatDistanceStrict } from 'date-fns';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -48,10 +33,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                 setJobRuns([]);
                 setIsLoaded(false);
                 setError(null);
-                const result = await JobRuns.getForJob(
-                    props.job!.jobId,
-                    cancelToken
-                );
+                const result = await JobRuns.getForJob(props.job!.jobId, cancelToken);
                 setJobRuns(result);
                 setIsLoaded(true);
             } catch (err: any) {
@@ -70,8 +52,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                 Header: 'Started',
                 accessor: 'started',
                 sortType: 'datetime',
-                Cell: ({ cell: { value } }) =>
-                    format(value, 'd MMMM yyyy HH:mm'),
+                Cell: ({ cell: { value } }) => format(value, 'd MMMM yyyy HH:mm'),
             },
             {
                 Header: 'Completed',
@@ -103,17 +84,11 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                         return <WarningIcon style={{ color: 'red' }} />;
                     }
 
-                    if (
-                        c.row.original.completed == null &&
-                        c.row.original.started == null
-                    ) {
+                    if (c.row.original.completed == null && c.row.original.started == null) {
                         return <TimeIcon style={{ color: 'blue' }} />;
                     }
 
-                    if (
-                        c.row.original.completed == null &&
-                        c.row.original.started != null
-                    ) {
+                    if (c.row.original.completed == null && c.row.original.started != null) {
                         return <Spinner />;
                     }
                     return <CheckIcon style={{ color: 'green' }} />;
@@ -123,8 +98,10 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
         return columns;
     }, []);
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<JobRun>({ columns, data: jobRuns }, useSortBy);
+    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<JobRun>(
+        { columns, data: jobRuns },
+        useSortBy
+    );
 
     return (
         <Loader isLoaded={isLoaded} error={error}>
@@ -133,11 +110,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map((column) => (
-                                <Th
-                                    {...column.getHeaderProps(
-                                        column.getSortByToggleProps()
-                                    )}
-                                >
+                                <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
                                     {column.render('Header')}
                                     <chakra.span pl="4">
                                         {column.isSorted ? (
@@ -163,9 +136,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                                 style={{ cursor: 'pointer' }}
                             >
                                 {row.cells.map((cell) => (
-                                    <Td {...cell.getCellProps()}>
-                                        {cell.render('Cell')}
-                                    </Td>
+                                    <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
                                 ))}
                             </Tr>
                         );

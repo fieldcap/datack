@@ -102,9 +102,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <FormLabel>Compression Level</FormLabel>
                 <Select
                     value={props.settings?.compressionLevel || '5'}
-                    onChange={(e) =>
-                        handleCompressionLevelChanged(e.target.value)
-                    }
+                    onChange={(e) => handleCompressionLevelChanged(e.target.value)}
                 >
                     <option value="0">Copy mode (no compression)</option>
                     <option value="1">Fastest</option>
@@ -118,14 +116,14 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <FormLabel>Multithread Mode</FormLabel>
                 <Select
                     value={props.settings?.multithreadMode || 'on'}
-                    onChange={(e) =>
-                        handleMultithreadModeChanged(e.target.value)
-                    }
+                    onChange={(e) => handleMultithreadModeChanged(e.target.value)}
                 >
                     <option value="on">On</option>
                     <option value="off">Off</option>
                     {Array.from(Array(63).keys()).map((v: any) => (
-                        <option value={v + 1} key={v + 1}>{v + 1}</option>
+                        <option value={v + 1} key={v + 1}>
+                            {v + 1}
+                        </option>
                     ))}
                 </Select>
             </FormControl>

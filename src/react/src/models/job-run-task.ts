@@ -1,5 +1,5 @@
-import { JobRun } from "./job-run";
-import { JobTask, JobTaskSettings } from "./job-task";
+import { JobRun } from './job-run';
+import { JobTask, JobTaskSettings } from './job-task';
 
 export type JobRunTask = {
     jobRunTaskId: string;

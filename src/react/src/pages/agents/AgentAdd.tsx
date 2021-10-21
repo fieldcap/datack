@@ -66,34 +66,18 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Agent Name</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={100}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input type="text" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
                     <FormHelperText>A name for the agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
-                    <Textarea
-                        lines={4}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
+                    <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
                     <FormHelperText>Description for this agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="key" marginBottom={4} isRequired>
                     <FormLabel>Key</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={40}
-                        value={key}
-                        onChange={(e) => setKey(e.target.value)}
-                    />
-                    <FormHelperText>
-                        The key can be found when installing the agent.
-                    </FormHelperText>
+                    <Input type="text" maxLength={40} value={key} onChange={(e) => setKey(e.target.value)} />
+                    <FormHelperText>The key can be found when installing the agent.</FormHelperText>
                 </FormControl>
 
                 {error != null ? (
@@ -104,17 +88,10 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
                 ) : null}
 
                 <HStack marginTop="24px">
-                    <Button
-                        onClick={(evt) => handleSave(evt)}
-                        isLoading={isSaving}
-                    >
+                    <Button onClick={(evt) => handleSave(evt)} isLoading={isSaving}>
                         Save
                     </Button>
-                    <Button
-                        onClick={handleCancel}
-                        isLoading={isSaving}
-                        variant="outline"
-                    >
+                    <Button onClick={handleCancel} isLoading={isSaving} variant="outline">
                         Cancel
                     </Button>
                 </HStack>

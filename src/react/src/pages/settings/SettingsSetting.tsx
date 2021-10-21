@@ -12,9 +12,7 @@ type SettingProps = {
 
 const SettingsSetting: FC<SettingProps> = (props) => {
     const getValue = (): string => {
-        const setting = props.settings.find(
-            (m) => m.settingId === props.settingId
-        );
+        const setting = props.settings.find((m) => m.settingId === props.settingId);
         if (setting == null) {
             return '';
         }
@@ -28,9 +26,7 @@ const SettingsSetting: FC<SettingProps> = (props) => {
         if (value === '******') {
             return;
         }
-        const setting = props.settings.find(
-            (m) => m.settingId === props.settingId
-        );
+        const setting = props.settings.find((m) => m.settingId === props.settingId);
         if (setting == null) {
             return;
         }
@@ -45,9 +41,7 @@ const SettingsSetting: FC<SettingProps> = (props) => {
             <FormControl id={props.settingId} marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={getValue() === 'True'}
-                    onChange={(evt) =>
-                        set(evt.target.checked ? 'True' : 'False')
-                    }
+                    onChange={(evt) => set(evt.target.checked ? 'True' : 'False')}
                 >
                     {props.label}
                 </Checkbox>
@@ -59,11 +53,7 @@ const SettingsSetting: FC<SettingProps> = (props) => {
         return (
             <FormControl id={props.settingId} marginBottom={4}>
                 <FormLabel>{props.label}</FormLabel>
-                <Input
-                    type="password"
-                    value={getValue()}
-                    onChange={(evt) => set(evt.target.value)}
-                ></Input>
+                <Input type="password" value={getValue()} onChange={(evt) => set(evt.target.value)}></Input>
             </FormControl>
         );
     }
@@ -71,11 +61,7 @@ const SettingsSetting: FC<SettingProps> = (props) => {
     return (
         <FormControl id={props.settingId} marginBottom={4}>
             <FormLabel>{props.label}</FormLabel>
-            <Input
-                type="text"
-                value={getValue()}
-                onChange={(evt) => set(evt.target.value)}
-            ></Input>
+            <Input type="text" value={getValue()} onChange={(evt) => set(evt.target.value)}></Input>
         </FormControl>
     );
 };

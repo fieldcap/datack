@@ -31,9 +31,7 @@ type Props = {
 const AgentSettingsTab: FC<Props> = (props) => {
     const [name, setName] = useState<string>(props.agent.name ?? '');
 
-    const [description, setDescription] = useState<string>(
-        props.agent.description ?? ''
-    );
+    const [description, setDescription] = useState<string>(props.agent.description ?? '');
 
     const [key, setKey] = useState<string>(props.agent.key ?? '');
 
@@ -102,34 +100,18 @@ const AgentSettingsTab: FC<Props> = (props) => {
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Agent Name</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={100}
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
+                    <Input type="text" maxLength={100} value={name} onChange={(e) => setName(e.target.value)} />
                     <FormHelperText>A name for the agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
-                    <Textarea
-                        lines={4}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                    />
+                    <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
                     <FormHelperText>Description for this agent.</FormHelperText>
                 </FormControl>
                 <FormControl id="key" marginBottom={4} isRequired>
                     <FormLabel>Key</FormLabel>
-                    <Input
-                        type="text"
-                        maxLength={40}
-                        value={key}
-                        onChange={(e) => setKey(e.target.value)}
-                    />
-                    <FormHelperText>
-                        Only change the key when installing a new agent.
-                    </FormHelperText>
+                    <Input type="text" maxLength={40} value={key} onChange={(e) => setKey(e.target.value)} />
+                    <FormHelperText>Only change the key when installing a new agent.</FormHelperText>
                 </FormControl>
                 {error != null ? (
                     <Alert marginTop="24px" status="error">
@@ -144,49 +126,30 @@ const AgentSettingsTab: FC<Props> = (props) => {
                     </Alert>
                 ) : null}
                 <HStack marginTop="24px">
-                    <Button
-                        onClick={(evt) => handleSave(evt)}
-                        isLoading={isSaving}
-                    >
+                    <Button onClick={(evt) => handleSave(evt)} isLoading={isSaving}>
                         Save
                     </Button>
-                    <Button
-                        onClick={(evt) => handleDelete(evt)}
-                        isLoading={isSaving}
-                        colorScheme="red"
-                    >
+                    <Button onClick={(evt) => handleDelete(evt)} isLoading={isSaving} colorScheme="red">
                         Delete
                     </Button>
                 </HStack>
             </form>
-            <Modal
-                isOpen={showDeleteModal}
-                onClose={handleDeleteCancel}
-                size="lg"
-            >
+            <Modal isOpen={showDeleteModal} onClose={handleDeleteCancel} size="lg">
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>Delete agent</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <p>
-                            Before deleting the agent you need to unassign all
-                            job tasks from this agent.
-                        </p>
+                        <p>Before deleting the agent you need to unassign all job tasks from this agent.</p>
                         <p>Are you sure you want to delete this agent?</p>
                     </ModalBody>
 
                     <ModalFooter>
                         <HStack>
-                            <Button
-                                onClick={() => handleDeleteOk()}
-                                colorScheme="red"
-                            >
+                            <Button onClick={() => handleDeleteOk()} colorScheme="red">
                                 Delete
                             </Button>
-                            <Button onClick={() => handleDeleteCancel()}>
-                                Cancel
-                            </Button>
+                            <Button onClick={() => handleDeleteCancel()}>Cancel</Button>
                         </HStack>
                     </ModalFooter>
                 </ModalContent>

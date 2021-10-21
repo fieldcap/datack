@@ -2,35 +2,21 @@ import axios, { CancelTokenSource } from 'axios';
 import { Job } from '../models/job';
 
 export namespace Jobs {
-    export const getList = async (
-        cancelToken: CancelTokenSource
-    ): Promise<Job[]> => {
+    export const getList = async (cancelToken: CancelTokenSource): Promise<Job[]> => {
         const config = { cancelToken: cancelToken.token };
         const result = await axios.get<Job[]>(`/api/Jobs/List`, config);
         return result.data;
     };
 
-    export const getForAgent = async (
-        agentId: string,
-        cancelToken: CancelTokenSource
-    ): Promise<Job[]> => {
+    export const getForAgent = async (agentId: string, cancelToken: CancelTokenSource): Promise<Job[]> => {
         const config = { cancelToken: cancelToken.token };
-        const result = await axios.get<Job[]>(
-            `/api/Jobs/GetForAgent/${agentId}`,
-            config
-        );
+        const result = await axios.get<Job[]>(`/api/Jobs/GetForAgent/${agentId}`, config);
         return result.data;
     };
 
-    export const getById = async (
-        jobId: string,
-        cancelToken: CancelTokenSource
-    ): Promise<Job> => {
+    export const getById = async (jobId: string, cancelToken: CancelTokenSource): Promise<Job> => {
         const config = { cancelToken: cancelToken.token };
-        const result = await axios.get<Job>(
-            `/api/Jobs/GetById/${jobId}`,
-            config
-        );
+        const result = await axios.get<Job>(`/api/Jobs/GetById/${jobId}`, config);
         return result.data;
     };
 
@@ -55,12 +41,9 @@ export namespace Jobs {
     };
 
     export const testCron = async (cron: string) => {
-        const result = await axios.post<TestCronResult>(
-            `/api/Jobs/ParseCron/`,
-            {
-                cron,
-            }
-        );
+        const result = await axios.post<TestCronResult>(`/api/Jobs/ParseCron/`, {
+            cron,
+        });
         return result.data;
     };
 

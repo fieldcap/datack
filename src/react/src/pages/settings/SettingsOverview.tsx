@@ -1,13 +1,4 @@
-import {
-    Alert,
-    AlertDescription,
-    AlertIcon,
-    Box,
-    Button,
-    Heading,
-    HStack,
-    Skeleton
-} from '@chakra-ui/react';
+import { Alert, AlertDescription, AlertIcon, Box, Button, Heading, HStack, Skeleton } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -59,9 +50,7 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         }
     };
 
-    const handleTestEmail = async (
-        event: React.FormEvent<HTMLButtonElement>
-    ) => {
+    const handleTestEmail = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsSaving(true);
         setError(null);

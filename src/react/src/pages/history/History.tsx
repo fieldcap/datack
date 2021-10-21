@@ -1,10 +1,4 @@
-import {
-    CheckIcon,
-    TimeIcon,
-    TriangleDownIcon,
-    TriangleUpIcon,
-    WarningIcon
-} from '@chakra-ui/icons';
+import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
 import {
     Alert,
     AlertDescription,
@@ -67,8 +61,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
                 Header: 'Started',
                 accessor: 'started',
                 sortType: 'datetime',
-                Cell: ({ cell: { value } }) =>
-                    format(value, 'd MMMM yyyy HH:mm'),
+                Cell: ({ cell: { value } }) => format(value, 'd MMMM yyyy HH:mm'),
             },
             {
                 Header: 'Completed',
@@ -100,17 +93,11 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
                         return <WarningIcon style={{ color: 'red' }} />;
                     }
 
-                    if (
-                        c.row.original.completed == null &&
-                        c.row.original.started == null
-                    ) {
+                    if (c.row.original.completed == null && c.row.original.started == null) {
                         return <TimeIcon style={{ color: 'blue' }} />;
                     }
 
-                    if (
-                        c.row.original.completed == null &&
-                        c.row.original.started != null
-                    ) {
+                    if (c.row.original.completed == null && c.row.original.started != null) {
                         return <Spinner />;
                     }
                     return <CheckIcon style={{ color: 'green' }} />;
@@ -120,8 +107,10 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
         return columns;
     }, []);
 
-    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
-        useTable<JobRun>({ columns, data: jobRuns }, useSortBy);
+    const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<JobRun>(
+        { columns, data: jobRuns },
+        useSortBy
+    );
 
     if (error) {
         return (
@@ -142,11 +131,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
                             {headerGroup.headers.map((column) => (
-                                <Th
-                                    {...column.getHeaderProps(
-                                        column.getSortByToggleProps()
-                                    )}
-                                >
+                                <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
                                     {column.render('Header')}
                                     <chakra.span pl="4">
                                         {column.isSorted ? (
@@ -172,9 +157,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
                                 style={{ cursor: 'pointer' }}
                             >
                                 {row.cells.map((cell) => (
-                                    <Td {...cell.getCellProps()}>
-                                        {cell.render('Cell')}
-                                    </Td>
+                                    <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
                                 ))}
                             </Tr>
                         );

@@ -69,9 +69,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.containerName || ''}
-                    onChange={(evt) =>
-                        handleContainerNameChanged(evt.target.value)
-                    }
+                    onChange={(evt) => handleContainerNameChanged(evt.target.value)}
                 ></Input>
             </FormControl>
             <FormControl id="fileName" marginBottom={4}>
@@ -87,9 +85,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 <Input
                     type="password"
                     value={props.settings?.connectionString || ''}
-                    onChange={(evt) =>
-                        handleConnectionStringChanged(evt.target.value)
-                    }
+                    onChange={(evt) => handleConnectionStringChanged(evt.target.value)}
                 ></Input>
             </FormControl>
             <FormControl id="tag" marginBottom={4}>

@@ -42,58 +42,21 @@ const MainLayout: FC = () => {
                     }}
                 />
             ) : null}
-            <NavLayout
-                variant={variants?.navigation}
-                isOpen={isSidebarOpen}
-                onClose={toggleSidebar}
-            ></NavLayout>
+            <NavLayout variant={variants?.navigation} isOpen={isSidebarOpen} onClose={toggleSidebar}></NavLayout>
 
             <Box flex="1" padding="24px">
                 <Switch>
-                    <Route
-                        path="/settings"
-                        render={(props) => <SettingsOverview {...props} />}
-                    />
-                    <Route
-                        path="/agents"
-                        render={(props) => <AgentList {...props} />}
-                    />
-                    <Route
-                        path="/agent/new"
-                        render={(props) => <AgentAdd {...props} />}
-                    />
-                    <Route
-                        path="/agent/:id"
-                        render={(props) => <AgentOverview {...props} />}
-                    />
-                    <Route
-                        path="/jobs"
-                        render={(props) => <JobList {...props} />}
-                    />
-                    <Route
-                        path="/job/new"
-                        render={(props) => <JobAdd {...props} />}
-                    />
-                    <Route
-                        path="/job/:jobId/task/add"
-                        render={(props) => <JobTaskAdd {...props} />}
-                    />
-                    <Route
-                        path="/job/:jobId/task/:id"
-                        render={(props) => <JobTaskEditor {...props} />}
-                    />
-                    <Route
-                        path="/job/:id"
-                        render={(props) => <JobOverview {...props} />}
-                    />
-                    <Route
-                        path="/run/:id"
-                        render={(props) => <JobRunOverview {...props} />}
-                    />
-                    <Route
-                        path="/history"
-                        render={(props) => <History {...props} />}
-                    />
+                    <Route path="/settings" render={(props) => <SettingsOverview {...props} />} />
+                    <Route path="/agents" render={(props) => <AgentList {...props} />} />
+                    <Route path="/agent/new" render={(props) => <AgentAdd {...props} />} />
+                    <Route path="/agent/:id" render={(props) => <AgentOverview {...props} />} />
+                    <Route path="/jobs" render={(props) => <JobList {...props} />} />
+                    <Route path="/job/new" render={(props) => <JobAdd {...props} />} />
+                    <Route path="/job/:jobId/task/add" render={(props) => <JobTaskAdd {...props} />} />
+                    <Route path="/job/:jobId/task/:id" render={(props) => <JobTaskEditor {...props} />} />
+                    <Route path="/job/:id" render={(props) => <JobOverview {...props} />} />
+                    <Route path="/run/:id" render={(props) => <JobRunOverview {...props} />} />
+                    <Route path="/history" render={(props) => <History {...props} />} />
                 </Switch>
             </Box>
         </Flex>
