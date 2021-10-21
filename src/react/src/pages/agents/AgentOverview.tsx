@@ -1,7 +1,4 @@
 import {
-    Alert,
-    AlertDescription,
-    AlertIcon,
     Heading,
     Tab,
     TabList,
@@ -45,17 +42,8 @@ const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         fetchData();
     }, [props.match.params.id, cancelToken]);
 
-    if (error) {
-        return (
-            <Alert marginTop="24px" status="error">
-                <AlertIcon />
-                <AlertDescription>{error}</AlertDescription>
-            </Alert>
-        );
-    }
-
     return (
-        <Loader isLoaded={agent != null}>
+        <Loader isLoaded={agent != null} error={error}>
             <Heading marginBottom="24px">{agent?.name}</Heading>
             <Tabs>
                 <TabList>

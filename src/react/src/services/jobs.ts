@@ -1,6 +1,5 @@
 import axios, { CancelTokenSource } from 'axios';
 import { Job } from '../models/job';
-import { ErrorHelper } from './error';
 
 export namespace Jobs {
     export const getList = async (
@@ -36,64 +35,40 @@ export namespace Jobs {
     };
 
     export const add = async (job: Job): Promise<string> => {
-        try {
-            const result = await axios.post<string>(`/api/Jobs/Add/`, job);
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        const result = await axios.post<string>(`/api/Jobs/Add/`, job);
+        return result.data;
     };
 
     export const update = async (job: Job): Promise<void> => {
-        try {
-            await axios.put(`/api/Jobs/Update/`, job);
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        await axios.put(`/api/Jobs/Update/`, job);
     };
 
     export const duplicate = async (jobId: string): Promise<Job> => {
-        try {
-            var result = await axios.post<Job>(`/api/Jobs/Duplicate/`, {
-                jobId,
-            });
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        var result = await axios.post<Job>(`/api/Jobs/Duplicate/`, {
+            jobId,
+        });
+        return result.data;
     };
 
     export const deleteJob = async (jobId: string): Promise<void> => {
-        try {
-            await axios.delete<void>(`/api/Jobs/Delete/${jobId}`);
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        await axios.delete<void>(`/api/Jobs/Delete/${jobId}`);
     };
 
     export const testCron = async (cron: string) => {
-        try {
-            const result = await axios.post<TestCronResult>(
-                `/api/Jobs/ParseCron/`,
-                {
-                    cron,
-                }
-            );
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        const result = await axios.post<TestCronResult>(
+            `/api/Jobs/ParseCron/`,
+            {
+                cron,
+            }
+        );
+        return result.data;
     };
 
     export const run = async (jobId: string): Promise<string> => {
-        try {
-            const result = await axios.post<string>(`/api/Jobs/Run/`, {
-                jobId,
-            });
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        const result = await axios.post<string>(`/api/Jobs/Run/`, {
+            jobId,
+        });
+        return result.data;
     };
 }
 

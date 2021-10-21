@@ -25,6 +25,13 @@ namespace Datack.Web.Data.Repositories
                                      .ToListAsync(cancellationToken);
         }
 
+        public async Task<List<Job>> GetAll(CancellationToken cancellationToken)
+        {
+            return await _dataContext.Jobs
+                                     .AsNoTracking()
+                                     .ToListAsync(cancellationToken);
+        }
+
         public async Task<IList<Job>> GetForAgent(Guid agentId, CancellationToken cancellationToken)
         {
             return await _dataContext.JobTasks

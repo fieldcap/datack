@@ -14,17 +14,20 @@ import {
 import React, { FC, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { v4 } from 'uuid';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import Agents from '../../services/agents';
 
 type RouteParams = {};
 
-const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
+const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
     const [name, setName] = useState<string>('');
     const [key, setKey] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    const cancelToken = useCancellationToken();
 
     const history = useHistory();
 
@@ -44,7 +47,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         try {
             setIsSaving(true);
-            const newAgentId = await Agents.add(agent);
+            const newAgentId = await Agents.add(agent, cancelToken);
             history.push(`/agent/${newAgentId}`);
         } catch (err: any) {
             setIsSaving(false);

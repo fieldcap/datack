@@ -2,9 +2,7 @@ import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import {
     Button,
     chakra,
-    Heading,
-    Skeleton,
-    Table,
+    Heading, Table,
     Tbody,
     Td,
     Th,
@@ -14,6 +12,7 @@ import {
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
@@ -21,6 +20,7 @@ import Jobs from '../../services/jobs';
 const JobList: FC<RouteComponentProps> = () => {
     const [jobs, setJobs] = useState<Job[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const history = useHistory();
 
@@ -28,9 +28,14 @@ const JobList: FC<RouteComponentProps> = () => {
 
     useEffect(() => {
         (async () => {
-            const jobs = await Jobs.getList(cancelToken);
-            setJobs(jobs);
-            setIsLoaded(true);
+            setError(null);
+            try {
+                const jobs = await Jobs.getList(cancelToken);
+                setJobs(jobs);
+                setIsLoaded(true);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [cancelToken]);
 
@@ -64,9 +69,8 @@ const JobList: FC<RouteComponentProps> = () => {
         useTable<Job>({ columns, data: jobs }, useSortBy);
 
     return (
-        <Skeleton isLoaded={isLoaded}>
+        <Loader isLoaded={isLoaded} error={error}>
             <Heading marginBottom="24px">Jobs</Heading>
-
             <Table {...getTableProps()}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
@@ -115,7 +119,7 @@ const JobList: FC<RouteComponentProps> = () => {
             <Button marginTop="24px" onClick={handleAddNewJobClick}>
                 Add new job
             </Button>
-        </Skeleton>
+        </Loader>
     );
 };
 

@@ -1,8 +1,5 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import {
-    Alert,
-    AlertDescription,
-    AlertIcon,
     Button,
     chakra,
     Table,
@@ -82,17 +79,8 @@ const AgentJobList: FC<Props> = (props) => {
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
         useTable<Job>({ columns, data: jobs }, useSortBy);
 
-    if (error) {
-        return (
-            <Alert marginTop="24px" status="error">
-                <AlertIcon />
-                <AlertDescription>{error}</AlertDescription>
-            </Alert>
-        );
-    }
-
     return (
-        <Loader isLoaded={isLoaded}>
+        <Loader isLoaded={isLoaded} error={error}>
             <Table {...getTableProps()}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (

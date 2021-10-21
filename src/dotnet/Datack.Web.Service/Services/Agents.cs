@@ -11,10 +11,12 @@ namespace Datack.Web.Service.Services
     public class Agents
     {
         private readonly AgentRepository _agentRepository;
+        private readonly JobTaskRepository _jobTaskRepository;
 
-        public Agents(AgentRepository agentRepository)
+        public Agents(AgentRepository agentRepository, JobTaskRepository jobTaskRepository)
         {
             _agentRepository = agentRepository;
+            _jobTaskRepository = jobTaskRepository;
         }
 
         public async Task<IList<Agent>> GetAll(CancellationToken cancellationToken)
@@ -88,6 +90,20 @@ namespace Datack.Web.Service.Services
             }
 
             await _agentRepository.Update(agent, cancellationToken);
+        }
+
+        public async Task Delete(Guid agentId, CancellationToken cancellationToken)
+        {
+            var jobTasks = await _jobTaskRepository.GetByAgentId(agentId, cancellationToken);
+
+            if (jobTasks.Count > 0)
+            {
+                var errors = jobTasks.Select(m => $"{m.Name} on job {m.Job.Name}");
+
+                throw new Exception($"This agent is still attached to the following tasks: {Environment.NewLine}{errors}");
+            }
+
+            await _agentRepository.Delete(agentId, cancellationToken);
         }
     }
 }

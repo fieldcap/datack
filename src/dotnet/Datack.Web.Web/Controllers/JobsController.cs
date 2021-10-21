@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Helpers;
@@ -58,6 +59,15 @@ namespace Datack.Web.Web.Controllers
         [Route("Add")]
         public async Task<ActionResult<Guid>> Add([FromBody] Job job, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Select(x => x.Value.Errors)
+                                       .Where(y => y.Count > 0)
+                                       .ToList();
+
+                return BadRequest(errors);
+            }
+
             var result = await _jobs.Add(job, cancellationToken);
 
             return Ok(result);
@@ -67,6 +77,15 @@ namespace Datack.Web.Web.Controllers
         [Route("Update")]
         public async Task<ActionResult> Update([FromBody] Job job, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Select(x => x.Value.Errors)
+                                       .Where(y => y.Count > 0)
+                                       .ToList();
+
+                return BadRequest(errors);
+            }
+
             await _jobs.Update(job, cancellationToken);
 
             return Ok();

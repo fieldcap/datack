@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
@@ -33,11 +34,37 @@ namespace Datack.Web.Service.Services
 
         public async Task<Guid> Add(Job job, CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(job.Name))
+            {
+                throw new Exception($"Name cannot be empty");
+            }
+
+            var allJobs = await _jobRepository.GetAll(cancellationToken);
+            var sameNameJobs = allJobs.Any(m => String.Equals(m.Name, job.Name, StringComparison.CurrentCultureIgnoreCase));
+
+            if (sameNameJobs)
+            {
+                throw new Exception($"A job with this name already exists");
+            }
+
             return await _jobRepository.Add(job, cancellationToken);
         }
 
         public async Task Update(Job job, CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(job.Name))
+            {
+                throw new Exception($"Name cannot be empty");
+            }
+
+            var allJobs = await _jobRepository.GetAll(cancellationToken);
+            var sameNameJobs = allJobs.Any(m => m.JobId != job.JobId && String.Equals(m.Name, job.Name, StringComparison.CurrentCultureIgnoreCase));
+
+            if (sameNameJobs)
+            {
+                throw new Exception($"A job with this name already exists");
+            }
+
             await _jobRepository.Update(job, cancellationToken);
         }
 

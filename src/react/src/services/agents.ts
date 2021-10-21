@@ -22,13 +22,33 @@ export namespace Agents {
         return result.data;
     };
 
-    export const add = async (agent: Agent): Promise<string> => {
-        const result = await axios.post<string>(`/api/Agents/Add/`, agent);
+    export const add = async (
+        agent: Agent,
+        cancelToken: CancelTokenSource
+    ): Promise<string> => {
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.post<string>(
+            `/api/Agents/Add/`,
+            agent,
+            config
+        );
         return result.data;
     };
 
-    export const update = async (agent: Agent): Promise<void> => {
-        await axios.put(`/api/Agents/Update/`, agent);
+    export const update = async (
+        agent: Agent,
+        cancelToken: CancelTokenSource
+    ): Promise<void> => {
+        const config = { cancelToken: cancelToken.token };
+        await axios.put(`/api/Agents/Update/`, agent, config);
+    };
+
+    export const deleteAgent = async (
+        agentId: string,
+        cancelToken: CancelTokenSource
+    ): Promise<void> => {
+        const config = { cancelToken: cancelToken.token };
+        await axios.delete(`/api/Agents/Delete/${agentId}`, config);
     };
 }
 

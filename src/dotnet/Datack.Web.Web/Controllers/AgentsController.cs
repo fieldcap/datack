@@ -77,6 +77,15 @@ namespace Datack.Web.Web.Controllers
 
             return Ok();
         }
+
+        [HttpDelete]
+        [Route("Delete/{agentId:guid}")]
+        public async Task<ActionResult> Delete(Guid agentId, CancellationToken cancellationToken)
+        {
+            await _agents.Delete(agentId, cancellationToken);
+
+            return Ok();
+        }
     }
 
     public class AgentsTestDatabaseConnectionRequest

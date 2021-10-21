@@ -7,10 +7,20 @@ import {
     FormHelperText,
     FormLabel,
     HStack,
-    Input, Textarea
+    Input,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    Textarea
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
+import { useHistory } from 'react-router';
 import Loader from '../../components/loader';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import Agents from '../../services/agents';
 
@@ -31,6 +41,12 @@ const AgentSettingsTab: FC<Props> = (props) => {
     const [success, setSuccess] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+
+    const history = useHistory();
+
+    const cancelToken = useCancellationToken();
+
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsSaving(true);
@@ -38,7 +54,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
         setSuccess(null);
 
         try {
-            const newAgent: Agent = {
+            const agent: Agent = {
                 agentId: props.agent!.agentId,
                 name,
                 description,
@@ -46,7 +62,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
                 settings: {},
             };
 
-            await Agents.update(newAgent);
+            await Agents.update(agent, cancelToken);
             setIsSaving(false);
         } catch (err: any) {
             setError(err);
@@ -54,8 +70,35 @@ const AgentSettingsTab: FC<Props> = (props) => {
         }
     };
 
+    const handleDelete = (event: React.FormEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteOk = async () => {
+        setShowDeleteModal(false);
+
+        setIsSaving(true);
+        setError(null);
+        setSuccess(null);
+
+        try {
+            await Agents.deleteAgent(props.agent!.agentId, cancelToken);
+            setIsSaving(false);
+
+            history.push('/agents');
+        } catch (err: any) {
+            setError(err);
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteModal(false);
+    };
+
     return (
-        <Loader isLoaded={props.agent != null}>
+        <Loader isLoaded={props.agent != null} error={null}>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Agent Name</FormLabel>
@@ -107,8 +150,47 @@ const AgentSettingsTab: FC<Props> = (props) => {
                     >
                         Save
                     </Button>
+                    <Button
+                        onClick={(evt) => handleDelete(evt)}
+                        isLoading={isSaving}
+                        colorScheme="red"
+                    >
+                        Delete
+                    </Button>
                 </HStack>
             </form>
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={handleDeleteCancel}
+                size="lg"
+            >
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Delete agent</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <p>
+                            Before deleting the agent you need to unassign all
+                            job tasks from this agent.
+                        </p>
+                        <p>Are you sure you want to delete this agent?</p>
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <HStack>
+                            <Button
+                                onClick={() => handleDeleteOk()}
+                                colorScheme="red"
+                            >
+                                Delete
+                            </Button>
+                            <Button onClick={() => handleDeleteCancel()}>
+                                Cancel
+                            </Button>
+                        </HStack>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Loader>
     );
 };

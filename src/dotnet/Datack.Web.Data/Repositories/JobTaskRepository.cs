@@ -26,7 +26,16 @@ namespace Datack.Web.Data.Repositories
                                      .OrderBy(m => m.Order)
                                      .ToListAsync(cancellationToken);
         }
-        
+
+        public async Task<List<JobTask>> GetByAgentId(Guid agentId, CancellationToken cancellationToken)
+        {
+            return await _dataContext.JobTasks
+                                     .AsNoTracking()
+                                     .Include(m => m.Agent)
+                                     .Where(m => m.AgentId == agentId)
+                                     .ToListAsync(cancellationToken);
+        }
+
         public async Task<JobTask> GetById(Guid jobTaskId, CancellationToken cancellationToken)
         {
             return await _dataContext.JobTasks

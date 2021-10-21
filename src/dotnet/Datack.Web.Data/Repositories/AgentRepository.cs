@@ -64,5 +64,19 @@ namespace Datack.Web.Data.Repositories
 
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
+
+        public async Task Delete(Guid agentId, CancellationToken cancellationToken)
+        {
+            var dbAgent = await _dataContext.Agents.FirstOrDefaultAsync(m => m.AgentId == agentId, cancellationToken);
+
+            if (dbAgent == null)
+            {
+                throw new Exception($"Agent with ID {agentId} not found");
+            }
+
+            _dataContext.Agents.Remove(dbAgent);
+
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

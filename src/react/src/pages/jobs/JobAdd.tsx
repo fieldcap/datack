@@ -4,6 +4,7 @@ import {
     AlertIcon,
     Button,
     FormControl,
+    FormHelperText,
     FormLabel,
     Heading,
     HStack,
@@ -18,7 +19,7 @@ import Jobs from '../../services/jobs';
 
 type RouteParams = {};
 
-const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
+const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -52,6 +53,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     const handleCancel = (event: React.FormEvent<HTMLButtonElement>) => {
+        event.preventDefault();
         history.push(`/job`);
     };
 
@@ -67,6 +69,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
+                    <FormHelperText>The name of the job.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
@@ -75,8 +78,8 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
+                    <FormHelperText>A description for this job.</FormHelperText>
                 </FormControl>
-
                 {error != null ? (
                     <Alert marginTop="24px" status="error">
                         <AlertIcon />
@@ -88,7 +91,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                         onClick={(evt) => handleSave(evt)}
                         isLoading={isSaving}
                     >
-                        Save
+                        Add new job
                     </Button>
                     <Button
                         onClick={handleCancel}

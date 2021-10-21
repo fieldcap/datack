@@ -1,14 +1,19 @@
 import {
     CheckIcon,
+    TimeIcon,
     TriangleDownIcon,
     TriangleUpIcon,
     WarningIcon
 } from '@chakra-ui/icons';
 import {
+    Alert,
+    AlertDescription,
+    AlertIcon,
     Box,
     chakra,
     Heading,
     Skeleton,
+    Spinner,
     Table,
     Tbody,
     Td,
@@ -27,8 +32,9 @@ import JobRuns from '../../services/job-runs';
 type RouteParams = {};
 
 const History: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [isLoaded, setIsLoaded] = useState<boolean>(false);
-    let [jobRuns, setJobRuns] = useState<JobRun[]>([]);
+    const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [jobRuns, setJobRuns] = useState<JobRun[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const history = useHistory();
 
@@ -36,9 +42,14 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     useEffect(() => {
         (async () => {
-            const result = await JobRuns.getList(cancelToken);
-            setJobRuns(result);
-            setIsLoaded(true);
+            setError(null);
+            try {
+                const result = await JobRuns.getList(cancelToken);
+                setJobRuns(result);
+                setIsLoaded(true);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [cancelToken]);
 
@@ -55,6 +66,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
             {
                 Header: 'Started',
                 accessor: 'started',
+                sortType: 'datetime',
                 Cell: ({ cell: { value } }) =>
                     format(value, 'd MMMM yyyy HH:mm'),
             },
@@ -83,9 +95,23 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
             {
                 Header: 'Result',
                 accessor: 'isError',
-                Cell: ({ cell: { value } }) => {
-                    if (value) {
+                Cell: (c) => {
+                    if (c.cell.value) {
                         return <WarningIcon style={{ color: 'red' }} />;
+                    }
+
+                    if (
+                        c.row.original.completed == null &&
+                        c.row.original.started == null
+                    ) {
+                        return <TimeIcon style={{ color: 'blue' }} />;
+                    }
+
+                    if (
+                        c.row.original.completed == null &&
+                        c.row.original.started != null
+                    ) {
+                        return <Spinner />;
                     }
                     return <CheckIcon style={{ color: 'green' }} />;
                 },
@@ -96,6 +122,15 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } =
         useTable<JobRun>({ columns, data: jobRuns }, useSortBy);
+
+    if (error) {
+        return (
+            <Alert marginTop="24px" status="error">
+                <AlertIcon />
+                <AlertDescription>{error}</AlertDescription>
+            </Alert>
+        );
+    }
 
     return (
         <Skeleton isLoaded={isLoaded}>
