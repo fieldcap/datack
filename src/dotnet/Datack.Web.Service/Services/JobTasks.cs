@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +13,21 @@ namespace Datack.Web.Service.Services
 {
     public class JobTasks
     {
-        private readonly JobTaskRepository _jobTaskRepository;
         private readonly Agents _agents;
+        private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
+        private readonly JobRunTaskRepository _jobRunTaskRepository;
+        private readonly JobTaskRepository _jobTaskRepository;
         private readonly RemoteService _remoteService;
 
-        public JobTasks(JobTaskRepository jobTaskRepository, Agents agents, RemoteService remoteService)
+        public JobTasks(JobTaskRepository jobTaskRepository,
+                        JobRunTaskRepository jobRunTaskRepository,
+                        JobRunTaskLogRepository jobRunTaskLogRepository,
+                        Agents agents,
+                        RemoteService remoteService)
         {
             _jobTaskRepository = jobTaskRepository;
+            _jobRunTaskRepository = jobRunTaskRepository;
+            _jobRunTaskLogRepository = jobRunTaskLogRepository;
             _agents = agents;
             _remoteService = remoteService;
         }
@@ -27,7 +36,7 @@ namespace Datack.Web.Service.Services
         {
             return await _jobTaskRepository.GetForJob(jobId, cancellationToken);
         }
-        
+
         public async Task<JobTask> GetById(Guid jobTaskId, CancellationToken cancellationToken)
         {
             return await _jobTaskRepository.GetById(jobTaskId, cancellationToken);
@@ -35,11 +44,67 @@ namespace Datack.Web.Service.Services
 
         public async Task<JobTask> Add(JobTask jobTask, CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(jobTask.Name))
+            {
+                throw new Exception("Name cannot be empty");
+            }
+
+            var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
+            var sameNameTasks = jobTasks.Any(m => String.Equals(m.Name, jobTask.Name, StringComparison.CurrentCultureIgnoreCase));
+
+            if (sameNameTasks)
+            {
+                throw new Exception($"A task with this name for this job already exists");
+            }
+
+            if (String.IsNullOrWhiteSpace(jobTask.Type))
+            {
+                throw new Exception("Task type cannot be empty");
+            }
+
+            if (jobTask.AgentId == Guid.Empty)
+            {
+                throw new Exception("Agent cannot be empty");
+            }
+
+            if (jobTask.Parallel < 0)
+            {
+                throw new Exception($"Parallel cannot be smaller than 0");
+            }
+
             return await _jobTaskRepository.Add(jobTask, cancellationToken);
         }
 
         public async Task Update(JobTask jobTask, CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(jobTask.Name))
+            {
+                throw new Exception("Name cannot be empty");
+            }
+
+            var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
+            var sameNameTasks = jobTasks.Any(m => m.JobTaskId != jobTask.JobTaskId && String.Equals(m.Name, jobTask.Name, StringComparison.CurrentCultureIgnoreCase));
+
+            if (sameNameTasks)
+            {
+                throw new Exception($"A task with this name for this job already exists");
+            }
+
+            if (String.IsNullOrWhiteSpace(jobTask.Type))
+            {
+                throw new Exception("Task type cannot be empty");
+            }
+
+            if (jobTask.AgentId == Guid.Empty)
+            {
+                throw new Exception("Agent cannot be empty");
+            }
+
+            if (jobTask.Parallel < 0)
+            {
+                throw new Exception($"Parallel cannot be smaller than 0");
+            }
+
             var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
             var dbJobTask = await GetById(jobTask.JobTaskId, cancellationToken);
 
@@ -89,6 +154,7 @@ namespace Datack.Web.Service.Services
                     if (newSettingValue == null)
                     {
                         settingKey.SetValue(newSetting, currentSettingValue);
+
                         continue;
                     }
 
@@ -97,6 +163,7 @@ namespace Datack.Web.Service.Services
                     if (newSettingValueString == "******")
                     {
                         settingKey.SetValue(newSetting, currentSettingValue);
+
                         continue;
                     }
 
@@ -110,6 +177,13 @@ namespace Datack.Web.Service.Services
         public async Task DeleteForJob(Guid jobId, CancellationToken cancellationToken)
         {
             await _jobTaskRepository.DeleteForJob(jobId, cancellationToken);
+        }
+
+        public async Task Delete(Guid jobTaskId, CancellationToken cancellationToken)
+        {
+            await _jobRunTaskLogRepository.DeleteForTask(jobTaskId, cancellationToken);
+            await _jobRunTaskRepository.DeleteForTask(jobTaskId, cancellationToken);
+            await _jobTaskRepository.Delete(jobTaskId, cancellationToken);
         }
     }
 }

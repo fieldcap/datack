@@ -1,9 +1,27 @@
 import axios, { CancelTokenSource } from 'axios';
 import { DatabaseListTestResult } from '../models/database-list-test-result';
 import { JobTask } from '../models/job-task';
-import { ErrorHelper } from './error';
 
 export namespace JobTasks {
+    export const map = (name: string): string => {
+        switch (name) {
+            case 'createBackup':
+                return 'Create Database Backup';
+            case 'compress':
+                return 'Compress File';
+            case 'deleteFile':
+                return 'Delete File from filesystem';
+            case 'deleteS3':
+                return 'Delete from AWS S3';
+            case 'uploadAzure':
+                return 'Upload File to Azure Blobs';
+            case 'uploadS3':
+                return 'Upload File to AWS S3';
+            default:
+                return name;
+        }
+    };
+
     export const getForJob = async (
         jobId: string,
         cancelToken: CancelTokenSource
@@ -28,34 +46,49 @@ export namespace JobTasks {
         return result.data;
     };
 
-    export const add = async (jobTask: JobTask): Promise<JobTask> => {
-        try {
-            const result = await axios.post<JobTask>(
-                `/api/JobTasks/Add/`,
-                jobTask
-            );
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+    export const add = async (
+        jobTask: JobTask,
+        cancelToken: CancelTokenSource
+    ): Promise<JobTask> => {
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.post<JobTask>(
+            `/api/JobTasks/Add/`,
+            jobTask,
+            config
+        );
+        return result.data;
     };
 
-    export const update = async (jobTask: JobTask): Promise<void> => {
-        try {
-            await axios.put(`/api/JobTasks/Update/`, jobTask);
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+    export const update = async (
+        jobTask: JobTask,
+        cancelToken: CancelTokenSource
+    ): Promise<void> => {
+        const config = { cancelToken: cancelToken.token };
+        await axios.put(`/api/JobTasks/Update/`, jobTask, config);
+    };
+
+    export const deleteJobTask = async (
+        jobTaskId: string,
+        cancelToken: CancelTokenSource
+    ): Promise<void> => {
+        const config = { cancelToken: cancelToken.token };
+        await axios.delete(`/api/JobTasks/Delete/${jobTaskId}`, config);
     };
 
     export const reOrder = async (
         jobId: string,
-        jobTaskIds: string[]
+        jobTaskIds: string[],
+        cancelToken: CancelTokenSource
     ): Promise<void> => {
-        await axios.post<DatabaseListTestResult[]>(`/api/JobTasks/ReOrder/`, {
-            jobId,
-            jobTaskIds,
-        });
+        const config = { cancelToken: cancelToken.token };
+        await axios.post<DatabaseListTestResult[]>(
+            `/api/JobTasks/ReOrder/`,
+            {
+                jobId,
+                jobTaskIds,
+            },
+            config
+        );
     };
 
     export const testDatabaseRegex = async (
@@ -65,43 +98,41 @@ export namespace JobTasks {
         backupExcludeSystemDatabases: boolean,
         backupIncludeManual: string,
         backupExcludeManual: string,
-        agentId: string
+        agentId: string,
+        cancelToken: CancelTokenSource
     ): Promise<DatabaseListTestResult[]> => {
-        try {
-            const result = await axios.post<DatabaseListTestResult[]>(
-                `/api/JobTasks/TestDatabaseRegex/`,
-                {
-                    backupDefaultExclude,
-                    backupIncludeRegex,
-                    backupExcludeRegex,
-                    backupExcludeSystemDatabases,
-                    backupIncludeManual,
-                    backupExcludeManual,
-                    agentId,
-                }
-            );
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.post<DatabaseListTestResult[]>(
+            `/api/JobTasks/TestDatabaseRegex/`,
+            {
+                backupDefaultExclude,
+                backupIncludeRegex,
+                backupExcludeRegex,
+                backupExcludeSystemDatabases,
+                backupIncludeManual,
+                backupExcludeManual,
+                agentId,
+            },
+            config
+        );
+        return result.data;
     };
 
     export const testDatabaseConnection = async (
         agentId: string,
-        connectionString: string
+        connectionString: string,
+        cancelToken: CancelTokenSource
     ): Promise<string> => {
-        try {
-            const result = await axios.post<string>(
-                `/api/JobTasks/TestDatabaseConnection/`,
-                {
-                    agentId,
-                    connectionString,
-                }
-            );
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.post<string>(
+            `/api/JobTasks/TestDatabaseConnection/`,
+            {
+                agentId,
+                connectionString,
+            },
+            config
+        );
+        return result.data;
     };
 }
 

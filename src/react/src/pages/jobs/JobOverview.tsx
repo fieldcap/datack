@@ -2,15 +2,15 @@ import {
     Box,
     Button,
     Heading,
-    Skeleton,
     Tab,
     TabList,
     TabPanel,
     TabPanels,
     Tabs
 } from '@chakra-ui/react';
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
@@ -23,7 +23,8 @@ type RouteParams = {
 };
 
 const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [job, setJob] = React.useState<Job | null>(null);
+    const [job, setJob] = useState<Job | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const history = useHistory();
 
@@ -31,26 +32,27 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     useEffect(() => {
         (async () => {
-            const result = await Jobs.getById(
-                props.match.params.id,
-                cancelToken
-            );
-            setJob(result);
+            try {
+                setError(null);
+                const result = await Jobs.getById(
+                    props.match.params.id,
+                    cancelToken
+                );
+                setJob(result);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [props.match.params.id, cancelToken]);
 
     const run = async () => {
-        if (job == null) {
-            return;
-        }
-
-        var jobRunId = await Jobs.run(job.jobId);
+        var jobRunId = await Jobs.run(job!.jobId);
 
         history.push(`/run/${jobRunId}`);
     };
 
     return (
-        <Skeleton isLoaded={job != null}>
+        <Loader isLoaded={job != null} error={error}>
             <Box marginBottom="24px">
                 <Heading>{job?.name}</Heading>
             </Box>
@@ -76,7 +78,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                     </TabPanel>
                 </TabPanels>
             </Tabs>
-        </Skeleton>
+        </Loader>
     );
 };
 

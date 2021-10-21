@@ -11,7 +11,7 @@ namespace Datack.Agent.Services.Tasks
     /// <summary>
     /// This task deletes files from disk.
     /// </summary>
-    public class DeleteTask : BaseTask
+    public class DeleteFileTask : BaseTask
     {
         public override Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
@@ -22,7 +22,7 @@ namespace Datack.Agent.Services.Tasks
                     throw new Exception("No previous task found");
                 }
 
-                if (jobRunTask.Settings.Delete == null)
+                if (jobRunTask.Settings.DeleteFile == null)
                 {
                     throw new Exception("No settings set");
                 }
@@ -31,7 +31,7 @@ namespace Datack.Agent.Services.Tasks
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting delete task for file {sourceFileName}");
 
-                if (!jobRunTask.JobTask.Settings.Delete.IgnoreIfFileDoesNotExist && !File.Exists(sourceFileName))
+                if (!jobRunTask.JobTask.Settings.DeleteFile.IgnoreIfFileDoesNotExist && !File.Exists(sourceFileName))
                 {
                     throw new Exception($"Source file '{sourceFileName}' not found");
                 }

@@ -39,7 +39,13 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
             group: '',
             priority: 1,
             description,
-            settings: {},
+            deleteLogsTimeSpanAmount: null,
+            deleteLogsTimeSpanType: null,
+            settings: {
+                emailOnError: false,
+                emailOnSuccess: false,
+                emailTo: null,
+            },
         };
 
         try {

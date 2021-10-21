@@ -3,6 +3,7 @@ import {
     AlertDescription,
     AlertIcon,
     Button,
+    Checkbox,
     FormControl,
     FormHelperText,
     FormLabel,
@@ -16,7 +17,9 @@ import {
     ModalFooter,
     ModalHeader,
     ModalOverlay,
-    Skeleton,
+    Radio,
+    RadioGroup,
+    Stack,
     Textarea,
     UnorderedList
 } from '@chakra-ui/react';
@@ -24,7 +27,8 @@ import { format } from 'date-fns';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
-import { Job } from '../../models/job';
+import Loader from '../../components/loader';
+import { Job, JobSettings } from '../../models/job';
 import Jobs, { TestCronResult } from '../../services/jobs';
 
 type Props = {
@@ -38,9 +42,15 @@ const JobSettingsTab: FC<Props> = (props) => {
     );
     const [group, setGroup] = useState<string>(props.job?.group ?? '');
     const [priority, setPriority] = useState<number>(props.job?.priority ?? 0);
-
+    const [deleteLogsTimeSpanAmount, setDeleteLogsTimeSpanAmount] = useState<
+        number | null
+    >(props.job?.deleteLogsTimeSpanAmount ?? null);
+    const [deleteLogsTimeSpanType, setDeleteLogsTimeSpanType] = useState<
+        string | null
+    >(props.job?.deleteLogsTimeSpanType ?? null);
     const [cron, setCron] = useState<string>(props.job?.cron ?? '');
     const [cronOccurrences, setCronOccurrences] = useState<Date[]>([]);
+    const [settings, setSettings] = useState<JobSettings | null>(null);
 
     const [testResult, setTestResult] = useState<TestCronResult | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -97,7 +107,9 @@ const JobSettingsTab: FC<Props> = (props) => {
                 priority,
                 description,
                 cron,
-                settings: {},
+                deleteLogsTimeSpanAmount,
+                deleteLogsTimeSpanType,
+                settings: settings!,
             };
 
             await Jobs.update(newJob);
@@ -148,7 +160,7 @@ const JobSettingsTab: FC<Props> = (props) => {
     };
 
     return (
-        <Skeleton isLoaded={props.job != null}>
+        <Loader isLoaded={props.job != null} error={null}>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Job Name</FormLabel>
@@ -200,7 +212,46 @@ const JobSettingsTab: FC<Props> = (props) => {
                     </FormHelperText>
                 </FormControl>
 
-                <FormControl id="cron" marginBottom={4} isRequired>
+                <FormControl id="timeSpan1" marginBottom={4}>
+                    <FormLabel>Delete runs older than</FormLabel>
+                    {!!deleteLogsTimeSpanType ? (
+                        <Input
+                            type="number"
+                            min="0"
+                            max="9999999"
+                            step="1"
+                            value={deleteLogsTimeSpanAmount || ''}
+                            onChange={(evt) => {
+                                if (
+                                    evt.target.value == null ||
+                                    evt.target.value === ''
+                                ) {
+                                    setDeleteLogsTimeSpanAmount(null);
+                                } else {
+                                    setDeleteLogsTimeSpanAmount(
+                                        +evt.target.value
+                                    );
+                                }
+                            }}
+                            marginBottom="12px"
+                        ></Input>
+                    ) : null}
+                    <RadioGroup
+                        value={deleteLogsTimeSpanType || ''}
+                        onChange={(value) => setDeleteLogsTimeSpanType(value)}
+                    >
+                        <Stack direction="column">
+                            <Radio value="">Never</Radio>
+                            <Radio value="Year">Years</Radio>
+                            <Radio value="Month">Months</Radio>
+                            <Radio value="Day">Days</Radio>
+                            <Radio value="Hour">Hours</Radio>
+                            <Radio value="Minute">Minutes</Radio>
+                        </Stack>
+                    </RadioGroup>
+                </FormControl>
+
+                <FormControl id="cron" marginBottom={4}>
                     <FormLabel>Backup Schedule</FormLabel>
                     <Input
                         type="text"
@@ -224,7 +275,11 @@ const JobSettingsTab: FC<Props> = (props) => {
                 </FormControl>
 
                 <FormLabel>Occurrences for next 2 weeks</FormLabel>
-                <UnorderedList overflowY="auto" maxHeight="300px">
+                <UnorderedList
+                    overflowY="auto"
+                    maxHeight="300px"
+                    marginBottom={4}
+                >
                     {cronOccurrences.map((m) => (
                         <ListItem key={m.toISOString()}>
                             {format(m, 'd MMMM yyyy HH:mm')}
@@ -232,13 +287,58 @@ const JobSettingsTab: FC<Props> = (props) => {
                     ))}
                 </UnorderedList>
 
+                <FormControl id="emailOnSuccess" marginBottom={4} isRequired>
+                    <Checkbox
+                        isChecked={settings?.emailOnSuccess}
+                        onChange={(evt) =>
+                            setSettings({
+                                ...settings!,
+                                emailOnSuccess: evt.target.checked,
+                            })
+                        }
+                    >
+                        Send e-mail when a run completes succesfully.
+                    </Checkbox>
+                </FormControl>
+                <FormControl id="emailOnErrors" marginBottom={4} isRequired>
+                    <Checkbox
+                        isChecked={settings?.emailOnError}
+                        onChange={(evt) =>
+                            setSettings({
+                                ...settings!,
+                                emailOnError: evt.target.checked,
+                            })
+                        }
+                    >
+                        Send e-mail when a run completes with errors.
+                    </Checkbox>
+                </FormControl>
+                <FormControl id="name" marginBottom={4} isRequired>
+                    <FormLabel>Send e-mail to</FormLabel>
+                    <Input
+                        type="text"
+                        maxLength={1000}
+                        value={settings?.emailTo || ''}
+                        onChange={(evt) => {
+                            setSettings({
+                                ...settings!,
+                                emailTo: evt.target.value,
+                            });
+                        }}
+                    />
+                    <FormHelperText>
+                        The recipient of the emails sent for this job, can be
+                        comma separated for multiple recipients.
+                    </FormHelperText>
+                </FormControl>
+
                 {error != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert status="error" marginBottom={4}>
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
-                <HStack marginTop="24px">
+                <HStack>
                     <Button
                         onClick={(evt) => handleSave(evt)}
                         isLoading={isSaving}
@@ -298,7 +398,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-        </Skeleton>
+        </Loader>
     );
 };
 

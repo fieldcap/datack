@@ -19,7 +19,9 @@ namespace Datack.Common.Models.Data
 
         public String Cron { get;set; }
 
-        public Int32 DeleteLogsAfter { get; set; }
+        public Int32?  DeleteLogsTimeSpanAmount { get; set; }
+
+        public String DeleteLogsTimeSpanType { get; set; }
         
         public JobSettings Settings { get; set; }
     }

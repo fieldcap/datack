@@ -9,12 +9,16 @@ namespace Datack.Web.Service.Services
 {
     public class JobRuns
     {
-        private readonly JobRunRepository _jobRunRepository;
         private readonly Emails _emails;
+        private readonly JobRunRepository _jobRunRepository;
+        private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
+        private readonly JobRunTaskRepository _jobRunTaskRepository;
 
-        public JobRuns(JobRunRepository jobRunRepository, Emails emails)
+        public JobRuns(JobRunRepository jobRunRepository, JobRunTaskRepository jobRunTaskRepository, JobRunTaskLogRepository jobRunTaskLogRepository, Emails emails)
         {
             _jobRunRepository = jobRunRepository;
+            _jobRunTaskLogRepository = jobRunTaskLogRepository;
+            _jobRunTaskRepository = jobRunTaskRepository;
             _emails = emails;
         }
 
@@ -64,6 +68,8 @@ namespace Datack.Web.Service.Services
 
         public async Task DeleteForJob(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
         {
+            await _jobRunTaskLogRepository.DeleteForJob(jobId, keepDays, cancellationToken);
+            await _jobRunTaskRepository.DeleteForJob(jobId, keepDays, cancellationToken);
             await _jobRunRepository.DeleteForJob(jobId, keepDays, cancellationToken);
         }
     }

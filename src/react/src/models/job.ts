@@ -5,7 +5,13 @@ export type Job = {
     priority: number;
     cron: string;
     description: string;
+    deleteLogsTimeSpanAmount: number | null;
+    deleteLogsTimeSpanType: string | null;
     settings: JobSettings;
 };
 
-export type JobSettings = {};
+export type JobSettings = {
+    emailOnError: boolean;
+    emailOnSuccess: boolean;
+    emailTo: string | null;
+};

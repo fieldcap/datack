@@ -22,7 +22,7 @@ import {
     Tr
 } from '@chakra-ui/react';
 import { format, formatDistanceStrict } from 'date-fns';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -57,7 +57,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
         history.push(`/run/${jobRunId}`);
     };
 
-    const columns = React.useMemo(() => {
+    const columns = useMemo(() => {
         const columns: Column<JobRun>[] = [
             {
                 Header: 'Job',

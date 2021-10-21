@@ -5,17 +5,24 @@ import {
     Box,
     Button,
     FormControl,
+    FormHelperText,
     FormLabel,
     Heading,
     HStack,
     Input,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
     Select,
-    Skeleton,
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
-import { v4 } from 'uuid';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import { JobTask, JobTaskSettings } from '../../models/job-task';
@@ -34,11 +41,9 @@ type RouteParams = {
 };
 
 const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
-    const [jobTask, setJobTask] = React.useState<JobTask | null>(null);
+    const [jobTask, setJobTask] = useState<JobTask | null>(null);
 
-    const [allJobTasks, setAllJobTasks] = React.useState<JobTask[]>([]);
-
-    const [isAdd, setIsAdd] = useState<boolean>(false);
+    const [allJobTasks, setAllJobTasks] = useState<JobTask[]>([]);
 
     const [agents, setAgents] = useState<Agent[]>([]);
 
@@ -51,107 +56,121 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
         string | null
     >(null);
     const [settings, setSettings] = useState<JobTaskSettings | null>(null);
-    const [agentId, setAgentId] = useState<string>('');
+    const [agentId, setAgentId] = useState<string>(
+        '00000000-0000-0000-0000-000000000000'
+    );
 
     const [error, setError] = useState<string | null>(null);
 
     const [isSaving, setIsSaving] = useState<boolean>(false);
+
+    const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
     const history = useHistory();
 
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
-        if (props.match.params.id == null) {
-            setIsAdd(true);
-        }
-
-        if (props.match.params.id != null) {
-            (async () => {
-                const result = await JobTasks.getById(
-                    props.match.params.id!,
-                    cancelToken
-                );
-                setJobTask(result);
-                setName(result.name || '');
-                setDescription(result.description || '');
-                setType(result.type || '');
-                setParallel(result.parallel);
-                setUsePreviousTaskArtifacts(
-                    result.usePreviousTaskArtifactsFromJobTaskId
-                );
-                setSettings(result.settings);
-                setAgentId(result.agentId || '');
-                setTimeout(result.timeout);
-            })();
-        }
-
         (async () => {
-            const result = await JobTasks.getForJob(
-                props.match.params.jobId,
+            const result = await JobTasks.getById(
+                props.match.params.id!,
                 cancelToken
             );
-            setAllJobTasks(result);
+            setJobTask(result);
+            setName(result.name);
+            setDescription(result.description);
+            setType(result.type);
+            setParallel(result.parallel);
+            setUsePreviousTaskArtifacts(
+                result.usePreviousTaskArtifactsFromJobTaskId
+            );
+            setSettings(result.settings);
+            setAgentId(result.agentId);
+            setTimeout(result.timeout);
         })();
 
         (async () => {
-            const agents = await Agents.getList(cancelToken);
-            setAgents(agents);
+            try {
+                const result = await JobTasks.getForJob(
+                    props.match.params.jobId,
+                    cancelToken
+                );
+                setAllJobTasks(result);
+            } catch (err: any) {
+                setError(`Cannot get job tasks: ${err}`);
+            }
+        })();
+
+        (async () => {
+            try {
+                const agents = await Agents.getList(cancelToken);
+                setAgents(agents);
+            } catch (err: any) {
+                setError(`Cannot get agents: ${err}`);
+            }
         })();
     }, [props.match.params.id, props.match.params.jobId, cancelToken]);
 
     const save = async () => {
         setIsSaving(true);
 
+        if (jobTask == null) {
+            return;
+        }
+
         try {
-            if (isAdd) {
-                const newJobTask: JobTask = {
-                    jobTaskId: v4(),
-                    jobId: props.match.params.jobId,
-                    name: name,
-                    description: description,
-                    type: type,
-                    parallel: parallel,
-                    order: 0,
-                    timeout: timeout,
-                    usePreviousTaskArtifactsFromJobTaskId: null,
-                    settings: settings || {},
-                    agentId: agentId,
-                };
+            jobTask.name = name;
+            jobTask.description = description;
+            jobTask.type = type;
+            jobTask.settings = settings || {};
+            jobTask.agentId = agentId;
+            jobTask.parallel = parallel;
+            jobTask.timeout = timeout;
 
-                const result = await JobTasks.add(newJobTask);
-
-                history.push(
-                    `/job/${props.match.params.jobId}/task/${result.jobTaskId}`
-                );
-            } else if (jobTask != null) {
-                jobTask.name = name;
-                jobTask.description = description;
-                jobTask.type = type;
-                jobTask.settings = settings || {};
-                jobTask.agentId = agentId;
-                jobTask.parallel = parallel;
-                jobTask.timeout = timeout;
-
-                if (!usePreviousTaskArtifacts) {
-                    jobTask.usePreviousTaskArtifactsFromJobTaskId = null;
-                } else {
-                    jobTask.usePreviousTaskArtifactsFromJobTaskId =
-                        usePreviousTaskArtifacts;
-                }
-
-                await JobTasks.update(jobTask);
-
-                history.push(`/job/${jobTask.jobId}`);
+            if (!usePreviousTaskArtifacts) {
+                jobTask.usePreviousTaskArtifactsFromJobTaskId = null;
+            } else {
+                jobTask.usePreviousTaskArtifactsFromJobTaskId =
+                    usePreviousTaskArtifacts;
             }
+
+            await JobTasks.update(jobTask, cancelToken);
+
+            history.push(`/job/${jobTask.jobId}`);
         } catch (err: any) {
             setIsSaving(false);
             setError(err);
         }
     };
 
+    const handleDeleteTask = (event: React.FormEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        setShowDeleteModal(true);
+    };
+
+    const handleDeleteOk = async () => {
+        setShowDeleteModal(false);
+
+        setIsSaving(true);
+        setError(null);
+
+        try {
+            await JobTasks.deleteJobTask(jobTask!.jobTaskId, cancelToken);
+            setIsSaving(false);
+
+            history.push('/jobs');
+        } catch (err: any) {
+            setError(err);
+            setIsSaving(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setShowDeleteModal(false);
+    };
+
     const cancel = () => {
-        history.push(`/job/${jobTask?.jobId}`);
+        history.push(`/job/${props.match.params.jobId}`);
     };
 
     const getTaskType = () => {
@@ -239,18 +258,14 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     ></JobTaskUploadAzure>
                 );
             default:
-                return <Alert>Unkown type {type}</Alert>;
+                return <></>;
         }
     };
 
     return (
-        <Skeleton isLoaded={jobTask != null || isAdd}>
+        <Loader isLoaded={jobTask != null} error={null}>
             <Box marginBottom="24px">
-                {isAdd ? (
-                    <Heading>Add task</Heading>
-                ) : (
-                    <Heading>Edit task</Heading>
-                )}
+                <Heading>Edit task</Heading>
             </Box>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
@@ -261,6 +276,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                     />
+                    <FormHelperText>The name of the task.</FormHelperText>
                 </FormControl>
                 <FormControl id="description" marginBottom={4}>
                     <FormLabel>Description</FormLabel>
@@ -269,6 +285,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
+                    <FormHelperText>
+                        A description of what the task does.
+                    </FormHelperText>
                 </FormControl>
                 <FormControl id="agentId" isRequired marginBottom={4}>
                     <FormLabel>Agent</FormLabel>
@@ -278,14 +297,14 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         onChange={(e) => setAgentId(e.target.value)}
                     >
                         {agents.map((agent) => (
-                            <option
-                                value={agent.agentId}
-                                key={agent.agentId}
-                            >
+                            <option value={agent.agentId} key={agent.agentId}>
                                 {agent.name}
                             </option>
                         ))}
                     </Select>
+                    <FormHelperText>
+                        The agent this task should execute on.
+                    </FormHelperText>
                 </FormControl>
                 <FormControl id="type" isRequired marginBottom={4}>
                     <FormLabel>Type</FormLabel>
@@ -301,6 +320,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <option value="upload_s3">Upload to S3</option>
                         <option value="upload_azure">Upload to Azure</option>
                     </Select>
+                    <FormHelperText>The type of the task.</FormHelperText>
                 </FormControl>
                 <FormControl id="parallel" isRequired marginBottom={4}>
                     <FormLabel>Parallel execution</FormLabel>
@@ -313,6 +333,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             setParallel(Number(e.target.value));
                         }}
                     />
+                    <FormHelperText>
+                        The amount of tasks that execute in parallel.
+                    </FormHelperText>
                 </FormControl>
                 <FormControl id="usePreviousTaskArtifacts" marginBottom={4}>
                     <FormLabel>
@@ -336,6 +359,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             </option>
                         ))}
                     </Select>
+                    <FormHelperText>
+                        The artifacts from this task will be used for this task.
+                    </FormHelperText>
                 </FormControl>
                 <FormControl id="timeout" marginBottom={4}>
                     <FormLabel>Timeout</FormLabel>
@@ -351,6 +377,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             }
                         }}
                     />
+                    <FormHelperText>The timeout in seconds.</FormHelperText>
                 </FormControl>
                 {getTaskType()}
                 {error != null ? (
@@ -370,18 +397,48 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     >
                         Cancel
                     </Button>
-                    {!isAdd ? (
-                        <Button
-                            onClick={() => cancel()}
-                            isLoading={isSaving}
-                            colorScheme="red"
-                        >
-                            Delete task
-                        </Button>
-                    ) : null}
+                    <Button
+                        onClick={handleDeleteTask}
+                        isLoading={isSaving}
+                        colorScheme="red"
+                    >
+                        Delete task
+                    </Button>
                 </HStack>
             </form>
-        </Skeleton>
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={handleDeleteCancel}
+                size="lg"
+            >
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Delete task</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <p>
+                            When deleting this task, all runs and logs will be
+                            deleted associated with this task.
+                        </p>
+                        <p>Are you sure you want to delete this task?</p>
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <HStack>
+                            <Button
+                                onClick={() => handleDeleteOk()}
+                                colorScheme="red"
+                            >
+                                Delete
+                            </Button>
+                            <Button onClick={() => handleDeleteCancel()}>
+                                Cancel
+                            </Button>
+                        </HStack>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </Loader>
     );
 };
 

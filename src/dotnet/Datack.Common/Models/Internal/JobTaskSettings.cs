@@ -6,17 +6,17 @@ namespace Datack.Common.Models.Internal
 {
     public class JobTaskSettings
     {
-        [JsonPropertyName("deleteS3")]
-        public JobTaskDeleteS3Settings DeleteS3 { get; set; }
-
         [JsonPropertyName("createBackup")]
         public JobTaskCreateDatabaseSettings CreateBackup { get; set; }
 
         [JsonPropertyName("compress")]
         public JobTaskCompressSettings Compress { get; set; }
 
-        [JsonPropertyName("delete")]
-        public JobTaskDeleteSettings Delete { get; set; }
+        [JsonPropertyName("deleteFile")]
+        public JobTaskDeleteFileSettings DeleteFile { get; set; }
+
+        [JsonPropertyName("deleteS3")]
+        public JobTaskDeleteS3Settings DeleteS3 { get; set; }
 
         [JsonPropertyName("uploadS3")]
         public JobTaskUploadS3Settings UploadS3 { get; set; }
@@ -106,7 +106,7 @@ namespace Datack.Common.Models.Internal
         public String Password { get; set; }
     }
 
-    public class JobTaskDeleteSettings
+    public class JobTaskDeleteFileSettings
     {
         [JsonPropertyName("ignoreIfFileDoesNotExist")]
         public Boolean IgnoreIfFileDoesNotExist { get; set; }

@@ -75,6 +75,8 @@ namespace Datack.Web.Data.Repositories
             dbJob.Settings = job.Settings;
             dbJob.Group = job.Group;
             dbJob.Priority = job.Priority;
+            dbJob.DeleteLogsTimeSpanAmount = job.DeleteLogsTimeSpanAmount;
+            dbJob.DeleteLogsTimeSpanType = job.DeleteLogsTimeSpanType;
 
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
@@ -98,7 +100,8 @@ namespace Datack.Web.Data.Repositories
                 Description = dbJob.Description,
                 Cron = dbJob.Cron,
                 Priority = dbJob.Priority + 1,
-                DeleteLogsAfter = dbJob.DeleteLogsAfter,
+                DeleteLogsTimeSpanAmount = dbJob.DeleteLogsTimeSpanAmount,
+                DeleteLogsTimeSpanType = dbJob.DeleteLogsTimeSpanType,
                 Settings = dbJob.Settings
             };
 

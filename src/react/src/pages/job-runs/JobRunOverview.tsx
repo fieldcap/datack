@@ -1,5 +1,5 @@
 import { Box, Button, Flex, Heading, Skeleton } from '@chakra-ui/react';
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { JobRun } from '../../models/job-run';
@@ -15,9 +15,9 @@ type RouteParams = {
 };
 
 const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [jobRun, setJobRun] = React.useState<JobRun | null>(null);
-    let [jobRunTasks, setJobRunTasks] = React.useState<JobRunTask[]>([]);
-    let [jobRunTaskLogs, setJobRunTaskLogs] = React.useState<JobRunTaskLog[]>(
+    const [jobRun, setJobRun] = useState<JobRun | null>(null);
+    const [jobRunTasks, setJobRunTasks] = useState<JobRunTask[]>([]);
+    const [jobRunTaskLogs, setJobRunTaskLogs] = useState<JobRunTaskLog[]>(
         []
     );
 

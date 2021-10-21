@@ -49,7 +49,7 @@ namespace Datack.Web.Service.Services
             _tasks = new Dictionary<String, IBaseTask>
             {
                 {
-                    "create_backup", createBackupTask
+                    "createBackup", createBackupTask
                 }
             };
         }

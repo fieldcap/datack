@@ -8,9 +8,10 @@ import { Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
 import { format, formatDistanceStrict } from 'date-fns';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
 import { JobRunTask } from '../../models/job-run-task';
+import JobTasks from '../../services/jobTasks';
 
 type Props = {
     jobRunTasks: JobRunTask[];
@@ -20,7 +21,7 @@ type Props = {
 const JobRunOverviewTasks: FC<Props> = (props) => {
     const { jobRunTasks, onRowClick } = props;
 
-    const columns = React.useMemo(() => {
+    const columns = useMemo(() => {
         const columns: Column<JobRunTask>[] = [
             {
                 Header: 'Started',
@@ -57,6 +58,9 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
             {
                 Header: 'Task',
                 accessor: 'type',
+                Cell: ({ cell: { value } }) => {
+                    return JobTasks.map(value);
+                },
             },
             {
                 Header: 'Item',

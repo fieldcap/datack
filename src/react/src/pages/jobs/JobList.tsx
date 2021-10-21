@@ -2,14 +2,15 @@ import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import {
     Button,
     chakra,
-    Heading, Table,
+    Heading,
+    Table,
     Tbody,
     Td,
     Th,
     Thead,
     Tr
 } from '@chakra-ui/react';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
@@ -29,6 +30,8 @@ const JobList: FC<RouteComponentProps> = () => {
     useEffect(() => {
         (async () => {
             setError(null);
+            setJobs([]);
+            setIsLoaded(false);
             try {
                 const jobs = await Jobs.getList(cancelToken);
                 setJobs(jobs);
@@ -47,7 +50,7 @@ const JobList: FC<RouteComponentProps> = () => {
         history.push(`/job/new`);
     };
 
-    const columns = React.useMemo(() => {
+    const columns = useMemo(() => {
         const columns: Column<Job>[] = [
             {
                 Header: 'Name',

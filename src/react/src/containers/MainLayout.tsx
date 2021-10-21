@@ -7,6 +7,7 @@ import AgentList from '../pages/agents/AgentList';
 import AgentOverview from '../pages/agents/AgentOverview';
 import History from '../pages/history/History';
 import JobRunOverview from '../pages/job-runs/JobRunOverview';
+import JobTaskAdd from '../pages/job-tasks/JobTaskAdd';
 import JobTaskEditor from '../pages/job-tasks/JobTaskEditor';
 import JobAdd from '../pages/jobs/JobAdd';
 import JobList from '../pages/jobs/JobList';
@@ -75,7 +76,7 @@ const MainLayout: FC = () => {
                     />
                     <Route
                         path="/job/:jobId/task/add"
-                        render={(props) => <JobTaskEditor {...props} />}
+                        render={(props) => <JobTaskAdd {...props} />}
                     />
                     <Route
                         path="/job/:jobId/task/:id"

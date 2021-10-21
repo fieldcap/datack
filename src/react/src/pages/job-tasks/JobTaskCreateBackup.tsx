@@ -14,6 +14,7 @@ import {
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { FaMinus, FaPlus } from 'react-icons/fa';
+import useCancellationToken from '../../hooks/useCancellationToken';
 import { DatabaseListTestResult } from '../../models/database-list-test-result';
 import { JobTaskCreateDatabaseSettings } from '../../models/job-task';
 import JobTasks from '../../services/jobTasks';
@@ -27,7 +28,13 @@ type Props = {
 const JobTaskCreateBackup: FC<Props> = (props) => {
     const { onSettingsChanged } = props;
 
+    const [isTesting, setIsTesting] = useState<boolean>(false);
+    const [testingSuccess, setTestingSuccess] = useState<string | null>(null);
+    const [testingError, setTestingError] = useState<string | null>(null);
+
     const [testResult, setTestResult] = useState<DatabaseListTestResult[]>([]);
+
+    const cancelToken = useCancellationToken();
 
     useEffect(() => {
         if (props.settings == null) {
@@ -45,7 +52,11 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
     }, [props.settings, onSettingsChanged]);
 
     useEffect(() => {
-        if (props.agentId == null || props.agentId === '') {
+        if (
+            props.agentId == null ||
+            props.agentId === '' ||
+            props.settings == null
+        ) {
             return;
         }
 
@@ -57,7 +68,8 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 props.settings!.backupExcludeSystemDatabases,
                 props.settings!.backupIncludeManual,
                 props.settings!.backupExcludeManual,
-                props.agentId
+                props.agentId,
+                cancelToken
             );
             setTestResult(result);
         })();
@@ -71,6 +83,27 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.settings?.backupExcludeManual,
         props.agentId,
     ]);
+
+    const handleTestConnection = async (
+        event: React.FormEvent<HTMLButtonElement>
+    ) => {
+        event.preventDefault();
+        setIsTesting(true);
+        setTestingError(null);
+        setTestingSuccess(null);
+
+        try {
+            /*const testResult = await Agents.testDatabaseConnection(
+                newAgent.agentId,
+                connectionString
+            );
+
+            setTestingSuccess(testResult);*/
+        } catch (err: any) {
+            setTestingError(err);
+        }
+        setIsTesting(false);
+    };
 
     const handleBackupTypeChanged = (value: string) => {
         if (props.settings == null) {

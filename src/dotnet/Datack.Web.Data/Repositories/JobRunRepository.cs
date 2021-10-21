@@ -127,17 +127,6 @@ namespace Datack.Web.Data.Repositories
         {
             var fromDate = DateTimeOffset.Now.AddDays(-keepDays);
 
-            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRunTaskLogs
-FROM JobRunTaskLogs
-INNER JOIN JobRunTasks ON JobRunTasks.JobRunTaskId = JobRunTaskLogs.JobRunTaskId
-INNER JOIN JobRuns ON JobRuns.JobRunId = JobRunTasks.JobRunId
-WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);
-
-            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRunTasks
-FROM JobRunTasks
-INNER JOIN JobRuns ON JobRuns.JobRunId = JobRunTasks.JobRunId
-WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);
-
             await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRuns
 FROM JobRuns
 WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);

@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
+using Datack.Common.Models.Internal;
 using Datack.Web.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -53,6 +54,15 @@ namespace Datack.Web.Web.Controllers
         [Route("Add")]
         public async Task<ActionResult<Guid>> Add([FromBody] JobTask jobTask, CancellationToken cancellationToken)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Select(x => x.Value.Errors)
+                                       .Where(y => y.Count > 0)
+                                       .ToList();
+
+                return BadRequest(errors);
+            }
+
             var result = await _jobTasks.Add(jobTask, cancellationToken);
 
             return Ok(result);
@@ -72,6 +82,15 @@ namespace Datack.Web.Web.Controllers
             }
 
             await _jobTasks.Update(jobTask, cancellationToken);
+
+            return Ok();
+        }
+
+        [HttpDelete]
+        [Route("Delete/{jobTaskId:guid}")]
+        public async Task<ActionResult> Delete(Guid jobTaskId, CancellationToken cancellationToken)
+        {
+            await _jobTasks.Delete(jobTaskId, cancellationToken);
 
             return Ok();
         }
@@ -110,6 +129,11 @@ namespace Datack.Web.Web.Controllers
             if (agent == null)
             {
                 throw new Exception($"Agent with ID {request.AgentId} not found");
+            }
+
+            if (String.IsNullOrWhiteSpace(request.ConnectionString))
+            {
+                return Ok(new List<DatabaseTestResult>());
             }
 
             var databases = await _remoteService.GetDatabaseList(agent, request.ConnectionString, request.ConnectionStringPassword, cancellationToken);

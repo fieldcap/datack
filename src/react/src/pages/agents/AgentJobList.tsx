@@ -9,7 +9,7 @@ import {
     Thead,
     Tr
 } from '@chakra-ui/react';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
@@ -54,7 +54,7 @@ const AgentJobList: FC<Props> = (props) => {
         history.push(`/job/new`);
     };
 
-    const columns = React.useMemo(() => {
+    const columns = useMemo(() => {
         const columns: Column<Job>[] = [
             {
                 Header: 'Name',

@@ -1,12 +1,13 @@
 import {
     CheckIcon,
+    TimeIcon,
     TriangleDownIcon,
     TriangleUpIcon,
     WarningIcon
 } from '@chakra-ui/icons';
 import {
     chakra,
-    Skeleton,
+    Spinner,
     Table,
     Tbody,
     Td,
@@ -15,9 +16,10 @@ import {
     Tr
 } from '@chakra-ui/react';
 import { format, formatDistanceStrict } from 'date-fns';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import { JobRun } from '../../models/job-run';
@@ -28,8 +30,9 @@ type JobHistoryTabTabProps = {
 };
 
 const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
-    let [isLoaded, setIsLoaded] = useState<boolean>(false);
-    let [jobRuns, setJobRuns] = useState<JobRun[]>([]);
+    const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [jobRuns, setJobRuns] = useState<JobRun[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const history = useHistory();
 
@@ -41,12 +44,19 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
         }
 
         (async () => {
-            const result = await JobRuns.getForJob(
-                props.job!.jobId,
-                cancelToken
-            );
-            setJobRuns(result);
-            setIsLoaded(true);
+            try {
+                setJobRuns([]);
+                setIsLoaded(false);
+                setError(null);
+                const result = await JobRuns.getForJob(
+                    props.job!.jobId,
+                    cancelToken
+                );
+                setJobRuns(result);
+                setIsLoaded(true);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [props.job, cancelToken]);
 
@@ -54,11 +64,12 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
         history.push(`/run/${jobRunId}`);
     };
 
-    const columns = React.useMemo(() => {
+    const columns = useMemo(() => {
         const columns: Column<JobRun>[] = [
             {
                 Header: 'Started',
                 accessor: 'started',
+                sortType: 'datetime',
                 Cell: ({ cell: { value } }) =>
                     format(value, 'd MMMM yyyy HH:mm'),
             },
@@ -87,9 +98,23 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
             {
                 Header: 'Result',
                 accessor: 'isError',
-                Cell: ({ cell: { value } }) => {
-                    if (value) {
+                Cell: (c) => {
+                    if (c.cell.value) {
                         return <WarningIcon style={{ color: 'red' }} />;
+                    }
+
+                    if (
+                        c.row.original.completed == null &&
+                        c.row.original.started == null
+                    ) {
+                        return <TimeIcon style={{ color: 'blue' }} />;
+                    }
+
+                    if (
+                        c.row.original.completed == null &&
+                        c.row.original.started != null
+                    ) {
+                        return <Spinner />;
                     }
                     return <CheckIcon style={{ color: 'green' }} />;
                 },
@@ -102,7 +127,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
         useTable<JobRun>({ columns, data: jobRuns }, useSortBy);
 
     return (
-        <Skeleton isLoaded={isLoaded}>
+        <Loader isLoaded={isLoaded} error={error}>
             <Table {...getTableProps()}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
@@ -147,7 +172,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                     })}
                 </Tbody>
             </Table>
-        </Skeleton>
+        </Loader>
     );
 };
 

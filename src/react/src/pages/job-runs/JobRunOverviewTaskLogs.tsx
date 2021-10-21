@@ -6,7 +6,7 @@ import { Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
 import { format } from 'date-fns';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
 import { JobRunTaskLog } from '../../models/job-run-task-log';
 
@@ -17,7 +17,7 @@ type Props = {
 const JobRunOverviewTaskLogs: FC<Props> = (props) => {
     const { jobRunTaskLogs } = props;
 
-    const columns = React.useMemo(() => {
+    const columns = useMemo(() => {
         const columns: Column<JobRunTaskLog>[] = [
             {
                 Header: 'Date',

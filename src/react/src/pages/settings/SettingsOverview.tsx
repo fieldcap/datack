@@ -18,8 +18,8 @@ import SettingsSetting from './SettingsSetting';
 type RouteParams = {};
 
 const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
-    let [isLoaded, setIsLoaded] = useState<boolean>(false);
-    let [settings, setSettings] = useState<Setting[]>([]);
+    const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [settings, setSettings] = useState<Setting[]>([]);
 
     const [error, setError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);

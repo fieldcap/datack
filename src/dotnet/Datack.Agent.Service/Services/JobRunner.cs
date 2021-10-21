@@ -24,7 +24,7 @@ namespace Datack.Agent.Services
                          RpcService rpcService,
                          CreateBackupTask createBackupTask,
                          CompressTask compressTask,
-                         DeleteTask deleteTask,
+                         DeleteFileTask deleteTask,
                          DeleteS3Task deleteS3Task,
                          UploadAzureTask uploadAzureTask,
                          UploadS3Task uploadS3Task)
@@ -35,22 +35,22 @@ namespace Datack.Agent.Services
             _tasks = new Dictionary<String, BaseTask>
             {
                 {
-                    "create_backup", createBackupTask
+                    "createBackup", createBackupTask
                 },
                 {
                     "compress", compressTask
                 },
                 {
-                    "delete", deleteTask
+                    "deleteFile", deleteTask
                 },
                 {
-                    "delete_s3", deleteS3Task
+                    "deleteS3", deleteS3Task
                 },
                 {
-                    "upload_azure", uploadAzureTask
+                    "uploadAzure", uploadAzureTask
                 },
                 {
-                    "upload_s3", uploadS3Task
+                    "uploadS3", uploadS3Task
                 }
             };
 
