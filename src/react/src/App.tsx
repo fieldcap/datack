@@ -13,6 +13,7 @@ import './App.scss';
 import MainLayout from './containers/MainLayout';
 import Login from './pages/Login';
 import Auth from './services/auth';
+import { ErrorHelper } from './services/error';
 
 const loading = (
     <div className="pt-3 text-center">
@@ -22,7 +23,8 @@ const loading = (
 
 type PrivateRouteProps = RouteProps & OmitNative<{}, keyof RouteProps> & {};
 
-const isoDateFormat = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)(([-+](\d{2}):(\d{2})|Z)?)$/;
+const isoDateFormat =
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)(([-+](\d{2}):(\d{2})|Z)?)$/;
 
 const isIsoDateString = (value: any): boolean => {
     return value && typeof value === 'string' && isoDateFormat.test(value);
@@ -45,7 +47,11 @@ axios.interceptors.response.use(
         return request;
     },
     (error) => {
-        Promise.reject(error)
+        if (error && error.response && error.response.status === 401) {
+            Auth.logout();
+        }
+        const formatterError = ErrorHelper.getError(error);
+        Promise.reject(formatterError);
     }
 );
 

@@ -28,8 +28,10 @@ const AgentList: FC<RouteComponentProps> = () => {
 
     useEffect(() => {
         (async () => {
-            const agents = await Agents.getList(cancelToken);
-            setAgents(agents);
+            try {
+                const agents = await Agents.getList(cancelToken);
+                setAgents(agents);
+            } catch {}
             setIsLoaded(true);
         })();
     }, [cancelToken]);

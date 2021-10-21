@@ -6,13 +6,9 @@ export namespace Agents {
     export const getList = async (
         cancelToken: CancelTokenSource
     ): Promise<Agent[]> => {
-        try {
-            const config = { cancelToken: cancelToken.token };
-            const result = await axios.get<Agent[]>(`/api/Agents/List`, config);
-            return result.data;
-        } catch (err) {
-            throw ErrorHelper.getError(err);
-        }
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.get<Agent[]>(`/api/Agents/List`, config);
+        return result.data;
     };
 
     export const getById = async (
