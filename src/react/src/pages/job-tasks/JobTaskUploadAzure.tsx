@@ -22,43 +22,13 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
         }
     }, [props.settings, onSettingsChanged]);
 
-    const handleFilenameChanged = (value: string) => {
+    const set = (settingName: keyof JobTaskUploadAzureSettings, newValue: string | number | boolean): void => {
         if (props.settings == null) {
             return;
         }
         props.onSettingsChanged({
             ...props.settings,
-            fileName: value,
-        });
-    };
-
-    const handleContainerNameChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            containerName: value,
-        });
-    };
-
-    const handleConnectionStringChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            connectionString: value,
-        });
-    };
-
-    const handleTagChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            tag: value,
+            [settingName]: newValue,
         });
     };
 
@@ -69,7 +39,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.containerName || ''}
-                    onChange={(evt) => handleContainerNameChanged(evt.target.value)}
+                    onChange={(evt) => set('containerName', evt.target.value)}
                 ></Input>
                 <FormHelperText>The Azure Blob storage container.</FormHelperText>
             </FormControl>
@@ -78,7 +48,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.fileName || ''}
-                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                    onChange={(evt) => set('fileName', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The Azure blob file name to upload the file to. The following tokens are supported:
@@ -97,7 +67,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 <Input
                     type="password"
                     value={props.settings?.connectionString || ''}
-                    onChange={(evt) => handleConnectionStringChanged(evt.target.value)}
+                    onChange={(evt) => set('connectionString', evt.target.value)}
                 ></Input>
                 <FormHelperText>The Azure connection string. This setting is stored encrypted.</FormHelperText>
             </FormControl>
@@ -106,7 +76,7 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.tag || ''}
-                    onChange={(evt) => handleTagChanged(evt.target.value)}
+                    onChange={(evt) => set('tag', evt.target.value)}
                 ></Input>
                 <FormHelperText>An optional tag to write on the object.</FormHelperText>
             </FormControl>

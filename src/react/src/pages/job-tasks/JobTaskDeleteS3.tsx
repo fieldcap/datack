@@ -26,83 +26,13 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         }
     }, [props.settings, onSettingsChanged]);
 
-    const handleFilenameChanged = (value: string) => {
+    const set = (settingName: keyof JobTaskDeleteS3Settings, newValue: string | number | boolean): void => {
         if (props.settings == null) {
             return;
         }
         props.onSettingsChanged({
             ...props.settings,
-            fileName: value,
-        });
-    };
-
-    const handleRegionChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            region: value,
-        });
-    };
-
-    const handleBucketChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            bucket: value,
-        });
-    };
-
-    const handleAccessKeyChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            accessKey: value,
-        });
-    };
-
-    const handleSecretChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            secret: value,
-        });
-    };
-
-    const handleTagChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            tag: value,
-        });
-    };
-
-    const handleTimeSpanTypeChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            timeSpanType: value,
-        });
-    };
-
-    const handleTimeSpanAmountChanged = (value: number) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            timeSpanAmount: value,
+            [settingName]: newValue,
         });
     };
 
@@ -110,7 +40,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         <>
             <FormControl id="region" marginBottom={4}>
                 <FormLabel>Region</FormLabel>
-                <Select value={props.settings?.region || ''} onChange={(e) => handleRegionChanged(e.target.value)}>
+                <Select value={props.settings?.region || ''} onChange={(e) => set('region', e.target.value)}>
                     <option value="af-south-1">Africa (Cape Town)</option>
                     <option value="ap-east-1">Asia Pacific (Hong Kong)</option>
                     <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
@@ -147,7 +77,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.bucket || ''}
-                    onChange={(evt) => handleBucketChanged(evt.target.value)}
+                    onChange={(evt) => set('bucket', evt.target.value)}
                 ></Input>
                 <FormHelperText>The AWS S3 bucket name.</FormHelperText>
             </FormControl>
@@ -156,7 +86,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.fileName || ''}
-                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                    onChange={(evt) => set('fileName', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The S3 root path to delete objects from. The following tokens are supported:
@@ -175,7 +105,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.accessKey || ''}
-                    onChange={(evt) => handleAccessKeyChanged(evt.target.value)}
+                    onChange={(evt) => set('accessKey', evt.target.value)}
                 ></Input>
                 <FormHelperText>The AWS S3 access key.</FormHelperText>
             </FormControl>
@@ -184,7 +114,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="password"
                     value={props.settings?.secret || ''}
-                    onChange={(evt) => handleSecretChanged(evt.target.value)}
+                    onChange={(evt) => set('secret', evt.target.value)}
                 ></Input>
                 <FormHelperText>The AWS S3 access key secret. This setting is stored encrypted.</FormHelperText>
             </FormControl>
@@ -193,7 +123,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.tag || ''}
-                    onChange={(evt) => handleTagChanged(evt.target.value)}
+                    onChange={(evt) => set('tag', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The tag used to identify objects for deletion. When set, only objects found with this tag value set
@@ -208,12 +138,12 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     max="9999999"
                     step="1"
                     value={props.settings?.timeSpanAmount || ''}
-                    onChange={(evt) => handleTimeSpanAmountChanged(+evt.target.value)}
+                    onChange={(evt) => set('timeSpanAmount', +evt.target.value)}
                     marginBottom="12px"
                 ></Input>
                 <RadioGroup
                     value={props.settings?.timeSpanType || ''}
-                    onChange={(value) => handleTimeSpanTypeChanged(value)}
+                    onChange={(value) => set('timeSpanType', value)}
                 >
                     <Stack direction="column">
                         <Radio value="Year">Years</Radio>
@@ -223,9 +153,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                         <Radio value="Minute">Minutes</Radio>
                     </Stack>
                 </RadioGroup>
-                <FormHelperText>
-                    The tag "Datack:JobDate" is used to determine the backup date.
-                </FormHelperText>
+                <FormHelperText>The tag "Datack:JobDate" is used to determine the backup date.</FormHelperText>
             </FormControl>
         </>
     );

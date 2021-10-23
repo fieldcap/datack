@@ -63,7 +63,12 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
     }, [props.settings, onSettingsChanged]);
 
     useEffect(() => {
-        if (props.agentId == null || props.agentId === '' || props.settings == null) {
+        if (
+            props.agentId == null ||
+            props.agentId === '' ||
+            props.agentId === '00000000-0000-0000-0000-000000000000' ||
+            props.settings == null
+        ) {
             return;
         }
 
@@ -94,6 +99,16 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.agentId,
     ]);
 
+    const set = (settingName: keyof JobTaskCreateDatabaseSettings, newValue: string | number | boolean): void => {
+        if (props.settings == null) {
+            return;
+        }
+        props.onSettingsChanged({
+            ...props.settings,
+            [settingName]: newValue,
+        });
+    };
+
     const handleTestDatabaseConnection = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsTesting(true);
@@ -118,86 +133,6 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
             setTestingError(err);
         }
         setIsTesting(false);
-    };
-
-    const handleBackupTypeChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            backupType: value,
-        });
-    };
-
-    const handleFilenameChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            fileName: value,
-        });
-    };
-
-    const handleBackupDefaultExclude = (checked: boolean) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            backupDefaultExclude: checked,
-        });
-    };
-
-    const handleBackupExcludeSystemDatabases = (checked: boolean) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            backupExcludeSystemDatabases: checked,
-        });
-    };
-
-    const handleConnectionStringChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            connectionString: value,
-        });
-    };
-
-    const handleConnectionStringPasswordChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            connectionStringPassword: value,
-        });
-    };
-
-    const handleBackupIncludeRegex = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            backupIncludeRegex: value,
-        });
-    };
-
-    const handleBackupExcludeRegex = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            backupExcludeRegex: value,
-        });
     };
 
     const getCheckBoxIncludeValue = (name: string): boolean => {
@@ -315,11 +250,11 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <FormLabel>Backup Type</FormLabel>
                 <Select
                     value={props.settings?.backupType || 'Full'}
-                    onChange={(e) => handleBackupTypeChanged(e.target.value)}
+                    onChange={(e) => set('backupType', e.target.value)}
                 >
                     <option value="Full">Full</option>
-                    <option value="Transaction">Transaction</option>
-                    <option value="Log">Log</option>
+                    <option value="Differential">Differential</option>
+                    <option value="TransactionLog">Transaction Log</option>
                 </Select>
                 <FormHelperText>The type of backup that will be made of the database.</FormHelperText>
             </FormControl>
@@ -328,7 +263,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.fileName || ''}
-                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                    onChange={(evt) => set('fileName', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The full file path to write the backup to. The following tokens are supported:
@@ -350,7 +285,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.connectionString || ''}
-                    onChange={(evt) => handleConnectionStringChanged(evt.target.value)}
+                    onChange={(evt) => set('connectionString', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The connection string to connect to the database. When adding the token &#123;Password&#125; it will
@@ -366,7 +301,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="password"
                     value={props.settings?.connectionStringPassword || ''}
-                    onChange={(evt) => handleConnectionStringPasswordChanged(evt.target.value)}
+                    onChange={(evt) => set('connectionStringPassword', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The password token value for the connection string. This setting is stored encrypted.
@@ -399,7 +334,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
             <FormControl id="backupDefaultExclude" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.backupDefaultExclude}
-                    onChange={(evt) => handleBackupDefaultExclude(evt.target.checked)}
+                    onChange={(evt) => set('backupDefaultExclude', evt.target.checked)}
                 >
                     By default exclude all non matched databases
                 </Checkbox>
@@ -407,7 +342,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
             <FormControl id="backupAllNonSystemDatabases" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.backupExcludeSystemDatabases}
-                    onChange={(evt) => handleBackupExcludeSystemDatabases(evt.target.checked)}
+                    onChange={(evt) => set('backupExcludeSystemDatabases', evt.target.checked)}
                 >
                     Exclude all system databases
                 </Checkbox>
@@ -417,7 +352,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.backupIncludeRegex || ''}
-                    onChange={(evt) => handleBackupIncludeRegex(evt.target.value)}
+                    onChange={(evt) => set('backupIncludeRegex', evt.target.value)}
                 ></Input>
             </FormControl>
             <FormControl id="backupExcludeRegex" marginBottom={4}>
@@ -425,7 +360,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.backupExcludeRegex || ''}
-                    onChange={(evt) => handleBackupExcludeRegex(evt.target.value)}
+                    onChange={(evt) => set('backupExcludeRegex', evt.target.value)}
                 ></Input>
             </FormControl>
             <Table width="100%">

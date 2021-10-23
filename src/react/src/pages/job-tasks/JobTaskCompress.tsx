@@ -23,53 +23,13 @@ const JobTaskCompress: FC<Props> = (props) => {
         }
     }, [props.settings, onSettingsChanged]);
 
-    const handleFilenameChanged = (value: string) => {
+    const set = (settingName: keyof JobTaskCompressSettings, newValue: string | number | boolean): void => {
         if (props.settings == null) {
             return;
         }
         props.onSettingsChanged({
             ...props.settings,
-            fileName: value,
-        });
-    };
-
-    const handleArchiveTypeChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            archiveType: value,
-        });
-    };
-
-    const handleCompressionLevelChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            compressionLevel: value,
-        });
-    };
-
-    const handleMultithreadModeChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            multithreadMode: value,
-        });
-    };
-
-    const handlePasswordChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            password: value,
+            [settingName]: newValue,
         });
     };
 
@@ -80,7 +40,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.fileName || ''}
-                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                    onChange={(evt) => set('fileName', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The full file path to write the compressed file to. The following tokens are supported:
@@ -98,7 +58,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <FormLabel>Archive Type</FormLabel>
                 <Select
                     value={props.settings?.archiveType || '7z'}
-                    onChange={(e) => handleArchiveTypeChanged(e.target.value)}
+                    onChange={(e) => set('archiveType', e.target.value)}
                 >
                     <option value="7z">7zip</option>
                     <option value="xz">xz</option>
@@ -114,7 +74,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <FormLabel>Compression Level</FormLabel>
                 <Select
                     value={props.settings?.compressionLevel || '5'}
-                    onChange={(e) => handleCompressionLevelChanged(e.target.value)}
+                    onChange={(e) => set('compressionLevel', e.target.value)}
                 >
                     <option value="0">Copy mode (no compression)</option>
                     <option value="1">Fastest</option>
@@ -131,7 +91,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <FormLabel>Multithread Mode</FormLabel>
                 <Select
                     value={props.settings?.multithreadMode || 'on'}
-                    onChange={(e) => handleMultithreadModeChanged(e.target.value)}
+                    onChange={(e) => set('multithreadMode', e.target.value)}
                 >
                     <option value="on">On</option>
                     <option value="off">Off</option>
@@ -154,7 +114,7 @@ const JobTaskCompress: FC<Props> = (props) => {
                 <Input
                     type="password"
                     value={props.settings?.password || ''}
-                    onChange={(evt) => handlePasswordChanged(evt.target.value)}
+                    onChange={(evt) => set('password', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     Password to protect the archive. On 7z AES-256 is used. This setting is stored encrypted.

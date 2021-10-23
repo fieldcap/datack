@@ -19,27 +19,26 @@ const JobTaskDeleteFile: FC<Props> = (props) => {
         }
     }, [props.settings, onSettingsChanged]);
 
-    const handleIgnoreChanged = (value: boolean) => {
+    const set = (settingName: keyof JobTaskDeleteSettings, newValue: boolean): void => {
         if (props.settings == null) {
             return;
         }
         props.onSettingsChanged({
             ...props.settings,
-            ignoreIfFileDoesNotExist: value,
+            [settingName]: newValue,
         });
     };
+
     return (
         <>
             <FormControl id="ignore" marginBottom={4} isRequired>
                 <Checkbox
                     isChecked={props.settings?.ignoreIfFileDoesNotExist}
-                    onChange={(evt) => handleIgnoreChanged(evt.target.checked)}
+                    onChange={(evt) => set('ignoreIfFileDoesNotExist', evt.target.checked)}
                 >
                     Ignore deletion of files that are not found.
                 </Checkbox>
-                <FormHelperText>
-                    When checked and the file is not found continue as a succesful task.
-                </FormHelperText>
+                <FormHelperText>When checked and the file is not found continue as a succesful task.</FormHelperText>
             </FormControl>
         </>
     );

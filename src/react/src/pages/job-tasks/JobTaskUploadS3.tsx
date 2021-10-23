@@ -24,63 +24,13 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         }
     }, [props.settings, onSettingsChanged]);
 
-    const handleFilenameChanged = (value: string) => {
+    const set = (settingName: keyof JobTaskUploadS3Settings, newValue: string | number | boolean): void => {
         if (props.settings == null) {
             return;
         }
         props.onSettingsChanged({
             ...props.settings,
-            fileName: value,
-        });
-    };
-
-    const handleRegionChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            region: value,
-        });
-    };
-
-    const handleBucketChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            bucket: value,
-        });
-    };
-
-    const handleAccessKeyChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            accessKey: value,
-        });
-    };
-
-    const handleSecretChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            secret: value,
-        });
-    };
-
-    const handleTagChanged = (value: string) => {
-        if (props.settings == null) {
-            return;
-        }
-        props.onSettingsChanged({
-            ...props.settings,
-            tag: value,
+            [settingName]: newValue,
         });
     };
 
@@ -88,7 +38,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         <>
             <FormControl id="region" marginBottom={4}>
                 <FormLabel>Region</FormLabel>
-                <Select value={props.settings?.region || ''} onChange={(e) => handleRegionChanged(e.target.value)}>
+                <Select value={props.settings?.region || ''} onChange={(e) => set('region', e.target.value)}>
                     <option value="af-south-1">Africa (Cape Town)</option>
                     <option value="ap-east-1">Asia Pacific (Hong Kong)</option>
                     <option value="ap-northeast-1">Asia Pacific (Tokyo)</option>
@@ -125,7 +75,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.bucket || ''}
-                    onChange={(evt) => handleBucketChanged(evt.target.value)}
+                    onChange={(evt) => set('bucket', evt.target.value)}
                 ></Input>
                 <FormHelperText>The AWS S3 bucket name.</FormHelperText>
             </FormControl>
@@ -134,7 +84,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.fileName || ''}
-                    onChange={(evt) => handleFilenameChanged(evt.target.value)}
+                    onChange={(evt) => set('fileName', evt.target.value)}
                 ></Input>
                 <FormHelperText>
                     The S3 key to upload the file to. The following tokens are supported:
@@ -153,7 +103,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.accessKey || ''}
-                    onChange={(evt) => handleAccessKeyChanged(evt.target.value)}
+                    onChange={(evt) => set('accessKey', evt.target.value)}
                 ></Input>
                 <FormHelperText>The AWS S3 access key.</FormHelperText>
             </FormControl>
@@ -162,7 +112,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="password"
                     value={props.settings?.secret || ''}
-                    onChange={(evt) => handleSecretChanged(evt.target.value)}
+                    onChange={(evt) => set('secret', evt.target.value)}
                 ></Input>
                 <FormHelperText>The AWS S3 access key secret. This setting is stored encrypted.</FormHelperText>
             </FormControl>
@@ -171,11 +121,9 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                 <Input
                     type="text"
                     value={props.settings?.tag || ''}
-                    onChange={(evt) => handleTagChanged(evt.target.value)}
+                    onChange={(evt) => set('tag', evt.target.value)}
                 ></Input>
-                <FormHelperText>
-                    An optional tag to write on the object.
-                </FormHelperText>
+                <FormHelperText>An optional tag to write on the object.</FormHelperText>
             </FormControl>
         </>
     );
