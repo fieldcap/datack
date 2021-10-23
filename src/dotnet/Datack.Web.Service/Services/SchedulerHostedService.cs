@@ -33,25 +33,23 @@ namespace Datack.Web.Service.Services
         {
             _cancellationToken = cancellationToken;
 
+            // Job initiator.
             _ = Task.Run(async () =>
             {
                 using var serviceScope = _serviceProvider.CreateScope();
 
-                var jobService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
-                var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
-                var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
-                var remoteService = serviceScope.ServiceProvider.GetRequiredService<RemoteService>();
-                
+                var jobsService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
+
                 // The main scheduler loop.
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var now = DateTimeOffset.Now;
+                    var now = DateTimeOffset.UtcNow;
                     now = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
 
                     // Get all the jobs and group them by Group.
                     // This enables the user to have multiple tasks fire at the same time
                     // and give priority to certain tasks in a group.
-                    var jobs = await jobService.GetList(cancellationToken);
+                    var jobs = await jobsService.GetList(cancellationToken);
 
                     foreach (var jobsGroup in jobs.GroupBy(m => m.Group))
                     {
@@ -81,8 +79,23 @@ namespace Datack.Web.Service.Services
                             }, cancellationToken);
                         }
                     }
+                    
+                    // Do not trigger more than every 60 seconds as the cron tasks have a max resolution of 1 minute.
+                    await Task.Delay(TimeSpan.FromSeconds(60), cancellationToken);
+                }
+            }, cancellationToken);
 
-                    // Check if tasks need to be timed out.
+            // Timeout checker.
+            _ = Task.Run(async () =>
+            {
+                using var serviceScope = _serviceProvider.CreateScope();
+
+                var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
+                var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
+                var remoteService = serviceScope.ServiceProvider.GetRequiredService<RemoteService>();
+                
+                while (!cancellationToken.IsCancellationRequested)
+                {
                     var runningJobs = await jobRunsService.GetRunning(cancellationToken);
 
                     foreach (var runningJob in runningJobs)
@@ -96,7 +109,7 @@ namespace Datack.Web.Service.Services
                                 continue;
                             }
 
-                            var timespan = DateTimeOffset.Now - jobRunTask.Started;
+                            var timespan = DateTimeOffset.UtcNow - jobRunTask.Started;
 
                             if (timespan.Value.TotalSeconds > jobRunTask.JobTask.Timeout)
                             {
@@ -127,8 +140,45 @@ namespace Datack.Web.Service.Services
                         }
                     }
                     
-                    // Do not trigger more than every 60 seconds as the cron tasks have a max resolution of 1 minute.
                     await Task.Delay(TimeSpan.FromSeconds(60), cancellationToken);
+                }
+            }, cancellationToken);
+
+            // Log cleanup.
+            _ = Task.Run(async () =>
+            {
+                using var serviceScope = _serviceProvider.CreateScope();
+
+                var jobsService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
+                var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
+                
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    var jobs = await jobsService.GetList(cancellationToken);
+
+                    foreach (var job in jobs)
+                    {
+                        if (String.IsNullOrWhiteSpace(job.DeleteLogsTimeSpanType) || job.DeleteLogsTimeSpanAmount == null)
+                        {
+                            continue;
+                        }
+
+                        var deleteDate = DateTimeOffset.UtcNow;
+
+                        deleteDate = job.DeleteLogsTimeSpanType switch
+                        {
+                            "Year" => deleteDate.AddYears(-job.DeleteLogsTimeSpanAmount.Value),
+                            "Month" => deleteDate.AddMonths(-job.DeleteLogsTimeSpanAmount.Value),
+                            "Day" => deleteDate.AddDays(-job.DeleteLogsTimeSpanAmount.Value),
+                            "Hour" => deleteDate.AddHours(-job.DeleteLogsTimeSpanAmount.Value),
+                            "Minute" => deleteDate.AddMinutes(-job.DeleteLogsTimeSpanAmount.Value),
+                            _ => deleteDate
+                        };
+
+                        await jobRunsService.DeleteForJob(job.JobId, deleteDate, cancellationToken);
+                    }
+
+                    await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
                 }
             }, cancellationToken);
 
@@ -172,7 +222,7 @@ namespace Datack.Web.Service.Services
                         await jobRunTaskLogsService.Add(new JobRunTaskLog
                                                         {
                                                             JobRunTaskId = runningTask.JobRunTaskId,
-                                                            DateTime = DateTimeOffset.Now,
+                                                            DateTime = DateTimeOffset.UtcNow,
                                                             Message = $"Agent '{agent.Name}' is connected",
                                                             IsError = false
                                                         },
@@ -214,7 +264,7 @@ namespace Datack.Web.Service.Services
                     await jobRunTaskLogsService.Add(new JobRunTaskLog
                     {
                         JobRunTaskId = runningTask.JobRunTaskId,
-                        DateTime = DateTimeOffset.Now,
+                        DateTime = DateTimeOffset.UtcNow,
                         Message = $"Agent '{agent.Name}' has disconnected",
                         IsError = false
                     }, _cancellationToken);

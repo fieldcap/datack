@@ -69,7 +69,7 @@ namespace Datack.Agent.Services.Tasks
 
                 String nextToken = null;
 
-                var deleteDate = DateTime.UtcNow;
+                var deleteDate = DateTimeOffset.UtcNow;
 
                 deleteDate = jobRunTask.Settings.DeleteS3.TimeSpanType switch
                 {

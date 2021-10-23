@@ -100,7 +100,7 @@ namespace Datack.Web.Service.Services
                 {
                     JobRunId = Guid.NewGuid(),
                     JobId = job.JobId,
-                    Started = DateTimeOffset.Now,
+                    Started = DateTimeOffset.UtcNow,
                     IsError = false,
                     Result = null
                 };
@@ -201,7 +201,7 @@ namespace Datack.Web.Service.Services
                 {
                     jobRun.Result = ex.Message;
                     jobRun.IsError = true;
-                    jobRun.Completed = DateTimeOffset.Now;
+                    jobRun.Completed = DateTimeOffset.UtcNow;
 
                     await _jobRuns.Update(jobRun, cancellationToken);
                 }
@@ -322,7 +322,7 @@ namespace Datack.Web.Service.Services
                         }
 
                         // Mark the task as started
-                        jobRunTask.Started = DateTimeOffset.Now;
+                        jobRunTask.Started = DateTimeOffset.UtcNow;
                         await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, jobRunTask.Started, cancellationToken);
                         
                         _ = Task.Run(async () =>
@@ -355,7 +355,7 @@ namespace Datack.Web.Service.Services
             await _jobRunTaskLogs.Add(new JobRunTaskLog
             {
                 JobRunTaskId = jobRunTaskId,
-                DateTime = DateTimeOffset.Now,
+                DateTime = DateTimeOffset.UtcNow,
                 Message = message,
                 IsError = isError
             }, cancellationToken);

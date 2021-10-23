@@ -106,7 +106,7 @@ namespace Datack.Web.Web.Controllers
         [Route("Delete/{jobId:guid}")]
         public async Task<ActionResult<Job>> Delete(Guid jobId, CancellationToken cancellationToken)
         {
-            await _jobRuns.DeleteForJob(jobId, -1, cancellationToken);
+            await _jobRuns.DeleteForJob(jobId, DateTime.MaxValue, cancellationToken);
             await _jobTasks.DeleteForJob(jobId, cancellationToken);
             await _jobs.Delete(jobId, cancellationToken);
 

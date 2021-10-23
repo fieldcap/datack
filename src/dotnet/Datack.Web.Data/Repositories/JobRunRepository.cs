@@ -79,7 +79,7 @@ namespace Datack.Web.Data.Repositories
                 return;
             }
 
-            dbJobRun.Completed = DateTimeOffset.Now;
+            dbJobRun.Completed = DateTimeOffset.UtcNow;
 
             var dbJobRunTasks = await _dataContext.JobRunTasks.Where(m => m.JobRunId == jobRunId).ToListAsync(cancellationToken);
             var dbJobRunTasksWithErrors = dbJobRunTasks.Count(m => m.IsError);
@@ -111,7 +111,7 @@ namespace Datack.Web.Data.Repositories
                 return;
             }
 
-            dbJobRun.Completed = DateTimeOffset.Now;
+            dbJobRun.Completed = DateTimeOffset.UtcNow;
 
             var timespan = dbJobRun.Completed - dbJobRun.Started;
 
@@ -123,13 +123,11 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DeleteForJob(Guid jobId, Int32 keepDays, CancellationToken cancellationToken)
+        public async Task DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
         {
-            var fromDate = DateTimeOffset.Now.AddDays(-keepDays);
-
             await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRuns
 FROM JobRuns
-WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {fromDate}", cancellationToken);
+WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate}", cancellationToken);
         }
     }
 }

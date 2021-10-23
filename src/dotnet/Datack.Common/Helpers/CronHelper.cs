@@ -39,7 +39,7 @@ namespace Datack.Common.Helpers
 
             try
             {
-                var now = DateTime.Now;
+                var now = DateTimeOffset.Now;
                 var from = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
                 var to = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now)).Add(timeSpan);
 
