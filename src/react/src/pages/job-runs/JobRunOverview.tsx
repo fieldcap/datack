@@ -1,4 +1,6 @@
 import { Box, Button, Flex, Heading, Skeleton } from '@chakra-ui/react';
+import * as signalR from '@microsoft/signalr';
+import { HubConnectionState } from '@microsoft/signalr';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -18,6 +20,8 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [jobRun, setJobRun] = useState<JobRun | null>(null);
     const [jobRunTasks, setJobRunTasks] = useState<JobRunTask[]>([]);
     const [jobRunTaskLogs, setJobRunTaskLogs] = useState<JobRunTaskLog[]>([]);
+    const [activeJobRunTaskId, setActiveJobRunTaskId] = useState<string | null>(null);
+    const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
 
     const cancelToken = useCancellationToken();
 
@@ -33,7 +37,61 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         })();
     }, [props.match.params.id, cancelToken]);
 
+    useEffect(() => {
+        const newConnection = new signalR.HubConnectionBuilder().withUrl('/hubs/web').withAutomaticReconnect().build();
+
+        setConnection(newConnection);
+
+        return () => {
+            if (connection != null) {
+                connection?.stop();
+            }
+        };
+        // eslint-disable-next-line
+    }, []);
+
+    useEffect(() => {
+        if (connection == null) {
+            return;
+        }
+
+        if (connection.state !== HubConnectionState.Disconnected) {
+            return;
+        }
+
+        connection
+            .start()
+            .then(() => {})
+            .catch((err) => console.error(err));
+    }, [connection]);
+
+    useEffect(() => {
+        if (connection == null) {
+            return;
+        }
+
+        if (connection.state !== HubConnectionState.Disconnected) {
+            connection.on('JobRun', (jobRun: JobRun) => {
+                setJobRun(jobRun);
+            });
+
+            connection.on('JobRunTask', (jobRunTasks: JobRunTask[]) => {
+                setJobRunTasks(jobRunTasks);
+            });
+
+            connection.on('JobRunTaskLog', (jobRunTaskLog: JobRunTaskLog) => {
+                if (activeJobRunTaskId === jobRunTaskLog.jobRunTaskId) {
+                    setJobRunTaskLogs((v) => [...v, jobRunTaskLog]);
+                }
+            });
+        }
+    }, [connection, connection?.state, activeJobRunTaskId]);
+
     const handleJobRunTaskClick = async (jobRunTaskId: string) => {
+        setJobRunTaskLogs([]);
+
+        setActiveJobRunTaskId(jobRunTaskId);
+
         const result = await JobRuns.getTaskLogs(jobRunTaskId, cancelToken);
 
         setJobRunTaskLogs(result);
@@ -61,12 +119,12 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                                 <JobRunOverviewHeader jobRun={jobRun} />
                             </Box>
                         </Box>
-                        <Box overflowY="auto">
+                        <Box overflowY="auto" overflowX="hidden">
                             <JobRunOverviewTasks jobRunTasks={jobRunTasks} onRowClick={handleJobRunTaskClick} />
                         </Box>
                     </Flex>
                     <Flex flex="2" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
-                        <Box overflowY="auto">
+                        <Box overflowY="auto" overflowX="hidden">
                             <JobRunOverviewTaskLogs jobRunTaskLogs={jobRunTaskLogs} />
                         </Box>
                     </Flex>

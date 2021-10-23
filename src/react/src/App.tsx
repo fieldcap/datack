@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { parseISO } from 'date-fns';
 import React, { FC } from 'react';
 import { OmitNative } from 'react-router';
 import { HashRouter, Redirect, Route, RouteProps, Switch } from 'react-router-dom';
@@ -17,27 +16,8 @@ const loading = (
 
 type PrivateRouteProps = RouteProps & OmitNative<{}, keyof RouteProps> & {};
 
-const isoDateFormat = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2}(?:\.\d*)?)(([-+](\d{2}):(\d{2})|Z)?)$/;
-
-const isIsoDateString = (value: any): boolean => {
-    return value && typeof value === 'string' && isoDateFormat.test(value);
-};
-
-const handleDates = (body: any) => {
-    if (body === null || body === undefined || typeof body !== 'object') {
-        return body;
-    }
-
-    for (const key of Object.keys(body)) {
-        const value = body[key];
-        if (isIsoDateString(value)) body[key] = parseISO(value);
-        else if (typeof value === 'object') handleDates(value);
-    }
-};
-
 axios.interceptors.response.use(
     (request) => {
-        handleDates(request.data);
         return request;
     },
     (error) => {

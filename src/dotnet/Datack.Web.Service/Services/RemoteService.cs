@@ -13,11 +13,13 @@ namespace Datack.Web.Service.Services
 {
     public class RemoteService
     {
-        private readonly IHubContext<DatackHub> _hub;
+        private readonly IHubContext<AgentHub> _agentHub;
+        private readonly IHubContext<WebHub> _webHub;
 
-        public RemoteService(IHubContext<DatackHub> hub)
+        public RemoteService(IHubContext<AgentHub> agentHub, IHubContext<WebHub> webHub)
         {
-            _hub = hub;
+            _agentHub = agentHub;
+            _webHub = webHub;
         }
 
         public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
@@ -47,7 +49,7 @@ namespace Datack.Web.Service.Services
 
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
         {
-            var hasConnection = DatackHub.Users.TryGetValue(key, out var connectionId);
+            var hasConnection = AgentHub.Users.TryGetValue(key, out var connectionId);
 
             if (!hasConnection)
             {
@@ -71,7 +73,7 @@ namespace Datack.Web.Service.Services
                 request
             };
 
-            await _hub.Clients.Client(connectionId).SendCoreAsync("request", sendArgs, cancellationToken);
+            await _agentHub.Clients.Client(connectionId).SendCoreAsync("request", sendArgs, cancellationToken);
 
             var timeout = DateTime.UtcNow.AddSeconds(30);
 
@@ -82,7 +84,7 @@ namespace Datack.Web.Service.Services
                     throw new Exception($"No response received within timeout");
                 }
 
-                if (DatackHub.Transactions.TryGetValue(request.TransactionId, out var rpcResult))
+                if (AgentHub.Transactions.TryGetValue(request.TransactionId, out var rpcResult))
                 {
                     if (rpcResult.Error != null)
                     {
@@ -95,6 +97,21 @@ namespace Datack.Web.Service.Services
 
                 await Task.Delay(100, cancellationToken);
             }
+        }
+
+        public async Task WebJobRun(JobRun jobRun)
+        {
+            await _webHub.Clients.All.SendAsync("JobRun", jobRun);
+        }
+
+        public async Task WebJobRunTask(IList<JobRunTask> jobRunTask)
+        {
+            await _webHub.Clients.All.SendAsync("JobRunTask", jobRunTask);
+        }
+
+        public async Task WebJobRunTaskLog(JobRunTaskLog jobRunTaskLog)
+        {
+            await _webHub.Clients.All.SendAsync("JobRunTaskLog", jobRunTaskLog);
         }
     }
 }

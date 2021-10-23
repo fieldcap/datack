@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Datack.Web.Service.Hubs
 {
-    public class DatackHub : Hub
+    public class AgentHub : Hub
     {
         public static event EventHandler<ClientConnectEvent> OnClientConnect;
         public static event EventHandler<ClientDisconnectEvent> OnClientDisconnect;
@@ -18,7 +18,7 @@ namespace Datack.Web.Service.Hubs
         private readonly Agents _agents;
         private readonly JobRunner _jobRunner;
 
-        public DatackHub(Agents agents, JobRunner jobRunner)
+        public AgentHub(Agents agents, JobRunner jobRunner)
         {
             _agents = agents;
             _jobRunner = jobRunner;

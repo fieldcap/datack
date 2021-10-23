@@ -1,5 +1,5 @@
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
-import { format, formatDistanceStrict } from 'date-fns';
+import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import { FC } from 'react';
 import { JobRun } from '../../models/job-run';
 
@@ -18,11 +18,11 @@ const JobRunOverviewHeader: FC<Props> = (props) => {
                 </Tr>
                 <Tr>
                     <Td style={{ fontWeight: 'bold' }}>Started</Td>
-                    <Td>{format(jobRun.started, 'd MMMM yyyy HH:mm')}</Td>
+                    <Td>{format(parseISO(jobRun.started), 'd MMMM yyyy HH:mm')}</Td>
                 </Tr>
                 <Tr>
                     <Td style={{ fontWeight: 'bold' }}>Completed</Td>
-                    <Td>{jobRun.completed == null ? '' : format(jobRun.completed, 'd MMMM yyyy HH:mm')}</Td>
+                    <Td>{jobRun.completed == null ? '' : format(parseISO(jobRun.completed), 'd MMMM yyyy HH:mm')}</Td>
                 </Tr>
                 <Tr>
                     <Td style={{ fontWeight: 'bold' }}>Run time</Td>

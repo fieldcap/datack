@@ -90,7 +90,7 @@ namespace Datack.Web.Web
                     context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                     return Task.CompletedTask;
                 };
-                options.Cookie.Name = "SID";
+                options.Cookie.Name = "Datack";
             });
 
             // ReSharper disable RedundantNameQualifier
@@ -127,7 +127,8 @@ namespace Datack.Web.Web
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapHub<DatackHub>("/hub");
+                endpoints.MapHub<AgentHub>("/hubs/agent");
+                endpoints.MapHub<WebHub>("/hubs/web");
             });
 
             app.MapWhen(x => x.Request.Path.Value != null && !x.Request.Path.Value.StartsWith("/api"), builder =>

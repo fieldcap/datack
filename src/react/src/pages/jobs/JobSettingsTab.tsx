@@ -23,7 +23,7 @@ import {
     Textarea,
     UnorderedList
 } from '@chakra-ui/react';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useHistory } from 'react-router';
@@ -47,7 +47,7 @@ const JobSettingsTab: FC<Props> = (props) => {
         props.job?.deleteLogsTimeSpanType ?? null
     );
     const [cron, setCron] = useState<string>(props.job?.cron ?? '');
-    const [cronOccurrences, setCronOccurrences] = useState<Date[]>([]);
+    const [cronOccurrences, setCronOccurrences] = useState<string[]>([]);
     const [settings, setSettings] = useState<JobSettings | null>(null);
 
     const [testResult, setTestResult] = useState<TestCronResult | null>(null);
@@ -71,7 +71,7 @@ const JobSettingsTab: FC<Props> = (props) => {
     }, [props.job, handleChangeCrons]);
 
     useEffect(() => {
-        let occurrences: Date[] = [];
+        let occurrences: string[] = [];
 
         if (testResult == null) {
             return;
@@ -248,7 +248,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                 <FormLabel>Occurrences for next 2 weeks</FormLabel>
                 <UnorderedList overflowY="auto" maxHeight="300px" marginBottom={4}>
                     {cronOccurrences.map((m) => (
-                        <ListItem key={m.toISOString()}>{format(m, 'd MMMM yyyy HH:mm')}</ListItem>
+                        <ListItem key={m}>{format(parseISO(m), 'd MMMM yyyy HH:mm')}</ListItem>
                     ))}
                 </UnorderedList>
 

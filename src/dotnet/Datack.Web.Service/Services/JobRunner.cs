@@ -62,7 +62,7 @@ namespace Datack.Web.Service.Services
 
             foreach (var jobRunTask in jobRunTasks.Where(m => m.Completed == null))
             {
-                await _jobRunTasks.UpdateCompleted(jobRunTask.JobRunTaskId, "Task was stopped", null, true, cancellationToken);
+                await _jobRunTasks.UpdateCompleted(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, "Task was stopped", null, true, cancellationToken);
 
                 try
                 {
@@ -323,7 +323,7 @@ namespace Datack.Web.Service.Services
 
                         // Mark the task as started
                         jobRunTask.Started = DateTimeOffset.UtcNow;
-                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, jobRunTask.Started, cancellationToken);
+                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, jobRunTask.Started, cancellationToken);
                         
                         _ = Task.Run(async () =>
                         {
@@ -363,9 +363,9 @@ namespace Datack.Web.Service.Services
 
         public async Task CompleteTask(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
         {
-            await _jobRunTasks.UpdateCompleted(jobRunTaskId, message, resultArtifact, isError, cancellationToken);
-
             var jobRunTask = await _jobRunTasks.GetById(jobRunTaskId, cancellationToken);
+
+            await _jobRunTasks.UpdateCompleted(jobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, isError, cancellationToken);
 
             await ExecuteJobRun(jobRunTask.JobRunId, cancellationToken);
         }

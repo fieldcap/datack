@@ -1,6 +1,6 @@
 import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
 import { chakra, Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
-import { format, formatDistanceStrict } from 'date-fns';
+import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
@@ -52,7 +52,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                 Header: 'Started',
                 accessor: 'started',
                 sortType: 'datetime',
-                Cell: ({ cell: { value } }) => format(value, 'd MMMM yyyy HH:mm'),
+                Cell: ({ cell: { value } }) => format(parseISO(value), 'd MMMM yyyy HH:mm'),
             },
             {
                 Header: 'Completed',
@@ -62,7 +62,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                     if (!value) {
                         return '';
                     }
-                    return format(value, 'd MMMM yyyy HH:mm');
+                    return format(parseISO(value), 'd MMMM yyyy HH:mm');
                 },
             },
             {

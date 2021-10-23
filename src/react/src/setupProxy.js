@@ -8,4 +8,11 @@ module.exports = function (app) {
             changeOrigin: true,
         })
     );
+    app.use(
+        createProxyMiddleware('/hubs/web', {
+            target: 'http://localhost:3001',
+            ws: true,
+            changeOrigin: true,
+        })
+    );
 };

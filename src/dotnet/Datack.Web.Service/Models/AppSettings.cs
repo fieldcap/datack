@@ -23,7 +23,6 @@ namespace Datack.Web.Service.Models
     public class AppSettingsLoggingFile
     {
         public String Path { get; set; }
-        public String Append { get; set; }
         public Int64 FileSizeLimitBytes { get; set; }
         public Int32 MaxRollingFiles { get; set; }
     }

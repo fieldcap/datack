@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
+using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Exceptions;
 
@@ -52,21 +53,24 @@ namespace Datack.Web.Web
             {
                 appSettings.HostUrl = "http://0.0.0.0:6500";
             }
-            
+
             LoggingLevelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
-            
+
             Log.Logger = new LoggerConfiguration()
                          .Enrich.FromLogContext()
                          .Enrich.WithExceptionDetails()
-                         .WriteTo.File(appSettings.Logging.File.Path, rollOnFileSizeLimit: true, fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes, retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
+                         .WriteTo.File(appSettings.Logging.File.Path,
+                                       rollOnFileSizeLimit: true,
+                                       fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes,
+                                       retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
                          .WriteTo.Console()
                          .MinimumLevel.ControlledBy(LoggingLevelSwitch)
                          .CreateLogger();
 
-            Serilog.Debugging.SelfLog.Enable(msg =>
+            SelfLog.Enable(msg =>
             {
                 Debug.Print(msg);
-                Debugger.Break();
+                //Debugger.Break();
                 Console.WriteLine(msg);
                 Debug.WriteLine(msg);
             });

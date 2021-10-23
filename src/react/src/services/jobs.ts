@@ -57,7 +57,7 @@ export namespace Jobs {
 
 export type TestCronResult = {
     description: string;
-    next: Date[];
+    next: string[];
 };
 
 export default Jobs;

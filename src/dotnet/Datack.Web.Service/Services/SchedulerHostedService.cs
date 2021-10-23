@@ -25,8 +25,8 @@ namespace Datack.Web.Service.Services
         {
             _serviceProvider = serviceProvider;
 
-            DatackHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
-            DatackHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
+            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
+            AgentHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -217,7 +217,7 @@ namespace Datack.Web.Service.Services
                 {
                     foreach (var runningTask in runningTasks)
                     {
-                        await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, null, _cancellationToken);
+                        await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, runningTask.JobRunId, null, _cancellationToken);
 
                         await jobRunTaskLogsService.Add(new JobRunTaskLog
                                                         {

@@ -22,10 +22,12 @@ namespace Datack.Web.Data.Repositories
             return await _dataContext.JobRunTaskLogs.AsNoTracking().Where(m => m.JobRunTaskId == jobRunTaskId).OrderBy(m => m.DateTime).ToListAsync(cancellationToken);
         }
 
-        public async Task Add(JobRunTaskLog message, CancellationToken cancellationToken)
+        public async Task<JobRunTaskLog> Add(JobRunTaskLog message, CancellationToken cancellationToken)
         {
             await _dataContext.JobRunTaskLogs.AddAsync(message, cancellationToken);
             await _dataContext.SaveChangesAsync(cancellationToken);
+
+            return message;
         }
 
         public async Task DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)

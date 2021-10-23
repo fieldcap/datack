@@ -7,8 +7,8 @@ export type JobRunTask = {
     jobTask?: JobTask | null;
     jobRunId: string;
     jobRun?: JobRun | null;
-    started: Date | null;
-    completed: Date | null;
+    started: string | null;
+    completed: string | null;
     runTime: number | null;
     itemName: string;
     type: string;

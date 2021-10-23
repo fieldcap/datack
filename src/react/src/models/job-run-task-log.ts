@@ -4,7 +4,7 @@ export type JobRunTaskLog = {
     jobRunTaskLogId: number;
     jobRunTaskId: string;
     jobRunTask?: JobRunTask | null;
-    dateTime: Date;
+    dateTime: string;
     isError: boolean;
     message: string;
 };

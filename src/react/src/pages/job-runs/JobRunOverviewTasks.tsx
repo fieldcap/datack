@@ -2,9 +2,10 @@ import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } fr
 import { Spinner, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
-import { format, formatDistanceStrict } from 'date-fns';
-import React, { FC, useMemo } from 'react';
+import { format, formatDistanceStrict, parseISO } from 'date-fns';
+import React, { FC, useEffect, useMemo, useRef } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
+import { setTimeout } from 'timers';
 import { JobRunTask } from '../../models/job-run-task';
 import JobTasks from '../../services/jobTasks';
 
@@ -16,6 +17,31 @@ type Props = {
 const JobRunOverviewTasks: FC<Props> = (props) => {
     const { jobRunTasks, onRowClick } = props;
 
+    const bottomRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (bottomRef == null || bottomRef.current == null) {
+            return;
+        }
+
+        const runningTasks = props.jobRunTasks.filter((m) => m.completed == null && m.started != null);
+        const completedTasks = props.jobRunTasks.filter((m) => m.completed != null && m.started != null);
+
+        if (runningTasks.length > 0) {
+            const runningTask = runningTasks[0];
+            setTimeout(() => {
+                const elm = document.getElementById(`JobRunTaskRow-${runningTask.jobRunTaskId}`);
+                console.log(elm);
+                if (!elm) {
+                    return;
+                }
+                elm.scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        } else if (completedTasks.length > 0) {
+            bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [props.jobRunTasks]);
+
     const columns = useMemo(() => {
         const columns: Column<JobRunTask>[] = [
             {
@@ -23,10 +49,10 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
                 accessor: 'started',
                 sortType: 'datetime',
                 Cell: ({ cell: { value } }) => {
-                    if (value == null) {
+                    if (!value) {
                         return '';
                     }
-                    return format(value, 'HH:mm:ss');
+                    return format(parseISO(value), 'HH:mm:ss');
                 },
             },
             {
@@ -37,7 +63,7 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
                     if (!value) {
                         return '';
                     }
-                    return format(value, 'HH:mm:ss');
+                    return format(parseISO(value), 'HH:mm:ss');
                 },
             },
             {
@@ -89,44 +115,48 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
     );
 
     return (
-        <Table {...getTableProps()} style={{ width: 'auto' }} size="sm">
-            <Thead>
-                {headerGroups.map((headerGroup) => (
-                    <Tr {...headerGroup.getHeaderGroupProps()}>
-                        {headerGroup.headers.map((column) => (
-                            <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
-                                {column.render('Header')}
-                                <chakra.span pl="4">
-                                    {column.isSorted ? (
-                                        column.isSortedDesc ? (
-                                            <TriangleDownIcon aria-label="sorted descending" />
-                                        ) : (
-                                            <TriangleUpIcon aria-label="sorted ascending" />
-                                        )
-                                    ) : null}
-                                </chakra.span>
-                            </Th>
-                        ))}
-                    </Tr>
-                ))}
-            </Thead>
-            <Tbody {...getTableBodyProps()}>
-                {rows.map((row) => {
-                    prepareRow(row);
-                    return (
-                        <Tr
-                            {...row.getRowProps()}
-                            onClick={() => onRowClick(row.original.jobRunTaskId)}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            {row.cells.map((cell) => (
-                                <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
+        <>
+            <Table {...getTableProps()} style={{ width: 'auto' }} size="sm">
+                <Thead>
+                    {headerGroups.map((headerGroup) => (
+                        <Tr {...headerGroup.getHeaderGroupProps()}>
+                            {headerGroup.headers.map((column) => (
+                                <Th {...column.getHeaderProps(column.getSortByToggleProps())}>
+                                    {column.render('Header')}
+                                    <chakra.span pl="4">
+                                        {column.isSorted ? (
+                                            column.isSortedDesc ? (
+                                                <TriangleDownIcon aria-label="sorted descending" />
+                                            ) : (
+                                                <TriangleUpIcon aria-label="sorted ascending" />
+                                            )
+                                        ) : null}
+                                    </chakra.span>
+                                </Th>
                             ))}
                         </Tr>
-                    );
-                })}
-            </Tbody>
-        </Table>
+                    ))}
+                </Thead>
+                <Tbody {...getTableBodyProps()}>
+                    {rows.map((row) => {
+                        prepareRow(row);
+                        return (
+                            <Tr
+                                {...row.getRowProps()}
+                                onClick={() => onRowClick(row.original.jobRunTaskId)}
+                                style={{ cursor: 'pointer' }}
+                                id={`JobRunTaskRow-${row.original.jobRunTaskId}`}
+                            >
+                                {row.cells.map((cell) => (
+                                    <Td {...cell.getCellProps()}>{cell.render('Cell')}</Td>
+                                ))}
+                            </Tr>
+                        );
+                    })}
+                </Tbody>
+            </Table>
+            <div ref={bottomRef}></div>
+        </>
     );
 };
 
