@@ -68,6 +68,9 @@ namespace Datack.Common.Models.Internal
         [JsonPropertyName("fileName")]
         public String FileName { get; set; }
 
+        [JsonPropertyName("options")]
+        public String Options { get; set; }
+
         [JsonPropertyName("backupDefaultExclude")]
         public Boolean BackupDefaultExclude { get; set; }
 

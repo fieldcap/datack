@@ -7,6 +7,7 @@ using Dapper;
 using Datack.Agent.Models.Internal;
 using Datack.Common.Models.Internal;
 using Microsoft.Data.SqlClient;
+using StringTokenFormatter;
 
 namespace Datack.Agent.Services.DataConnections
 {
@@ -34,11 +35,20 @@ FROM
             return result.ToList();
         }
 
-        public async Task CreateBackup(String connectionString, String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
+        public async Task CreateBackup(String connectionString, String databaseName, String backupType, String options, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
         {
             await using var sqlConnection = new SqlConnection(connectionString);
 
-            var backupName = $"{databaseName} Backup";
+            if (String.IsNullOrWhiteSpace(options))
+            {
+                options = $"NAME = {{ItemName}} {{BackupType}} Backup, SKIP, STATS = 10";
+            }
+
+            options = options.FormatToken(new
+            {
+                ItemName = databaseName,
+                BackupType = backupType
+            });
 
             sqlConnection.InfoMessage += (_, args) =>
             {
@@ -54,19 +64,21 @@ FROM
                 });
             };
 
-            var command = new CommandDefinition($@"BACKUP DATABASE @DatabaseName 
-TO DISK = @FilePath WITH NOFORMAT, 
-INIT,
-NAME = @BackupName, 
-SKIP, 
-NOREWIND, 
-NOUNLOAD,
-STATS = 10",
+            var queryHeader = backupType switch
+            {
+                "Full" => $@"BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH",
+                "Differential" => $@"BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH DIFFERENTIAL,",
+                "TransactionLog" => $@"BACKUP LOG @DatabaseName TO DISK = @FilePath WITH",
+                _ => throw new Exception($"Unknown backup type {backupType}")
+            };
+
+            var query = $"{queryHeader} {options}";
+
+            var command = new CommandDefinition(query,
                                                 new
                                                 {
                                                     DatabaseName = databaseName,
-                                                    FilePath = destinationFilePath,
-                                                    BackupName = backupName
+                                                    FilePath = destinationFilePath
                                                 },
                                                 null,
                                                 null,

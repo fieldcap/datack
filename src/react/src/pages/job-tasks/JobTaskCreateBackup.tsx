@@ -47,6 +47,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         if (props.settings == null) {
             onSettingsChanged({
                 fileName: '',
+                options: '',
                 backupType: 'Full',
                 backupDefaultExclude: false,
                 backupExcludeSystemDatabases: true,
@@ -275,6 +276,23 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                     C:\Temp\Backups\&#123;ItemName&#125;\&#123;ItemName&#125;-&#123;0:yyyyMMddHHmm&#125;-Full.bak
                 </FormHelperText>
             </FormControl>
+            <FormControl id="options" marginBottom={4}>
+                <FormLabel>Options</FormLabel>
+                <Input
+                    type="text"
+                    value={props.settings?.options || ''}
+                    onChange={(evt) => set('options', evt.target.value)}
+                ></Input>
+                <FormHelperText>
+                    If this setting is set the given value will be passed as the options for the parameters. When empty,
+                    the default parameters are used.
+                    <br />
+                    For SQL Server the default parameters are:
+                    <br />
+                    NAME = &#123;ItemName&#125; &#123;BackupType&#125; Backup, SKIP, STATS = 10
+                </FormHelperText>
+            </FormControl>
+
             <Heading size="md" marginBottom={4}>
                 Database Connection
             </Heading>
@@ -395,13 +413,6 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                     ))}
                 </Tbody>
             </Table>
-            <Heading size="md" marginBottom={4}>
-                Item generation settings
-            </Heading>
-            <Text marginBottom={4}>
-                The following settings determine for which databases a backup is created. Each backup will result in a
-                separate job run task. The artifact of the task will be the filename specified above.
-            </Text>
         </>
     );
 };

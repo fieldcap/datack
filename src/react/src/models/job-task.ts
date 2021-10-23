@@ -31,6 +31,7 @@ export type JobTaskCreateDatabaseSettings = {
     connectionString: string;
     connectionStringPassword: string | null;
     fileName: string;
+    options: string;
     backupType: string;
     backupDefaultExclude: boolean;
     backupIncludeRegex: string;

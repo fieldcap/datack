@@ -96,6 +96,8 @@ namespace Datack.Agent.Services.Tasks
 
                 await _databaseAdapter.CreateBackup(connectionString,
                                                     jobRunTask.ItemName,
+                                                    jobRunTask.Settings.CreateBackup.BackupType,
+                                                    jobRunTask.Settings.CreateBackup.Options,
                                                     storePath,
                                                     evt =>
                                                     {

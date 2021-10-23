@@ -11,8 +11,8 @@ namespace Datack.Agent.Services
 {
     public class DatabaseAdapter
     {
-        private readonly SqlServerConnection _sqlServerConnection;
         private readonly DataProtector _dataProtector;
+        private readonly SqlServerConnection _sqlServerConnection;
 
         public DatabaseAdapter(SqlServerConnection sqlServerConnection, DataProtector dataProtector)
         {
@@ -35,6 +35,7 @@ namespace Datack.Agent.Services
             try
             {
                 await _sqlServerConnection.Test(connectionString, cancellationToken);
+
                 return "Success";
             }
             catch (Exception ex)
@@ -48,9 +49,15 @@ namespace Datack.Agent.Services
             return await _sqlServerConnection.GetDatabaseList(connectionString, cancellationToken);
         }
 
-        public async Task CreateBackup(String connectionString, String databaseName, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
+        public async Task CreateBackup(String connectionString,
+                                       String databaseName,
+                                       String backupType,
+                                       String options,
+                                       String destinationFilePath,
+                                       Action<DatabaseProgressEvent> progressCallback,
+                                       CancellationToken cancellationToken)
         {
-            await _sqlServerConnection.CreateBackup(connectionString, databaseName, destinationFilePath, progressCallback, cancellationToken);
+            await _sqlServerConnection.CreateBackup(connectionString, databaseName, backupType, options, destinationFilePath, progressCallback, cancellationToken);
         }
     }
 }
