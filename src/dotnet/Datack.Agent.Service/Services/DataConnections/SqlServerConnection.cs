@@ -41,7 +41,7 @@ FROM
 
             if (String.IsNullOrWhiteSpace(options))
             {
-                options = $"NAME = {{ItemName}} {{BackupType}} Backup, SKIP, STATS = 10";
+                options = $"NAME = N'{{ItemName}} {{BackupType}} Backup', SKIP, STATS = 10";
             }
 
             options = options.FormatToken(new
@@ -73,6 +73,12 @@ FROM
             };
 
             var query = $"{queryHeader} {options}";
+
+            progressCallback?.Invoke(new DatabaseProgressEvent
+            {
+                Message = $"Starting backup script{Environment.NewLine}{query}",
+                Source = "Datack"
+            });
 
             var command = new CommandDefinition(query,
                                                 new

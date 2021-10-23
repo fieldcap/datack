@@ -30,7 +30,19 @@ namespace Datack.Web.Service.Services
 
         public async Task SendTest(String to, CancellationToken cancellationToken)
         {
-            await Send(to, "Datack test email", "This is a test email from Datack", cancellationToken);
+            try
+            {
+                await Send(to, "Datack test email", "This is a test email from Datack", cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                if (ex.InnerException != null)
+                {
+                    throw new Exception($"{ex.Message}{Environment.NewLine}{ex.InnerException.Message}");
+                }
+
+                throw;
+            }
         }
 
         private async Task Send(String to, String subject, String body, CancellationToken cancellationToken)
@@ -41,6 +53,21 @@ namespace Datack.Web.Service.Services
             var smtpPassword = await _settings.Get<String>("Email:Smtp:Password", cancellationToken);
             var smtpUseSsl = await _settings.Get<Boolean>("Email:Smtp:UseSsl", cancellationToken);
             var smtpFrom = await _settings.Get<String>("Email:Smtp:From", cancellationToken);
+
+            if (String.IsNullOrWhiteSpace(smtpHost))
+            {
+                throw new Exception($"No e-mail host defined");
+            }
+
+            if (smtpPort == 0)
+            {
+                smtpPort = 25;
+            }
+
+            if (String.IsNullOrWhiteSpace(smtpFrom))
+            {
+                smtpFrom = "noreply@datack.local";
+            }
 
             var smtpClient = new SmtpClient(smtpHost, smtpPort);
 

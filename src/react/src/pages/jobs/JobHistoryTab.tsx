@@ -89,7 +89,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                     }
 
                     if (c.row.original.completed == null && c.row.original.started != null) {
-                        return <Spinner />;
+                        return <Spinner size="sm" />;
                     }
                     return <CheckIcon style={{ color: 'green' }} />;
                 },

@@ -1,5 +1,5 @@
-import { CheckIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
-import { Th, Thead } from '@chakra-ui/react';
+import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
+import { Spinner, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
 import { format, formatDistanceStrict } from 'date-fns';
@@ -64,9 +64,17 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
             {
                 Header: 'Result',
                 accessor: 'isError',
-                Cell: ({ cell: { value } }) => {
-                    if (value) {
+                Cell: (c) => {
+                    if (c.cell.value) {
                         return <WarningIcon style={{ color: 'red' }} />;
+                    }
+
+                    if (c.row.original.completed == null && c.row.original.started == null) {
+                        return <TimeIcon style={{ color: 'blue' }} />;
+                    }
+
+                    if (c.row.original.completed == null && c.row.original.started != null) {
+                        return <Spinner size="sm" />;
                     }
                     return <CheckIcon style={{ color: 'green' }} />;
                 },

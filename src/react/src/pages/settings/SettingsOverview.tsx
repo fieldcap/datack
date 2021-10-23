@@ -1,4 +1,16 @@
-import { Alert, AlertDescription, AlertIcon, Box, Button, Heading, HStack, Skeleton } from '@chakra-ui/react';
+import {
+    Alert,
+    AlertDescription,
+    AlertIcon,
+    Box,
+    Button,
+    FormControl,
+    FormLabel,
+    Heading,
+    HStack,
+    Input,
+    Skeleton
+} from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -11,6 +23,7 @@ type RouteParams = {};
 const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [settings, setSettings] = useState<Setting[]>([]);
+    const [testEmailTo, setTestEmailTo] = useState<string>('');
 
     const [error, setError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -56,7 +69,7 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         setError(null);
 
         try {
-            await Settings.testEmail('roger@versluis.ca');
+            await Settings.testEmail(testEmailTo);
             setIsSaving(false);
         } catch (err: any) {
             setError(err);
@@ -131,6 +144,16 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                     type="password"
                 />
             </Box>
+            <Box marginBottom={4}>
+                <Heading size="md">Test E-mail</Heading>
+            </Box>
+            <FormControl id="TestEmailTo" marginBottom={4}>
+                <FormLabel>E-Mail address</FormLabel>
+                <Input type="email" value={testEmailTo} onChange={(evt) => setTestEmailTo(evt.target.value)}></Input>
+            </FormControl>
+            <Button onClick={handleTestEmail} isLoading={isSaving} marginBottom={4}>
+                Test E-mail
+            </Button>
             {error != null ? (
                 <Alert status="error" marginBottom={4}>
                     <AlertIcon />
@@ -140,9 +163,6 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             <HStack>
                 <Button onClick={handleSave} isLoading={isSaving}>
                     Save
-                </Button>
-                <Button onClick={handleTestEmail} isLoading={isSaving}>
-                    Test E-mail
                 </Button>
             </HStack>
         </Skeleton>

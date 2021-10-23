@@ -75,6 +75,12 @@ namespace Datack.Web.Service.Services
             }
 
             var value = setting.Value;
+
+            if (String.IsNullOrWhiteSpace(value))
+            {
+                return default;
+            }
+
             if (setting.Secure)
             {
                 value = _protector.Unprotect(value);
