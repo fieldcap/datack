@@ -65,8 +65,8 @@ const JobList: FC<RouteComponentProps> = () => {
 
     return (
         <Loader isLoaded={isLoaded} error={error}>
-            <Heading marginBottom="24px">Jobs</Heading>
-            <Table {...getTableProps()}>
+            <Heading marginBottom={4}>Jobs</Heading>
+            <Table {...getTableProps()} marginBottom={4}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
@@ -105,7 +105,7 @@ const JobList: FC<RouteComponentProps> = () => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px" onClick={handleAddNewJobClick}>
+            <Button onClick={handleAddNewJobClick}>
                 Add new job
             </Button>
         </Loader>

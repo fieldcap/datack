@@ -71,7 +71,7 @@ const AgentJobList: FC<Props> = (props) => {
 
     return (
         <Loader isLoaded={isLoaded} error={error}>
-            <Table {...getTableProps()}>
+            <Table {...getTableProps()} marginBottom={4}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
@@ -110,9 +110,7 @@ const AgentJobList: FC<Props> = (props) => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px" onClick={handleAddNewJobClick}>
-                Add new job
-            </Button>
+            <Button onClick={handleAddNewJobClick}>Add new job</Button>
         </Loader>
     );
 };

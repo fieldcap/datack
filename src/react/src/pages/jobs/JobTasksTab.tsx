@@ -113,7 +113,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
 
     return (
         <Loader isLoaded={isLoaded} error={error}>
-            <Table {...getTableProps()}>
+            <Table {...getTableProps()} marginBottom={4}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
@@ -180,7 +180,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
                     </Droppable>
                 </DragDropContext>
             </Table>
-            <Button marginTop="24px" onClick={() => handleAddNewJobTaskClick()}>
+            <Button onClick={() => handleAddNewJobTaskClick()}>
                 Add new task
             </Button>
         </Loader>

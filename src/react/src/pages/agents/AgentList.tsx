@@ -50,9 +50,9 @@ const AgentList: FC<RouteComponentProps> = () => {
 
     return (
         <Skeleton isLoaded={isLoaded}>
-            <Heading marginBottom="24px">Agents</Heading>
+            <Heading marginBottom={4}>Agents</Heading>
 
-            <Table {...getTableProps()}>
+            <Table {...getTableProps()} marginBottom={4}>
                 <Thead>
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
@@ -91,9 +91,7 @@ const AgentList: FC<RouteComponentProps> = () => {
                 </Tbody>
             </Table>
 
-            <Button marginTop="24px" onClick={handleAddNewAgentClick}>
-                Add new agent
-            </Button>
+            <Button onClick={handleAddNewAgentClick}>Add new agent</Button>
         </Skeleton>
     );
 };

@@ -114,18 +114,18 @@ const AgentSettingsTab: FC<Props> = (props) => {
                     <FormHelperText>Only change the key when installing a new agent.</FormHelperText>
                 </FormControl>
                 {error != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert marginBottom={4} status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
                 {success != null ? (
-                    <Alert marginTop="24px" status="success">
+                    <Alert marginBottom={4} status="success">
                         <AlertIcon />
                         <AlertDescription>{success}</AlertDescription>
                     </Alert>
                 ) : null}
-                <HStack marginTop="24px">
+                <HStack>
                     <Button onClick={(evt) => handleSave(evt)} isLoading={isSaving}>
                         Save
                     </Button>

@@ -65,7 +65,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
 
     return (
         <>
-            <Heading marginBottom="24px">Add new job</Heading>
+            <Heading marginBottom={4}>Add new job</Heading>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Job Name</FormLabel>
@@ -78,12 +78,12 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
                     <FormHelperText>A description for this job.</FormHelperText>
                 </FormControl>
                 {error != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert marginBottom={4} status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
-                <HStack marginTop="24px">
+                <HStack>
                     <Button onClick={(evt) => handleSave(evt)} isLoading={isSaving}>
                         Add new job
                     </Button>

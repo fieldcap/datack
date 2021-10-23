@@ -9,7 +9,7 @@ type LoaderProps = {
 const Loader: FC<PropsWithChildren<LoaderProps>> = (props) => {
     if (props.error) {
         return (
-            <Alert marginTop="24px" status="error">
+            <Alert marginBottom={4} status="error">
                 <AlertIcon />
                 <AlertDescription>{props.error}</AlertDescription>
             </Alert>

@@ -86,7 +86,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     return (
         <>
-            <Box marginBottom="24px">
+            <Box marginBottom={4}>
                 <Heading>Add task</Heading>
             </Box>
             <form>
@@ -124,12 +124,12 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
                     <FormHelperText>The type of the task.</FormHelperText>
                 </FormControl>
                 {error != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert marginBottom={4} status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
-                <HStack marginTop="24px">
+                <HStack>
                     <Button onClick={() => save()} isLoading={isSaving}>
                         Add task
                     </Button>

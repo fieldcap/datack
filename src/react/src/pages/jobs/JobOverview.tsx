@@ -41,10 +41,10 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     return (
         <Loader isLoaded={job != null} error={error}>
-            <Box marginBottom="24px">
+            <Box marginBottom={4}>
                 <Heading>{job?.name}</Heading>
             </Box>
-            <Box marginBottom="24px">
+            <Box marginBottom={4}>
                 <Button onClick={() => run()}>Run Job</Button>
             </Box>
             <Tabs>

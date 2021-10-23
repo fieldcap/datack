@@ -139,7 +139,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
                     step="1"
                     value={props.settings?.timeSpanAmount || ''}
                     onChange={(evt) => set('timeSpanAmount', +evt.target.value)}
-                    marginBottom="12px"
+                    marginBottom={2}
                 ></Input>
                 <RadioGroup
                     value={props.settings?.timeSpanType || ''}

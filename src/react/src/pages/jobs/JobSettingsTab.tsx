@@ -208,7 +208,7 @@ const JobSettingsTab: FC<Props> = (props) => {
                                     setDeleteLogsTimeSpanAmount(+evt.target.value);
                                 }
                             }}
-                            marginBottom="12px"
+                            marginBottom={2}
                         ></Input>
                     ) : null}
                     <RadioGroup

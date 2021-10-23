@@ -1,8 +1,5 @@
 import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
 import {
-    Alert,
-    AlertDescription,
-    AlertIcon,
     Box,
     chakra,
     Heading,
@@ -112,18 +109,9 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
         useSortBy
     );
 
-    if (error) {
-        return (
-            <Alert marginTop="24px" status="error">
-                <AlertIcon />
-                <AlertDescription>{error}</AlertDescription>
-            </Alert>
-        );
-    }
-
     return (
-        <Skeleton isLoaded={isLoaded}>
-            <Box marginBottom="24px">
+        <Skeleton isLoaded={isLoaded} error={error}>
+            <Box marginBottom={4}>
                 <Heading>History</Heading>
             </Box>
             <Table {...getTableProps()}>

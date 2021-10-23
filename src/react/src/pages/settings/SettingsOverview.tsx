@@ -66,13 +66,13 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     return (
         <Skeleton isLoaded={isLoaded}>
-            <Box marginBottom="24px">
+            <Box marginBottom={4}>
                 <Heading>Settings</Heading>
             </Box>
-            <Box marginBottom="24px">
+            <Box marginBottom={4}>
                 <Heading size="md">E-Mail SMTP</Heading>
             </Box>
-            <Box>
+            <Box marginBottom={4}>
                 <SettingsSetting
                     settingId="Email:Smtp:Host"
                     settings={settings}
@@ -112,10 +112,10 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                     onChangeValue={handleChangeValue}
                 />
             </Box>
-            <Box marginBottom="24px" marginTop="36px">
+            <Box marginBottom={4}>
                 <Heading size="md">Cloud authentication</Heading>
             </Box>
-            <Box>
+            <Box marginBottom={4}>
                 <SettingsSetting
                     settingId="AWS:S3:Secret"
                     settings={settings}
@@ -132,12 +132,12 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 />
             </Box>
             {error != null ? (
-                <Alert status="error">
+                <Alert status="error" marginBottom={4}>
                     <AlertIcon />
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             ) : null}
-            <HStack marginTop="24px">
+            <HStack>
                 <Button onClick={handleSave} isLoading={isSaving}>
                     Save
                 </Button>

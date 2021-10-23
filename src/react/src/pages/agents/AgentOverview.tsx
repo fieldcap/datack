@@ -34,7 +34,7 @@ const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     return (
         <Loader isLoaded={agent != null} error={error}>
-            <Heading marginBottom="24px">{agent?.name}</Heading>
+            <Heading marginBottom={4}>{agent?.name}</Heading>
             <Tabs>
                 <TabList>
                     <Tab>Summary</Tab>

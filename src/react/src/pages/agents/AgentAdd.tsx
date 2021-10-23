@@ -62,7 +62,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
 
     return (
         <>
-            <Heading marginBottom="24px">Add new agent</Heading>
+            <Heading marginBottom={4}>Add new agent</Heading>
             <form>
                 <FormControl id="name" marginBottom={4} isRequired>
                     <FormLabel>Agent Name</FormLabel>
@@ -81,13 +81,13 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
                 </FormControl>
 
                 {error != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert marginBottom={4} status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
 
-                <HStack marginTop="24px">
+                <HStack>
                     <Button onClick={(evt) => handleSave(evt)} isLoading={isSaving}>
                         Save
                     </Button>

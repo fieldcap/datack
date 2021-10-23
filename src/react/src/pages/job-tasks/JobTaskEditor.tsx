@@ -247,7 +247,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     return (
         <Loader isLoaded={jobTask != null} error={null}>
-            <Box marginBottom="24px">
+            <Box marginBottom={4}>
                 <Heading>Edit task</Heading>
             </Box>
             <form>
@@ -331,14 +331,16 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     />
                     <FormHelperText>The timeout in seconds.</FormHelperText>
                 </FormControl>
+                <Box marginBottom={4}>
                 {getTaskType()}
+                </Box>
                 {error != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert mmarginBottom={4} status="error">
                         <AlertIcon />
                         <AlertDescription>{error}</AlertDescription>
                     </Alert>
                 ) : null}
-                <HStack marginTop="24px">
+                <HStack>
                     <Button onClick={() => save()} isLoading={isSaving}>
                         Save
                     </Button>

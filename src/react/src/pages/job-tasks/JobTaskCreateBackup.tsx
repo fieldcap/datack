@@ -5,7 +5,6 @@ import {
     Box,
     Button,
     Checkbox,
-    CheckboxGroup,
     FormControl,
     FormHelperText,
     FormLabel,
@@ -17,8 +16,7 @@ import {
     Td,
     Text,
     Thead,
-    Tr,
-    VStack
+    Tr
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { FaMinus, FaPlus } from 'react-icons/fa';
@@ -308,17 +306,17 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 </FormHelperText>
             </FormControl>
             <Box marginBottom={4}>
-                <Button onClick={handleTestDatabaseConnection} isLoading={isTesting}>
+                <Button onClick={handleTestDatabaseConnection} isLoading={isTesting} marginBottom={4}>
                     Test database connection
                 </Button>
                 {testingError != null ? (
-                    <Alert marginTop="24px" status="error">
+                    <Alert status="error">
                         <AlertIcon />
                         <AlertDescription>{testingError}</AlertDescription>
                     </Alert>
                 ) : null}
                 {testingSuccess != null ? (
-                    <Alert marginTop="24px" status="success">
+                    <Alert status="success">
                         <AlertIcon />
                         <AlertDescription>{testingSuccess}</AlertDescription>
                     </Alert>
@@ -397,9 +395,13 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                     ))}
                 </Tbody>
             </Table>
-            <CheckboxGroup>
-                <VStack align="left"></VStack>
-            </CheckboxGroup>
+            <Heading size="md" marginBottom={4}>
+                Item generation settings
+            </Heading>
+            <Text marginBottom={4}>
+                The following settings determine for which databases a backup is created. Each backup will result in a
+                separate job run task. The artifact of the task will be the filename specified above.
+            </Text>
         </>
     );
 };

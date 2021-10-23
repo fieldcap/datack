@@ -48,18 +48,20 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             {jobRun != null ? (
                 <Flex>
                     <Flex flex="1" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
-                        <Box marginBottom="24px">
+                        <Box marginBottom={4}>
                             <Heading>Run for job: {jobRun.job.name}</Heading>
                         </Box>
                         {jobRun.completed == null ? (
-                            <Box marginBottom="24px">
+                            <Box marginBottom={4}>
                                 <Button onClick={() => stop()}>Stop Job Run</Button>
                             </Box>
                         ) : null}
                         <Box>
-                            <JobRunOverviewHeader jobRun={jobRun} />
+                            <Box marginBottom={4}>
+                                <JobRunOverviewHeader jobRun={jobRun} />
+                            </Box>
                         </Box>
-                        <Box marginTop={6} overflowY="auto">
+                        <Box overflowY="auto">
                             <JobRunOverviewTasks jobRunTasks={jobRunTasks} onRowClick={handleJobRunTaskClick} />
                         </Box>
                     </Flex>
