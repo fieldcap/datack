@@ -26,6 +26,8 @@ namespace Datack.Web.Data.Repositories
             {
                 query = query.Where(m => m.JobId == jobId);
             }
+
+            query = query.OrderByDescending(m => m.Started);
             
             return await query.ToListAsync(cancellationToken);
         }
@@ -70,7 +72,7 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateComplete(Guid jobRunId, CancellationToken cancellationToken)
+        public async Task UpdateComplete(Guid jobRunId, String error, CancellationToken cancellationToken)
         {
             var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
 
@@ -88,7 +90,12 @@ namespace Datack.Web.Data.Repositories
 
             dbJobRun.RunTime = (Int64) timespan.Value.TotalSeconds;
 
-            if (dbJobRunTasksWithErrors > 0)
+            if (!String.IsNullOrWhiteSpace(error))
+            {
+                dbJobRun.IsError = true;
+                dbJobRun.Result = $"Job completed with {dbJobRunTasksWithErrors} errors in {timespan:g}.{Environment.NewLine}{error}";
+            }
+            else if (dbJobRunTasksWithErrors > 0)
             {
                 dbJobRun.IsError = true;
                 dbJobRun.Result = $"Job completed with {dbJobRunTasksWithErrors} errors in {timespan:g}";

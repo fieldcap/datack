@@ -54,11 +54,21 @@ namespace Datack.Web.Service.Services
 
         public async Task UpdateComplete(Guid jobRunId, CancellationToken cancellationToken)
         {
-            await _jobRunRepository.UpdateComplete(jobRunId, cancellationToken);
-
             var jobRun = await GetById(jobRunId, cancellationToken);
 
-            await _emails.SendComplete(jobRun, cancellationToken);
+            String error = null;
+            try
+            {
+                await _emails.SendComplete(jobRun, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                error = ex.Message;
+            }
+            finally
+            {
+                await _jobRunRepository.UpdateComplete(jobRunId, error, cancellationToken);
+            }
         }
 
         public async Task UpdateStop(Guid jobRunId, CancellationToken cancellationToken)

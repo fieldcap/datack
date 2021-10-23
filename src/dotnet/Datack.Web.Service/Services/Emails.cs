@@ -30,9 +30,50 @@ namespace Datack.Web.Service.Services
 
         public async Task SendTest(String to, CancellationToken cancellationToken)
         {
+            await Send(to, "Datack test email", "This is a test email from Datack", cancellationToken);
+        }
+
+        private async Task Send(String to, String subject, String body, CancellationToken cancellationToken)
+        {
             try
             {
-                await Send(to, "Datack test email", "This is a test email from Datack", cancellationToken);
+                var smtpHost = await _settings.Get<String>("Email:Smtp:Host", cancellationToken);
+                var smtpPort = await _settings.Get<Int32>("Email:Smtp:Port", cancellationToken);
+                var smtpUserName = await _settings.Get<String>("Email:Smtp:UserName", cancellationToken);
+                var smtpPassword = await _settings.Get<String>("Email:Smtp:Password", cancellationToken);
+                var smtpUseSsl = await _settings.Get<Boolean>("Email:Smtp:UseSsl", cancellationToken);
+                var smtpFrom = await _settings.Get<String>("Email:Smtp:From", cancellationToken);
+
+                if (String.IsNullOrWhiteSpace(smtpHost))
+                {
+                    throw new Exception($"No e-mail host defined");
+                }
+
+                if (smtpPort == 0)
+                {
+                    smtpPort = 25;
+                }
+
+                if (String.IsNullOrWhiteSpace(smtpFrom))
+                {
+                    smtpFrom = "noreply@datack.local";
+                }
+
+                var smtpClient = new SmtpClient(smtpHost, smtpPort);
+
+                if (!String.IsNullOrWhiteSpace(smtpUserName))
+                {
+                    smtpClient.Credentials = new NetworkCredential(smtpUserName, smtpPassword);
+                }
+
+                smtpClient.EnableSsl = smtpUseSsl;
+
+                var message = new MailMessage(smtpFrom, to);
+                message.Subject = subject;
+                message.IsBodyHtml = true;
+                message.Body = body;
+
+                await smtpClient.SendMailAsync(message, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -43,47 +84,6 @@ namespace Datack.Web.Service.Services
 
                 throw;
             }
-        }
-
-        private async Task Send(String to, String subject, String body, CancellationToken cancellationToken)
-        {
-            var smtpHost = await _settings.Get<String>("Email:Smtp:Host", cancellationToken);
-            var smtpPort = await _settings.Get<Int32>("Email:Smtp:Port", cancellationToken);
-            var smtpUserName = await _settings.Get<String>("Email:Smtp:UserName", cancellationToken);
-            var smtpPassword = await _settings.Get<String>("Email:Smtp:Password", cancellationToken);
-            var smtpUseSsl = await _settings.Get<Boolean>("Email:Smtp:UseSsl", cancellationToken);
-            var smtpFrom = await _settings.Get<String>("Email:Smtp:From", cancellationToken);
-
-            if (String.IsNullOrWhiteSpace(smtpHost))
-            {
-                throw new Exception($"No e-mail host defined");
-            }
-
-            if (smtpPort == 0)
-            {
-                smtpPort = 25;
-            }
-
-            if (String.IsNullOrWhiteSpace(smtpFrom))
-            {
-                smtpFrom = "noreply@datack.local";
-            }
-
-            var smtpClient = new SmtpClient(smtpHost, smtpPort);
-
-            if (!String.IsNullOrWhiteSpace(smtpUserName))
-            {
-                smtpClient.Credentials = new NetworkCredential(smtpUserName, smtpPassword);
-            }
-            
-            smtpClient.EnableSsl = smtpUseSsl;
-
-            var message = new MailMessage(smtpFrom, to);
-            message.Subject = subject;
-            message.IsBodyHtml = true;
-            message.Body = body;
-
-            await smtpClient.SendMailAsync(message, cancellationToken);
         }
     }
 }

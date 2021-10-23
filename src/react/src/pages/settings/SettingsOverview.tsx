@@ -126,25 +126,6 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 />
             </Box>
             <Box marginBottom={4}>
-                <Heading size="md">Cloud authentication</Heading>
-            </Box>
-            <Box marginBottom={4}>
-                <SettingsSetting
-                    settingId="AWS:S3:Secret"
-                    settings={settings}
-                    label="AWS S3 Secret"
-                    onChangeValue={handleChangeValue}
-                    type="password"
-                />
-                <SettingsSetting
-                    settingId="Azure:Blob:ConnectionString"
-                    settings={settings}
-                    label="Azure Blobl Storage Connection String"
-                    onChangeValue={handleChangeValue}
-                    type="password"
-                />
-            </Box>
-            <Box marginBottom={4}>
                 <Heading size="md">Test E-mail</Heading>
             </Box>
             <FormControl id="TestEmailTo" marginBottom={4}>
