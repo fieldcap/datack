@@ -21,7 +21,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [jobRun, setJobRun] = useState<JobRun | null>(null);
     const [jobRunTasks, setJobRunTasks] = useState<JobRunTask[]>([]);
     const [jobRunTaskLogs, setJobRunTaskLogs] = useState<JobRunTaskLog[]>([]);
-    const [activeJobRunTaskId, setActiveJobRunTaskId] = useState<string | null>(null);
+    const [activeJobRunTask, setActiveJobRunTask] = useState<JobRunTask | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -81,29 +81,36 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         }
 
         if (connection.state !== HubConnectionState.Disconnected) {
-            connection.on('JobRun', (jobRun: JobRun) => {
-                setJobRun(jobRun);
+            connection.on('JobRun', (updatedJobRun: JobRun) => {
+                if (updatedJobRun.jobRunId === jobRun?.jobRunId) {
+                    setJobRun(jobRun);
+                }
             });
 
-            connection.on('JobRunTask', (jobRunTasks: JobRunTask[]) => {
-                setJobRunTasks(jobRunTasks);
+            connection.on('JobRunTask', (updatedJobRunTasks: JobRunTask[]) => {
+                if (updatedJobRunTasks.length === 0) {
+                    return;
+                }
+                if (updatedJobRunTasks[0].jobRunId === jobRun?.jobRunId) {
+                    setJobRunTasks(jobRunTasks);
+                }
             });
 
-            connection.on('JobRunTaskLog', (jobRunTaskLog: JobRunTaskLog) => {
-                if (activeJobRunTaskId === jobRunTaskLog.jobRunTaskId) {
-                    setJobRunTaskLogs((v) => [...v, jobRunTaskLog]);
+            connection.on('JobRunTaskLog', (updatedJobRunTaskLog: JobRunTaskLog) => {
+                if (activeJobRunTask != null && activeJobRunTask.jobRunTaskId === updatedJobRunTaskLog.jobRunTaskId) {
+                    setJobRunTaskLogs((v) => [...v, updatedJobRunTaskLog]);
                 }
             });
         }
-    }, [connection, connection?.state, activeJobRunTaskId]);
+    }, [connection, connection?.state, activeJobRunTask, jobRun, jobRunTasks]);
 
-    const handleJobRunTaskClick = async (jobRunTaskId: string) => {
+    const handleJobRunTaskClick = async (jobRunTask: JobRunTask) => {
         setJobRunTaskLogs([]);
+        setActiveJobRunTask(null);
 
-        setActiveJobRunTaskId(jobRunTaskId);
+        const result = await JobRuns.getTaskLogs(jobRunTask.jobRunTaskId, cancelToken);
 
-        const result = await JobRuns.getTaskLogs(jobRunTaskId, cancelToken);
-
+        setActiveJobRunTask(jobRunTask);
         setJobRunTaskLogs(result);
     };
 
@@ -136,9 +143,11 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                         <JobRunOverviewTasks jobRunTasks={jobRunTasks} onRowClick={handleJobRunTaskClick} />
                     </Box>
                 </Flex>
-                <Flex flex="2" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
+                <Flex flex="1" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
                     <Box overflowY="auto" overflowX="hidden">
-                        <JobRunOverviewTaskLogs jobRunTaskLogs={jobRunTaskLogs} />
+                        {activeJobRunTask != null ? (
+                            <JobRunOverviewTaskLogs jobRunTaskLogs={jobRunTaskLogs} jobRunTask={activeJobRunTask} />
+                        ) : null}
                     </Box>
                 </Flex>
             </Flex>

@@ -11,7 +11,7 @@ import JobTasks from '../../services/jobTasks';
 
 type Props = {
     jobRunTasks: JobRunTask[];
-    onRowClick: (jobRunTaskId: string) => void;
+    onRowClick: (jobRunTask: JobRunTask) => void;
 };
 
 const JobRunOverviewTasks: FC<Props> = (props) => {
@@ -143,7 +143,7 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
                         return (
                             <Tr
                                 {...row.getRowProps()}
-                                onClick={() => onRowClick(row.original.jobRunTaskId)}
+                                onClick={() => onRowClick(row.original)}
                                 style={{ cursor: 'pointer' }}
                                 id={`JobRunTaskRow-${row.original.jobRunTaskId}`}
                             >

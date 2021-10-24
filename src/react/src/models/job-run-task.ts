@@ -10,10 +10,10 @@ export type JobRunTask = {
     started: string | null;
     completed: string | null;
     runTime: number | null;
-    itemName: string;
     type: string;
-    parallel: number;
-    order: number;
+    itemName: string;
+    taskOrder: number;
+    itemOrder: number;
     isError: boolean;
     result: string | null;
     resultArtifact: string | null;

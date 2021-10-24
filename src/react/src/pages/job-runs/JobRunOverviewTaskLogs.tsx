@@ -1,13 +1,16 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { Th, Thead } from '@chakra-ui/react';
+import { Heading, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
-import { format, parseISO } from 'date-fns';
+import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
+import { JobRunTask } from '../../models/job-run-task';
 import { JobRunTaskLog } from '../../models/job-run-task-log';
+import JobTasks from '../../services/jobTasks';
 
 type Props = {
+    jobRunTask: JobRunTask;
     jobRunTaskLogs: JobRunTaskLog[];
 };
 
@@ -20,6 +23,10 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
         if (bottomRef == null || bottomRef.current == null) {
             return;
         }
+        if (props.jobRunTask.completed != null) {
+            return;
+        }
+
         bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }, [props.jobRunTaskLogs]);
 
@@ -54,7 +61,65 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
 
     return (
         <>
-            <Table {...getTableProps()} style={{ width: 'auto' }} size="sm">
+            <Heading marginBottom={4} size="sm">
+                Summary
+            </Heading>
+            <Table style={{ width: '100%' }} size="sm" marginBottom={4}>
+                <Tbody>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold', width:'110px' }}>Started</Td>
+                        <Td>
+                            {props.jobRunTask.started != null
+                                ? format(parseISO(props.jobRunTask.started), 'd MMMM yyyy HH:mm')
+                                : ''}
+                        </Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Completed</Td>
+                        <Td>
+                            {props.jobRunTask.completed != null
+                                ? format(parseISO(props.jobRunTask.completed), 'd MMMM yyyy HH:mm')
+                                : ''}
+                        </Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Runtime</Td>
+                        <Td>
+                            {props.jobRunTask.runTime != null
+                                ? formatDistanceStrict(0, props.jobRunTask.runTime * 1000)
+                                : ''}
+                        </Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Task Type</Td>
+                        <Td>{JobTasks.map(props.jobRunTask.type)}</Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Item Name</Td>
+                        <Td>{props.jobRunTask.itemName || ''}</Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Artifact</Td>
+                        <Td>{props.jobRunTask.resultArtifact || ''}</Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Task Order</Td>
+                        <Td>{props.jobRunTask.taskOrder}</Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Item Order</Td>
+                        <Td>{props.jobRunTask.itemOrder}</Td>
+                    </Tr>
+                    <Tr>
+                        <Td style={{ fontWeight: 'bold' }}>Result</Td>
+                        <Td>{props.jobRunTask.result}</Td>
+                    </Tr>
+                </Tbody>
+            </Table>
+            <Heading marginBottom={4} size="sm">
+                Message log
+            </Heading>
+            <Table {...getTableProps()} style={{ width: '100%' }} size="sm">
                 <Thead>
                     {headerGroups.map((headerGroup) => (
                         <Tr {...headerGroup.getHeaderGroupProps()}>
