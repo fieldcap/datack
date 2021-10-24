@@ -24,16 +24,16 @@ namespace Datack.Web.Service.Hubs
             _jobRunner = jobRunner;
         }
 
-        public static readonly ConcurrentDictionary<String, String> Users = new();
+        public static readonly ConcurrentDictionary<String, AgentConnection> Agents = new();
         public static readonly ConcurrentDictionary<Guid, RpcResult> Transactions = new();
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            foreach (var (key, value) in Users)
+            foreach (var (key, value) in Agents)
             {
-                if (value == Context.ConnectionId)
+                if (value.ConnectionId == Context.ConnectionId)
                 {
-                    Users.TryRemove(key, out _);
+                    Agents.TryRemove(key, out _);
                     OnClientDisconnect?.Invoke(this, new ClientDisconnectEvent{ AgentKey = key });
                     break;
                 }
@@ -42,7 +42,7 @@ namespace Datack.Web.Service.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task Connect(String key)
+        public async Task Connect(String key, String version)
         {
             var agent = await _agents.GetByKey(key, CancellationToken.None);
 
@@ -53,7 +53,11 @@ namespace Datack.Web.Service.Hubs
 
             OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
 
-            Users.TryAdd(key, Context.ConnectionId);
+            Agents.TryAdd(key, new AgentConnection
+            {
+                ConnectionId = Context.ConnectionId,
+                Version = version
+            });
         }
 
         public void Response(RpcResult rpcResult)
@@ -81,5 +85,11 @@ namespace Datack.Web.Service.Hubs
             await _jobRunner.ProgressTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.IsError, CancellationToken.None);
             await _jobRunner.CompleteTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.ResultArtifact, completeEvent.IsError, CancellationToken.None);
         }
+    }
+
+    public class AgentConnection
+    {
+        public String ConnectionId { get; set; }
+        public String Version { get; set; }
     }
 }

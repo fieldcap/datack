@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using Datack.Web.Data.Repositories;
+using Datack.Web.Service.Hubs;
 
 namespace Datack.Web.Service.Services
 {
@@ -12,21 +14,60 @@ namespace Datack.Web.Service.Services
     {
         private readonly AgentRepository _agentRepository;
         private readonly JobTaskRepository _jobTaskRepository;
+        private readonly RemoteService _remoteService;
 
-        public Agents(AgentRepository agentRepository, JobTaskRepository jobTaskRepository)
+        public Agents(AgentRepository agentRepository, JobTaskRepository jobTaskRepository, RemoteService remoteService)
         {
             _agentRepository = agentRepository;
             _jobTaskRepository = jobTaskRepository;
+            _remoteService = remoteService;
         }
 
         public async Task<IList<Agent>> GetAll(CancellationToken cancellationToken)
         {
-            return await _agentRepository.GetAll(cancellationToken);
+            var agents = await _agentRepository.GetAll(cancellationToken);
+
+            foreach (var agent in agents)
+            {
+                if (AgentHub.Agents.TryGetValue(agent.Key, out var agentConnection))
+                {
+                    agent.Status = "online";
+
+                    if (agentConnection.Version != VersionHelper.GetVersion())
+                    {
+                        agent.Status = "versionmismatch";
+                    }
+                }
+                else
+                {
+                    agent.Status = "offline";
+                }
+            }
+
+            return agents;
         }
 
         public async Task<Agent> GetById(Guid agentId, CancellationToken cancellationToken)
         {
-            return await _agentRepository.GetById(agentId, cancellationToken);
+            var agent = await _agentRepository.GetById(agentId, cancellationToken);
+
+            if (AgentHub.Agents.TryGetValue(agent.Key, out var agentConnection))
+            {
+                agent.Version = agentConnection.Version;
+
+                agent.Status = "online";
+
+                if (agentConnection.Version != VersionHelper.GetVersion())
+                {
+                    agent.Status = "versionmismatch";
+                }
+            }
+            else
+            {
+                agent.Status = "offline";
+            }
+
+            return agent;
         }
 
         public async Task<Agent> GetByKey(String key, CancellationToken cancellationToken)

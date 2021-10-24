@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
+using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +19,8 @@ namespace Datack.Agent.Services
         private readonly DataProtector _dataProtector;
         private readonly ILogger _logger;
         private readonly RpcService _rpcService;
+
+        private readonly String _version;
 
         private CancellationToken _cancellationToken;
 
@@ -35,6 +38,8 @@ namespace Datack.Agent.Services
             _jobRunner = jobRunner;
             _dataProtector = dataProtector;
 
+            _version = VersionHelper.GetVersion();
+
             _logger.LogTrace("Agent Constructor");
         }
 
@@ -42,7 +47,7 @@ namespace Datack.Agent.Services
         {
             _cancellationToken = cancellationToken;
 
-            _logger.LogTrace("Starting");
+            _logger.LogInformation("Starting version {_version}", _version);
 
             if (String.IsNullOrWhiteSpace(_appSettings.Token))
             {
@@ -74,7 +79,7 @@ namespace Datack.Agent.Services
         private async void Connect()
         {
             _logger.LogTrace("Connect");
-
+            
             var response = await _rpcService.Send<RpcUpdate>("RpcUpdate");
         }
 

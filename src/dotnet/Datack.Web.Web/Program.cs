@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Datack.Common.Helpers;
 using Datack.Web.Service.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +23,7 @@ namespace Datack.Web.Web
         {
             try
             {
+                Log.Information($"Starting host version {VersionHelper.GetVersion()}");
                 var host = CreateHostBuilder(args).Build();
                 await host.RunAsync();
             }

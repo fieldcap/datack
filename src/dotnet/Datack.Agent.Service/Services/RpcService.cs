@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
+using Datack.Common.Helpers;
 using Datack.Common.Models.RPC;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
@@ -22,10 +23,12 @@ namespace Datack.Agent.Services
         private HubConnection _connection;
 
         private readonly Dictionary<String, Expression> _requestMethods = new();
-        
+        private readonly String _version;
+
         public RpcService(AppSettings appSettings)
         {
             _appSettings = appSettings;
+            _version = VersionHelper.GetVersion();
         }
 
         public void StartAsync(CancellationToken cancellationToken)
@@ -105,7 +108,7 @@ namespace Datack.Agent.Services
                     return;
                 }
 
-                await _connection.SendAsync("Connect", _appSettings.Token, cancellationToken);
+                await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
 
                 OnConnect?.Invoke(this, null!);
             }, cancellationToken);

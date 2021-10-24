@@ -49,14 +49,14 @@ namespace Datack.Web.Service.Services
 
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
         {
-            var hasConnection = AgentHub.Users.TryGetValue(key, out var connectionId);
+            var hasConnection = AgentHub.Agents.TryGetValue(key, out var connection);
 
             if (!hasConnection)
             {
                 throw new Exception($"No connection found for agent with key {key}");
             }
 
-            return await SendWithConnection<T>(connectionId, method, cancellationToken, payload);
+            return await SendWithConnection<T>(connection.ConnectionId, method, cancellationToken, payload);
         }
 
         private async Task<T> SendWithConnection<T>(String connectionId, String method, CancellationToken cancellationToken, params Object[] payload)

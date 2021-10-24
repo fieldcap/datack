@@ -1,21 +1,10 @@
 import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
-import {
-    Box,
-    chakra,
-    Heading,
-    Skeleton,
-    Spinner,
-    Table,
-    Tbody,
-    Td,
-    Th,
-    Thead,
-    Tr
-} from '@chakra-ui/react';
+import { Box, chakra, Heading, Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { JobRun } from '../../models/job-run';
 import JobRuns from '../../services/job-runs';
@@ -110,7 +99,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
     );
 
     return (
-        <Skeleton isLoaded={isLoaded} error={error}>
+        <Loader isLoaded={isLoaded} error={error}>
             <Box marginBottom={4}>
                 <Heading>History</Heading>
             </Box>
@@ -152,7 +141,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
                     })}
                 </Tbody>
             </Table>
-        </Skeleton>
+        </Loader>
     );
 };
 

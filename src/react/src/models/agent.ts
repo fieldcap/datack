@@ -4,6 +4,9 @@ export type Agent = {
     description: string;
     key: string;
     settings: AgentSettings;
+
+    status?: string | null;
+    version?: string | null;
 };
 
 export type AgentSettings = {};

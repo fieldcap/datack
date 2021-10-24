@@ -8,11 +8,11 @@ import {
     FormLabel,
     Heading,
     HStack,
-    Input,
-    Skeleton
+    Input
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Setting } from '../../models/setting';
 import Settings from '../../services/settings';
@@ -26,15 +26,22 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [testEmailTo, setTestEmailTo] = useState<string>('');
 
     const [error, setError] = useState<string | null>(null);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
         (async () => {
-            const result = await Settings.getList(cancelToken);
-            setSettings(result);
-            setIsLoaded(true);
+            setError(null);
+            setIsLoaded(false);
+            try {
+                const result = await Settings.getList(cancelToken);
+                setSettings(result);
+                setIsLoaded(true);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [cancelToken]);
 
@@ -52,13 +59,13 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsSaving(true);
-        setError(null);
+        setSaveError(null);
 
         try {
             await Settings.update(settings);
             setIsSaving(false);
         } catch (err: any) {
-            setError(err);
+            setSaveError(err);
             setIsSaving(false);
         }
     };
@@ -66,19 +73,19 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const handleTestEmail = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
         setIsSaving(true);
-        setError(null);
+        setSaveError(null);
 
         try {
             await Settings.testEmail(testEmailTo);
             setIsSaving(false);
         } catch (err: any) {
-            setError(err);
+            setSaveError(err);
             setIsSaving(false);
         }
     };
 
     return (
-        <Skeleton isLoaded={isLoaded}>
+        <Loader isLoaded={isLoaded} error={error}>
             <Box marginBottom={4}>
                 <Heading>Settings</Heading>
             </Box>
@@ -135,10 +142,10 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
             <Button onClick={handleTestEmail} isLoading={isSaving} marginBottom={4}>
                 Test E-mail
             </Button>
-            {error != null ? (
+            {saveError != null ? (
                 <Alert status="error" marginBottom={4}>
                     <AlertIcon />
-                    <AlertDescription>{error}</AlertDescription>
+                    <AlertDescription>{saveError}</AlertDescription>
                 </Alert>
             ) : null}
             <HStack>
@@ -146,7 +153,7 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                     Save
                 </Button>
             </HStack>
-        </Skeleton>
+        </Loader>
     );
 };
 

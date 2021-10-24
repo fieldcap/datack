@@ -1,8 +1,9 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
-import { Button, chakra, Heading, Skeleton, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
+import { Button, chakra, Heading, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import Agents from '../../services/agents';
@@ -10,6 +11,7 @@ import Agents from '../../services/agents';
 const AgentList: FC<RouteComponentProps> = () => {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
 
     const history = useHistory();
 
@@ -20,7 +22,9 @@ const AgentList: FC<RouteComponentProps> = () => {
             try {
                 const agents = await Agents.getList(cancelToken);
                 setAgents(agents);
-            } catch {}
+            } catch (err: any) {
+                setError(err);
+            }
             setIsLoaded(true);
         })();
     }, [cancelToken]);
@@ -39,6 +43,22 @@ const AgentList: FC<RouteComponentProps> = () => {
                 Header: 'Name',
                 accessor: 'name',
             },
+            {
+                Header: 'State',
+                accessor: 'status',
+                Cell: ({ cell: { value } }) => {
+                    switch (value) {
+                        case 'offline':
+                            return 'Offline';
+                        case 'online':
+                            return 'Online';
+                        case 'versionmismatch':
+                            return 'Update required';
+                        default:
+                            return value || '';
+                    }
+                },
+            },
         ];
         return columns;
     }, []);
@@ -49,7 +69,7 @@ const AgentList: FC<RouteComponentProps> = () => {
     );
 
     return (
-        <Skeleton isLoaded={isLoaded}>
+        <Loader isLoaded={isLoaded} error={error}>
             <Heading marginBottom={4}>Agents</Heading>
 
             <Table {...getTableProps()} marginBottom={4}>
@@ -92,7 +112,7 @@ const AgentList: FC<RouteComponentProps> = () => {
             </Table>
 
             <Button onClick={handleAddNewAgentClick}>Add new agent</Button>
-        </Skeleton>
+        </Loader>
     );
 };
 

@@ -1,8 +1,9 @@
-import { Box, Button, Flex, Heading, Skeleton } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading } from '@chakra-ui/react';
 import * as signalR from '@microsoft/signalr';
 import { HubConnectionState } from '@microsoft/signalr';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
+import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { JobRun } from '../../models/job-run';
 import { JobRunTask } from '../../models/job-run-task';
@@ -22,18 +23,27 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [jobRunTaskLogs, setJobRunTaskLogs] = useState<JobRunTaskLog[]>([]);
     const [activeJobRunTaskId, setActiveJobRunTaskId] = useState<string | null>(null);
     const [connection, setConnection] = useState<signalR.HubConnection | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
         (async () => {
-            const result = await JobRuns.getById(props.match.params.id, cancelToken);
-            setJobRun(result);
+            try {
+                const result = await JobRuns.getById(props.match.params.id, cancelToken);
+                setJobRun(result);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
 
         (async () => {
-            const result = await JobRuns.getTasks(props.match.params.id, cancelToken);
-            setJobRunTasks(result);
+            try {
+                const result = await JobRuns.getTasks(props.match.params.id, cancelToken);
+                setJobRunTasks(result);
+            } catch (err: any) {
+                setError(err);
+            }
         })();
     }, [props.match.params.id, cancelToken]);
 
@@ -102,35 +112,37 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     return (
-        <Skeleton isLoaded={jobRun != null}>
-            {jobRun != null ? (
-                <Flex>
-                    <Flex flex="1" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
+        <Loader isLoaded={jobRun != null} error={error}>
+            <Flex>
+                <Flex flex="1" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
+                    {jobRun != null ? (
+                        <>
+                            <Box marginBottom={4}>
+                                <Heading>Run for job: {jobRun.job.name}</Heading>
+                            </Box>
+                            {jobRun.completed == null ? (
+                                <Box marginBottom={4}>
+                                    <Button onClick={() => stop()}>Stop Job Run</Button>
+                                </Box>
+                            ) : null}
+                        </>
+                    ) : null}
+                    <Box>
                         <Box marginBottom={4}>
-                            <Heading>Run for job: {jobRun.job.name}</Heading>
+                            <JobRunOverviewHeader jobRun={jobRun!} />
                         </Box>
-                        {jobRun.completed == null ? (
-                            <Box marginBottom={4}>
-                                <Button onClick={() => stop()}>Stop Job Run</Button>
-                            </Box>
-                        ) : null}
-                        <Box>
-                            <Box marginBottom={4}>
-                                <JobRunOverviewHeader jobRun={jobRun} />
-                            </Box>
-                        </Box>
-                        <Box overflowY="auto" overflowX="hidden">
-                            <JobRunOverviewTasks jobRunTasks={jobRunTasks} onRowClick={handleJobRunTaskClick} />
-                        </Box>
-                    </Flex>
-                    <Flex flex="2" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
-                        <Box overflowY="auto" overflowX="hidden">
-                            <JobRunOverviewTaskLogs jobRunTaskLogs={jobRunTaskLogs} />
-                        </Box>
-                    </Flex>
+                    </Box>
+                    <Box overflowY="auto" overflowX="hidden">
+                        <JobRunOverviewTasks jobRunTasks={jobRunTasks} onRowClick={handleJobRunTaskClick} />
+                    </Box>
                 </Flex>
-            ) : null}
-        </Skeleton>
+                <Flex flex="2" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
+                    <Box overflowY="auto" overflowX="hidden">
+                        <JobRunOverviewTaskLogs jobRunTaskLogs={jobRunTaskLogs} />
+                    </Box>
+                </Flex>
+            </Flex>
+        </Loader>
     );
 };
 
