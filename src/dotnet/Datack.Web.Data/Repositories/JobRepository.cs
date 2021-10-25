@@ -91,7 +91,10 @@ namespace Datack.Web.Data.Repositories
                 throw new Exception($"Job with ID {jobId} not found");
             }
 
-            var dbJobTasks = await _dataContext.JobTasks.Where(m => m.JobId == jobId).ToListAsync(cancellationToken);
+            var dbJobTasks = await _dataContext.JobTasks
+                                               .Where(m => m.JobId == jobId)
+                                               .OrderBy(m => m.Order)
+                                               .ToListAsync(cancellationToken);
 
             var newJob = new Job
             {
@@ -118,10 +121,38 @@ namespace Datack.Web.Data.Repositories
                 UsePreviousTaskArtifactsFromJobTaskId = dbJobTask.UsePreviousTaskArtifactsFromJobTaskId,
                 Settings = dbJobTask.Settings,
                 AgentId = dbJobTask.AgentId
-            });
+            }).ToList();
 
             await _dataContext.Jobs.AddAsync(newJob, cancellationToken);
             await _dataContext.JobTasks.AddRangeAsync(newJobTasks, cancellationToken);
+
+            foreach (var newJobTask in newJobTasks)
+            {
+                if (newJobTask.UsePreviousTaskArtifactsFromJobTaskId == null)
+                {
+                    continue;
+                }
+
+                var dbJobTask = dbJobTasks.FirstOrDefault(m => m.UsePreviousTaskArtifactsFromJobTaskId == newJobTask.UsePreviousTaskArtifactsFromJobTaskId);
+
+                if (dbJobTask == null)
+                {
+                    newJobTask.UsePreviousTaskArtifactsFromJobTaskId = null;
+                }
+                else
+                {
+                    var newJobTask2 = newJobTasks.FirstOrDefault(m => m.Name == dbJobTask.Name);
+
+                    if (newJobTask2 == null)
+                    {
+                        newJobTask.UsePreviousTaskArtifactsFromJobTaskId = null;
+                    }
+                    else
+                    {
+                        newJobTask.UsePreviousTaskArtifactsFromJobTaskId = newJobTask2.JobTaskId;
+                    }
+                }
+            }
 
             await _dataContext.SaveChangesAsync(cancellationToken);
 
