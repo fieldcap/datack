@@ -11,11 +11,11 @@ namespace Datack.Web.Data.Migrations
                 name: "Agents",
                 columns: table => new
                 {
-                    AgentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Key = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    AgentId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Key = table.Column<string>(type: "TEXT", nullable: true),
+                    Settings = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -26,10 +26,10 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetRoles",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -40,21 +40,21 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetUsers",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "TEXT", nullable: false),
+                    UserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedUserName = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    Email = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    NormalizedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: true),
+                    EmailConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
+                    SecurityStamp = table.Column<string>(type: "TEXT", nullable: true),
+                    ConcurrencyStamp = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
+                    PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
+                    AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -65,14 +65,15 @@ namespace Datack.Web.Data.Migrations
                 name: "Jobs",
                 columns: table => new
                 {
-                    JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Group = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Priority = table.Column<int>(type: "int", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Cron = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DeleteLogsAfter = table.Column<int>(type: "int", nullable: false),
-                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    JobId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Group = table.Column<string>(type: "TEXT", nullable: true),
+                    Priority = table.Column<int>(type: "INTEGER", nullable: false),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Cron = table.Column<string>(type: "TEXT", nullable: true),
+                    DeleteLogsTimeSpanAmount = table.Column<int>(type: "INTEGER", nullable: true),
+                    DeleteLogsTimeSpanType = table.Column<string>(type: "TEXT", nullable: true),
+                    Settings = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -83,9 +84,9 @@ namespace Datack.Web.Data.Migrations
                 name: "Settings",
                 columns: table => new
                 {
-                    SettingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Secure = table.Column<bool>(type: "bit", nullable: false)
+                    SettingId = table.Column<string>(type: "TEXT", nullable: false),
+                    Value = table.Column<string>(type: "TEXT", nullable: true),
+                    Secure = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -96,11 +97,11 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    RoleId = table.Column<string>(type: "TEXT", nullable: false),
+                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
+                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -117,11 +118,11 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetUserClaims",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    ClaimType = table.Column<string>(type: "TEXT", nullable: true),
+                    ClaimValue = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -138,10 +139,10 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
+                    ProviderKey = table.Column<string>(type: "TEXT", nullable: false),
+                    ProviderDisplayName = table.Column<string>(type: "TEXT", nullable: true),
+                    UserId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -158,8 +159,8 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetUserRoles",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    RoleId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    RoleId = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -182,10 +183,10 @@ namespace Datack.Web.Data.Migrations
                 name: "AspNetUserTokens",
                 columns: table => new
                 {
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    UserId = table.Column<string>(type: "TEXT", nullable: false),
+                    LoginProvider = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: false),
+                    Value = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -202,14 +203,14 @@ namespace Datack.Web.Data.Migrations
                 name: "JobRuns",
                 columns: table => new
                 {
-                    JobRunId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Started = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    Completed = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    RunTime = table.Column<long>(type: "bigint", nullable: true),
-                    IsError = table.Column<bool>(type: "bit", nullable: false),
-                    Result = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    JobRunId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    Completed = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    RunTime = table.Column<long>(type: "INTEGER", nullable: true),
+                    IsError = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Result = table.Column<string>(type: "TEXT", nullable: true),
+                    Settings = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -226,17 +227,17 @@ namespace Datack.Web.Data.Migrations
                 name: "JobTasks",
                 columns: table => new
                 {
-                    JobTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    JobId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Parallel = table.Column<int>(type: "int", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Order = table.Column<int>(type: "int", nullable: false),
-                    Timeout = table.Column<int>(type: "int", nullable: true),
-                    UsePreviousTaskArtifactsFromJobTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    AgentId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    JobTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Type = table.Column<string>(type: "TEXT", nullable: true),
+                    Parallel = table.Column<int>(type: "INTEGER", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
+                    Description = table.Column<string>(type: "TEXT", nullable: true),
+                    Order = table.Column<int>(type: "INTEGER", nullable: false),
+                    Timeout = table.Column<int>(type: "INTEGER", nullable: true),
+                    UsePreviousTaskArtifactsFromJobTaskId = table.Column<Guid>(type: "TEXT", nullable: true),
+                    Settings = table.Column<string>(type: "TEXT", nullable: true),
+                    AgentId = table.Column<Guid>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -265,20 +266,20 @@ namespace Datack.Web.Data.Migrations
                 name: "JobRunTasks",
                 columns: table => new
                 {
-                    JobRunTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    JobTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    JobRunId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Started = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    Completed = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    RunTime = table.Column<long>(type: "bigint", nullable: true),
-                    Type = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ItemName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TaskOrder = table.Column<int>(type: "int", nullable: false),
-                    ItemOrder = table.Column<int>(type: "int", nullable: false),
-                    IsError = table.Column<bool>(type: "bit", nullable: false),
-                    Result = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ResultArtifact = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Settings = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    JobRunTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    JobRunId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    Completed = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    RunTime = table.Column<long>(type: "INTEGER", nullable: true),
+                    Type = table.Column<string>(type: "TEXT", nullable: true),
+                    ItemName = table.Column<string>(type: "TEXT", nullable: true),
+                    TaskOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    ItemOrder = table.Column<int>(type: "INTEGER", nullable: false),
+                    IsError = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Result = table.Column<string>(type: "TEXT", nullable: true),
+                    ResultArtifact = table.Column<string>(type: "TEXT", nullable: true),
+                    Settings = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -301,12 +302,12 @@ namespace Datack.Web.Data.Migrations
                 name: "JobRunTaskLogs",
                 columns: table => new
                 {
-                    JobRunTaskLogId = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    JobRunTaskId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    DateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    IsError = table.Column<bool>(type: "bit", nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    JobRunTaskLogId = table.Column<long>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    JobRunTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    DateTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    IsError = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Message = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -328,8 +329,7 @@ namespace Datack.Web.Data.Migrations
                 name: "RoleNameIndex",
                 table: "AspNetRoles",
                 column: "NormalizedName",
-                unique: true,
-                filter: "[NormalizedName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetUserClaims_UserId",
@@ -355,8 +355,7 @@ namespace Datack.Web.Data.Migrations
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
-                unique: true,
-                filter: "[NormalizedUserName] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobRuns_JobId",

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -11,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-using Microsoft.Extensions.Configuration;
 
 namespace Datack.Web.Data
 {
@@ -193,15 +191,8 @@ namespace Datack.Web.Data
     {
         public DataContext CreateDbContext(String[] args)
         {
-            var configuration = new ConfigurationBuilder()
-                                .SetBasePath(Directory.GetCurrentDirectory() + @"\..\Datack.Web.Web")
-                                .AddJsonFile("appsettings.json")
-                                .AddJsonFile("appsettings.Dev.json", true)
-                                .Build();
-
             var builder = new DbContextOptionsBuilder<DataContext>();
-            var connectionString = configuration.GetConnectionString("Datack");
-            builder.UseSqlServer(connectionString);
+            builder.UseSqlite($"Data Source=DatackDev.db");
             return new DataContext(builder.Options);
         }
     }

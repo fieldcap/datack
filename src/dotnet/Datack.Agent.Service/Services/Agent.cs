@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
@@ -45,15 +46,22 @@ namespace Datack.Agent.Services
             _logger.LogTrace("Agent Constructor");
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
 
             _logger.LogInformation("Starting version {_version}", _version);
 
+            // Check if the agent has a key setting set, if not, generate a new one and save it.
             if (String.IsNullOrWhiteSpace(_appSettings.Token))
             {
-                throw new Exception($"Token cannot be null");
+                var filePath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
+
+                _appSettings.Token = Guid.NewGuid().ToString();
+
+                var appSettingsSerialized = JsonSerializer.Serialize(_appSettings);
+                
+                await File.WriteAllTextAsync(filePath, appSettingsSerialized, cancellationToken);
             }
 
             _rpcService.OnConnect += (_, _) => Connect();
@@ -66,8 +74,6 @@ namespace Datack.Agent.Services
             _rpcService.Subscribe<String, String, Boolean>("TestDatabaseConnection", (connectionString, password, decryptPassword) => TestDatabaseConnection(connectionString, password, decryptPassword));
 
             _rpcService.StartAsync(cancellationToken);
-
-            return Task.CompletedTask;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

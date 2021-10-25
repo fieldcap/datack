@@ -1,0 +1,20 @@
+{
+  "name": "datack",
+  "version": "1.0.0",
+  "description": "Simple database backup tool.",
+  "main": "index.js",
+  "dependencies": {
+    "gh-release": "^5.0.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rogerfar/datack.git"
+  },
+  "author": "Roger Far",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rogerfar/datack/issues"
+  },
+  "homepage": "https://github.com/rogerfar/datack#readme"
+}

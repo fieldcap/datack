@@ -35,7 +35,8 @@ namespace Datack.Web.Web
 
             services.AddSingleton(appSettings);
 
-            services.AddDbContext<DataContext>(options => options.UseSqlServer(appSettings.ConnectionStrings.Datack));
+            var connectionString = $"Data Source={appSettings.Database.Path}";
+            services.AddDbContext<DataContext>(options => options.UseSqlite(connectionString));
 
             services.AddControllers()
                     .AddJsonOptions(opts =>

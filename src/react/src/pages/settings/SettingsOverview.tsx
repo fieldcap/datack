@@ -93,6 +93,9 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 <Heading size="md">Server Logging</Heading>
             </Box>
             <Box marginBottom={4}>
+                Server version <span id="version">1.0.0</span>
+            </Box>
+            <Box marginBottom={4}>
                 <SettingsSetting
                     settingId="LogLevel"
                     settings={settings}

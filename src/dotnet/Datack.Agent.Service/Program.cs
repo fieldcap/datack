@@ -22,7 +22,7 @@ namespace Datack.Agent
     {
         public static LoggingLevelSwitch LoggingLevelSwitch { get; set; }
 
-        public static async Task Start(String[] args)
+        public static async Task Main(String[] args)
         {
             try
             {
@@ -30,7 +30,7 @@ namespace Datack.Agent
                 
                 var version = Assembly.GetEntryAssembly()?.GetName().Version;
                 Log.Warning($"Starting host on version {version}");
-
+                
                 await builder.RunConsoleAsync();
             }
             catch (Exception ex)
@@ -81,6 +81,7 @@ namespace Datack.Agent
             });
 
             return Host.CreateDefaultBuilder(args)
+                       .UseWindowsService()
                        .ConfigureAppConfiguration((_, config) =>
                        {
                            config.SetBasePath(Directory.GetCurrentDirectory());
@@ -97,12 +98,9 @@ namespace Datack.Agent
                        })
                        .ConfigureServices((_, services) =>
                        {
-                           var connectionString = $"Data Source={appSettings.Database.Path}";
-                           
                            services.AddDataProtection().SetApplicationName("Datack.Agent");
 
                            services.AddSingleton(appSettings);
-                           services.AddSingleton(connectionString);
 
                            services.AddSingleton<DatabaseAdapter>();
                            services.AddSingleton<DataProtector>();

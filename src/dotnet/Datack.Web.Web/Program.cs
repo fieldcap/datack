@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Debugging;
@@ -81,7 +80,7 @@ namespace Datack.Web.Web
 
             if (String.IsNullOrWhiteSpace(appSettings.HostUrl))
             {
-                appSettings.HostUrl = "http://0.0.0.0:6500";
+                appSettings.HostUrl = "http://0.0.0.0:3000";
             }
 
             LoggingLevelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
@@ -100,17 +99,13 @@ namespace Datack.Web.Web
             SelfLog.Enable(msg =>
             {
                 Debug.Print(msg);
-                //Debugger.Break();
+                Debugger.Break();
                 Console.WriteLine(msg);
                 Debug.WriteLine(msg);
             });
 
             return Host.CreateDefaultBuilder(args)
-                       .ConfigureLogging(logging =>
-                       {
-                           logging.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Trace);
-                           logging.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Warning);
-                       })
+                       .UseWindowsService()
                        .ConfigureWebHostDefaults(webBuilder =>
                        {
                            webBuilder.UseUrls(appSettings.HostUrl)

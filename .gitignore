@@ -29,3 +29,8 @@ src/angular/e2e/*.map
 
 #System Files
 **/.DS_Store/
+
+out/
+node_modules/
+Datack.Agent.zip
+Datack.Server.zip
