@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { curray } from 'curray';
 import React, { FC } from 'react';
 import { OmitNative } from 'react-router';
 import { HashRouter, Redirect, Route, RouteProps, Switch } from 'react-router-dom';
@@ -7,6 +8,8 @@ import MainLayout from './containers/MainLayout';
 import Login from './pages/Login';
 import Auth from './services/auth';
 import { ErrorHelper } from './services/error';
+
+curray();
 
 const loading = (
     <div className="pt-3 text-center">

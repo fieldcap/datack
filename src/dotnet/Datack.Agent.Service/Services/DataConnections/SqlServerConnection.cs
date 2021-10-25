@@ -87,11 +87,11 @@ FROM
                                                     FilePath = destinationFilePath
                                                 },
                                                 null,
-                                                null,
+                                                Int32.MaxValue,
                                                 null,
                                                 CommandFlags.Buffered,
                                                 cancellationToken);
-
+            
             await sqlConnection.ExecuteScalarAsync(command);
         }
     }

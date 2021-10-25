@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import * as signalR from '@microsoft/signalr';
 import { HubConnectionState } from '@microsoft/signalr';
 import React, { FC, useEffect, useState } from 'react';
@@ -10,6 +10,7 @@ import { JobRunTask } from '../../models/job-run-task';
 import { JobRunTaskLog } from '../../models/job-run-task-log';
 import JobRuns from '../../services/job-runs';
 import JobRunOverviewHeader from './JobRunOverviewHeader';
+import JobRunOverviewQueues from './JobRunOverviewQueues';
 import JobRunOverviewTaskLogs from './JobRunOverviewTaskLogs';
 import JobRunOverviewTasks from './JobRunOverviewTasks';
 
@@ -121,7 +122,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     return (
         <Loader isLoaded={jobRun != null} error={error}>
             <Flex>
-                <Flex flex="1" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>
+                <Flex flex="1" flexDirection="column">
                     {jobRun != null ? (
                         <>
                             <Box marginBottom={4}>
@@ -139,8 +140,27 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                             <JobRunOverviewHeader jobRun={jobRun!} />
                         </Box>
                     </Box>
-                    <Box overflowY="auto" overflowX="hidden">
-                        <JobRunOverviewTasks jobRunTasks={jobRunTasks} onRowClick={handleJobRunTaskClick} />
+                    <Box>
+                        <Tabs>
+                            <TabList>
+                                <Tab>Task Log</Tab>
+                                <Tab>Queue Log</Tab>
+                            </TabList>
+
+                            <TabPanels>
+                                <TabPanel>
+                                    <Box overflowY="auto" overflowX="hidden"  style={{ height: 'calc(100vh - 362px)' }}>
+                                        <JobRunOverviewTasks
+                                            jobRunTasks={jobRunTasks}
+                                            onRowClick={handleJobRunTaskClick}
+                                        />
+                                    </Box>
+                                </TabPanel>
+                                <TabPanel>
+                                    <JobRunOverviewQueues jobRunTasks={jobRunTasks} />
+                                </TabPanel>
+                            </TabPanels>
+                        </Tabs>
                     </Box>
                 </Flex>
                 <Flex flex="1" flexDirection="column" style={{ height: 'calc(100vh - 48px)' }}>

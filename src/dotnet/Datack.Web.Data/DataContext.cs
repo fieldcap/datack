@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Datack.Web.Data
 {
@@ -47,6 +49,19 @@ namespace Datack.Web.Data
                 fk.DeleteBehavior = DeleteBehavior.Restrict;
             }
 
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                var properties = entityType.ClrType.GetProperties().Where(p => p.PropertyType == typeof(DateTimeOffset)
+                                                                               || p.PropertyType == typeof(DateTimeOffset?));
+                foreach (var property in properties)
+                {
+                    modelBuilder
+                        .Entity(entityType.Name)
+                        .Property(property.Name)
+                        .HasConversion(new DateTimeOffsetToUtcDateTimeTicksConverter());
+                }
+            }
+
             modelBuilder.HasDbFunction(typeof(DataContext).GetMethod(nameof(JsonValue)))
                         .HasTranslation(e => new SqlFunctionExpression("JSON_VALUE",
                                                                        e,
@@ -63,6 +78,21 @@ namespace Datack.Web.Data
             modelBuilder.Entity<JobRunTaskLog>()
                         .Property(e => e.JobRunTaskLogId)
                         .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Job>()
+                        .HasIndex(m => m.Name);
+
+            modelBuilder.Entity<JobTask>()
+                        .HasIndex(m => new { m.JobId, m.Order});
+
+            modelBuilder.Entity<JobRun>()
+                        .HasIndex(m => new { m.JobId, m.Started});
+
+            modelBuilder.Entity<JobRunTask>()
+                        .HasIndex(m => new { m.JobRunId, m.TaskOrder});
+
+            modelBuilder.Entity<JobRunTaskLog>()
+                        .HasIndex(m => new { m.JobRunTaskId, m.DateTime});
 
             modelBuilder.ApplyConfiguration(new JobConfiguration());
             modelBuilder.ApplyConfiguration(new JobRunDbConfiguration());
@@ -184,6 +214,32 @@ namespace Datack.Web.Data
                        .HasConversion(v => JsonSerializer.Serialize(v, SerializerOptions),
                                       v => JsonSerializer.Deserialize<JobTaskSettings>(v, SerializerOptions));
             }
+        }
+
+        /// <summary>
+        ///     Converts <see cref="DateTimeOffset" /> to and from a long representing UTC DateTime ticks.
+        /// </summary>
+        /// <remarks>
+        ///     Check this out to view it in SQL: https://stackoverflow.com/questions/5855299/how-do-i-display-the-following-in-a-readable-datetime-format
+        /// </remarks>
+        public class DateTimeOffsetToUtcDateTimeTicksConverter : ValueConverter<DateTimeOffset, Int64>
+        {
+            /// <summary>
+            ///     Creates a new instance of this converter.
+            /// </summary>
+            /// <param name="mappingHints">
+            ///     Hints that can be used by the <see cref="ITypeMappingSource" /> to create data types with appropriate
+            ///     facets for the converted data.
+            /// </param>
+            public DateTimeOffsetToUtcDateTimeTicksConverter(ConverterMappingHints mappingHints = null)
+                : base(v => v.UtcDateTime.Ticks, v => new DateTimeOffset(v, new TimeSpan(0, 0, 0)), mappingHints)
+            {
+            }
+
+            /// <summary>
+            ///     A <see cref="ValueConverterInfo" /> for the default use of this converter.
+            /// </summary>
+            public static ValueConverterInfo DefaultInfo { get; } = new(typeof(DateTimeOffset), typeof(Int64), i => new DateTimeOffsetToUtcDateTimeTicksConverter(i.MappingHints));
         }
     }
 

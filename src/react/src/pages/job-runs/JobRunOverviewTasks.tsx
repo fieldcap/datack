@@ -31,14 +31,13 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
             const runningTask = runningTasks[0];
             setTimeout(() => {
                 const elm = document.getElementById(`JobRunTaskRow-${runningTask.jobRunTaskId}`);
-                console.log(elm);
                 if (!elm) {
                     return;
                 }
                 elm.scrollIntoView({ behavior: 'smooth' });
             }, 500);
         } else if (completedTasks.length > 0) {
-            bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+            bottomRef.current.scrollIntoView({ behavior: 'auto' });
         }
     }, [props.jobRunTasks]);
 

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datack.Web.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20211025003438_Initial")]
+    [Migration("20211025152459_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,6 +73,8 @@ namespace Datack.Web.Data.Migrations
 
                     b.HasKey("JobId");
 
+                    b.HasIndex("Name");
+
                     b.ToTable("Jobs");
                 });
 
@@ -82,8 +84,8 @@ namespace Datack.Web.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("Completed")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("Completed")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsError")
                         .HasColumnType("INTEGER");
@@ -100,12 +102,12 @@ namespace Datack.Web.Data.Migrations
                     b.Property<string>("Settings")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset>("Started")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("Started")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("JobRunId");
 
-                    b.HasIndex("JobId");
+                    b.HasIndex("JobId", "Started");
 
                     b.ToTable("JobRuns");
                 });
@@ -116,8 +118,8 @@ namespace Datack.Web.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("Completed")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("Completed")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsError")
                         .HasColumnType("INTEGER");
@@ -146,8 +148,8 @@ namespace Datack.Web.Data.Migrations
                     b.Property<string>("Settings")
                         .HasColumnType("TEXT");
 
-                    b.Property<DateTimeOffset?>("Started")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("Started")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("TaskOrder")
                         .HasColumnType("INTEGER");
@@ -157,9 +159,9 @@ namespace Datack.Web.Data.Migrations
 
                     b.HasKey("JobRunTaskId");
 
-                    b.HasIndex("JobRunId");
-
                     b.HasIndex("JobTaskId");
+
+                    b.HasIndex("JobRunId", "TaskOrder");
 
                     b.ToTable("JobRunTasks");
                 });
@@ -170,8 +172,8 @@ namespace Datack.Web.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset>("DateTime")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("DateTime")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsError")
                         .HasColumnType("INTEGER");
@@ -184,7 +186,7 @@ namespace Datack.Web.Data.Migrations
 
                     b.HasKey("JobRunTaskLogId");
 
-                    b.HasIndex("JobRunTaskId");
+                    b.HasIndex("JobRunTaskId", "DateTime");
 
                     b.ToTable("JobRunTaskLogs");
                 });
@@ -229,9 +231,9 @@ namespace Datack.Web.Data.Migrations
 
                     b.HasIndex("AgentId");
 
-                    b.HasIndex("JobId");
-
                     b.HasIndex("UsePreviousTaskArtifactsFromJobTaskId");
+
+                    b.HasIndex("JobId", "Order");
 
                     b.ToTable("JobTasks");
                 });
@@ -323,8 +325,8 @@ namespace Datack.Web.Data.Migrations
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("LockoutEnd")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)

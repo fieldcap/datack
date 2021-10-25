@@ -96,6 +96,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.settings?.backupIncludeManual,
         props.settings?.backupExcludeManual,
         props.agentId,
+        testingSuccess
     ]);
 
     const set = (settingName: keyof JobTaskCreateDatabaseSettings, newValue: string | number | boolean): void => {
@@ -127,6 +128,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
                 setTestingError(testResult);
             } else {
                 setTestingSuccess(testResult);
+
             }
         } catch (err: any) {
             setTestingError(err);

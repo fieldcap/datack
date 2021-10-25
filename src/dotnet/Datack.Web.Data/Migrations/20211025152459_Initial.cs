@@ -52,7 +52,7 @@ namespace Datack.Web.Data.Migrations
                     PhoneNumber = table.Column<string>(type: "TEXT", nullable: true),
                     PhoneNumberConfirmed = table.Column<bool>(type: "INTEGER", nullable: false),
                     TwoFactorEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    LockoutEnd = table.Column<long>(type: "INTEGER", nullable: true),
                     LockoutEnabled = table.Column<bool>(type: "INTEGER", nullable: false),
                     AccessFailedCount = table.Column<int>(type: "INTEGER", nullable: false)
                 },
@@ -205,8 +205,8 @@ namespace Datack.Web.Data.Migrations
                 {
                     JobRunId = table.Column<Guid>(type: "TEXT", nullable: false),
                     JobId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
-                    Completed = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    Started = table.Column<long>(type: "INTEGER", nullable: false),
+                    Completed = table.Column<long>(type: "INTEGER", nullable: true),
                     RunTime = table.Column<long>(type: "INTEGER", nullable: true),
                     IsError = table.Column<bool>(type: "INTEGER", nullable: false),
                     Result = table.Column<string>(type: "TEXT", nullable: true),
@@ -269,8 +269,8 @@ namespace Datack.Web.Data.Migrations
                     JobRunTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
                     JobTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
                     JobRunId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    Started = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
-                    Completed = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
+                    Started = table.Column<long>(type: "INTEGER", nullable: true),
+                    Completed = table.Column<long>(type: "INTEGER", nullable: true),
                     RunTime = table.Column<long>(type: "INTEGER", nullable: true),
                     Type = table.Column<string>(type: "TEXT", nullable: true),
                     ItemName = table.Column<string>(type: "TEXT", nullable: true),
@@ -305,7 +305,7 @@ namespace Datack.Web.Data.Migrations
                     JobRunTaskLogId = table.Column<long>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     JobRunTaskId = table.Column<Guid>(type: "TEXT", nullable: false),
-                    DateTime = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                    DateTime = table.Column<long>(type: "INTEGER", nullable: false),
                     IsError = table.Column<bool>(type: "INTEGER", nullable: false),
                     Message = table.Column<string>(type: "TEXT", nullable: true)
                 },
@@ -358,19 +358,19 @@ namespace Datack.Web.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobRuns_JobId",
+                name: "IX_JobRuns_JobId_Started",
                 table: "JobRuns",
-                column: "JobId");
+                columns: new[] { "JobId", "Started" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobRunTaskLogs_JobRunTaskId",
+                name: "IX_JobRunTaskLogs_JobRunTaskId_DateTime",
                 table: "JobRunTaskLogs",
-                column: "JobRunTaskId");
+                columns: new[] { "JobRunTaskId", "DateTime" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobRunTasks_JobRunId",
+                name: "IX_JobRunTasks_JobRunId_TaskOrder",
                 table: "JobRunTasks",
-                column: "JobRunId");
+                columns: new[] { "JobRunId", "TaskOrder" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobRunTasks_JobTaskId",
@@ -378,14 +378,19 @@ namespace Datack.Web.Data.Migrations
                 column: "JobTaskId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Jobs_Name",
+                table: "Jobs",
+                column: "Name");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_JobTasks_AgentId",
                 table: "JobTasks",
                 column: "AgentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_JobTasks_JobId",
+                name: "IX_JobTasks_JobId_Order",
                 table: "JobTasks",
-                column: "JobId");
+                columns: new[] { "JobId", "Order" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_JobTasks_UsePreviousTaskArtifactsFromJobTaskId",
