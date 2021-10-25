@@ -5,6 +5,7 @@ namespace Datack.Agent.Models
     public class AppSettings
     {
         public String Token { get; set; }
+        public String ServerUrl { get; set; }
 
         public AppSettingsLogging Logging { get; set; }
         public AppSettingsDatabase Database { get; set; }

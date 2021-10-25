@@ -33,8 +33,15 @@ namespace Datack.Agent.Services
 
         public void StartAsync(CancellationToken cancellationToken)
         {
+            if (String.IsNullOrWhiteSpace(_appSettings.ServerUrl))
+            {
+                throw new Exception($"No server URL set. Please update appsettings.json");
+            }
+
+            var url = $"{_appSettings.ServerUrl.TrimEnd('/')}/hubs/agent";
+
             _connection = new HubConnectionBuilder()
-                          .WithUrl("http://localhost:3001/hubs/agent")
+                          .WithUrl(url)
                           .ConfigureLogging(logging => 
                           {
                               logging.AddProvider(new SerilogLoggerProvider());
