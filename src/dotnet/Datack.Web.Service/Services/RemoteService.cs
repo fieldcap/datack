@@ -47,6 +47,11 @@ namespace Datack.Web.Service.Services
             return await Send<String>(agent.Key, "Encrypt", cancellationToken, input);
         }
 
+        public async Task<String> GetLogs(Agent agent, CancellationToken cancellationToken)
+        {
+            return await Send<String>(agent.Key, "GetLogs", cancellationToken);
+        }
+
         private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
         {
             var hasConnection = AgentHub.Agents.TryGetValue(key, out var connection);

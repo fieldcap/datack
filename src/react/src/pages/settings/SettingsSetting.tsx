@@ -1,4 +1,4 @@
-import { Checkbox, FormControl, FormLabel, Input } from '@chakra-ui/react';
+import { Checkbox, FormControl, FormLabel, Input, Select } from '@chakra-ui/react';
 import React, { FC } from 'react';
 import { Setting } from '../../models/setting';
 
@@ -7,7 +7,8 @@ type SettingProps = {
     label: string;
     settings: Setting[];
     onChangeValue: (setting: Setting) => void;
-    type?: 'checkbox' | 'text' | 'password';
+    type?: 'checkbox' | 'text' | 'password' | 'select';
+    options?: string | null;
 };
 
 const SettingsSetting: FC<SettingProps> = (props) => {
@@ -54,6 +55,19 @@ const SettingsSetting: FC<SettingProps> = (props) => {
             <FormControl id={props.settingId} marginBottom={4}>
                 <FormLabel>{props.label}</FormLabel>
                 <Input type="password" value={getValue()} onChange={(evt) => set(evt.target.value)}></Input>
+            </FormControl>
+        );
+    }
+
+    if (props.type === 'select') {
+        return (
+            <FormControl id={props.settingId} marginBottom={4}>
+                <FormLabel>{props.label}</FormLabel>
+                <Select value={getValue()} onChange={(evt) => set(evt.target.value)}>
+                    {props.options?.split(',').map((v) => (
+                        <option value={v} key={v}>{v}</option>
+                    ))}
+                </Select>
             </FormControl>
         );
     }

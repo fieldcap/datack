@@ -81,6 +81,11 @@ namespace Datack.Web.Data
             {
                 new Setting
                 {
+                    SettingId = "LogLevel",
+                    Value = "Information"
+                },
+                new Setting
+                {
                     SettingId = "Email:Smtp:Host",
                     Value = ""
                 },

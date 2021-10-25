@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
@@ -58,6 +60,7 @@ namespace Datack.Agent.Services
 
             _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
             _rpcService.Subscribe<String, String, Boolean>("GetDatabaseList", (connectionString, password, decryptPassword) => GetDatabaseList(connectionString, password, decryptPassword));
+            _rpcService.Subscribe("GetLogs", () => GetLogs());
             _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
             _rpcService.Subscribe<String, String, Boolean>("TestDatabaseConnection", (connectionString, password, decryptPassword) => TestDatabaseConnection(connectionString, password, decryptPassword));
@@ -101,13 +104,36 @@ namespace Datack.Agent.Services
             return await _databaseAdapter.GetDatabaseList(fullConnectionString, CancellationToken.None);
         }
 
-        private async Task<String> TestDatabaseConnection(String connectionString, String password, Boolean decryptPassword)
+        private async Task<String> GetLogs()
         {
-            _logger.LogTrace("TestDatabaseConnection");
+            _logger.LogTrace("GetDatabaseList");
 
-            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
+            var logFilePath = _appSettings.Logging.File.Path;
 
-            return await _databaseAdapter.TestConnection(fullConnectionString, CancellationToken.None);
+            if (!File.Exists(logFilePath))
+            {
+                return $"Log file at {logFilePath} cannot be found";
+            }
+
+            await using var stream = File.Open(logFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            using var reader = new StreamReader(stream);
+            
+            var queue = new Queue<String>(100);
+
+            while (!reader.EndOfStream)
+            {
+                var line = await reader.ReadLineAsync();
+
+                if (queue.Count >= 100)
+                {
+                    queue.Dequeue();
+                }
+
+                queue.Enqueue(line);
+            }
+
+            return String.Join(Environment.NewLine, queue.ToList());
         }
 
         private async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
@@ -122,6 +148,15 @@ namespace Datack.Agent.Services
             _jobRunner.StopTask(jobRunTaskId);
 
             return Task.FromResult("Success");
+        }
+
+        private async Task<String> TestDatabaseConnection(String connectionString, String password, Boolean decryptPassword)
+        {
+            _logger.LogTrace("TestDatabaseConnection");
+
+            var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
+
+            return await _databaseAdapter.TestConnection(fullConnectionString, CancellationToken.None);
         }
     }
 }

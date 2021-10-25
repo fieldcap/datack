@@ -146,5 +146,14 @@ namespace Datack.Web.Service.Services
 
             await _agentRepository.Delete(agentId, cancellationToken);
         }
+
+        public async Task<String> GetLogs(Guid agentId, CancellationToken cancellationToken)
+        {
+            var agent = await _agentRepository.GetById(agentId, cancellationToken);
+
+            var result = await _remoteService.GetLogs(agent, cancellationToken);
+
+            return result;
+        }
     }
 }

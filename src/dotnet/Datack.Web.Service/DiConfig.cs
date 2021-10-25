@@ -24,8 +24,7 @@ namespace Datack.Web.Service
             services.AddScoped<Settings>();
 
             services.AddScoped<CreateBackupTask>();
-
-            services.AddHostedService<StartupHostedService>();
+            
             services.AddHostedService<SchedulerHostedService>();
         }
     }

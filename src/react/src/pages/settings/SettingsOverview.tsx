@@ -90,6 +90,19 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 <Heading>Settings</Heading>
             </Box>
             <Box marginBottom={4}>
+                <Heading size="md">Server Logging</Heading>
+            </Box>
+            <Box marginBottom={4}>
+                <SettingsSetting
+                    settingId="LogLevel"
+                    settings={settings}
+                    label="Log Level"
+                    onChangeValue={handleChangeValue}
+                    type="select"
+                    options="Verbose,Debug,Information,Warning,Error,Fatal"
+                />
+            </Box>
+            <Box marginBottom={4}>
                 <Heading size="md">E-Mail SMTP</Heading>
             </Box>
             <Box marginBottom={4}>

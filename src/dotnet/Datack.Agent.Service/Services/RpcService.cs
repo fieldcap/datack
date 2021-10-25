@@ -58,6 +58,11 @@ namespace Datack.Agent.Services
                 await _connection.StopAsync(cancellationToken);
             }
         }
+        
+        public void Subscribe(String methodName, Expression<Func<Task>> method)
+        {
+            _requestMethods.Add(methodName, method);
+        }
 
         public void Subscribe<T>(String methodName, Expression<Func<T, Task>> method)
         {

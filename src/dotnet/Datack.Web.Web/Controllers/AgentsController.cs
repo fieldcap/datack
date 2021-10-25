@@ -86,5 +86,14 @@ namespace Datack.Web.Web.Controllers
 
             return Ok();
         }
+        
+        [HttpGet]
+        [Route("Logs/{agentId:guid}")]
+        public async Task<ActionResult<String>> Logs(Guid agentId, CancellationToken cancellationToken)
+        {
+            var logs = await _agents.GetLogs(agentId, cancellationToken);
+
+            return Ok(logs);
+        }
     }
 }

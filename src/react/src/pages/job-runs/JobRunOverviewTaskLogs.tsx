@@ -28,7 +28,7 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
         }
 
         bottomRef.current.scrollIntoView({ behavior: 'smooth' });
-    }, [props.jobRunTaskLogs]);
+    }, [props.jobRunTaskLogs, props.jobRunTask.completed]);
 
     const columns = useMemo(() => {
         const columns: Column<JobRunTaskLog>[] = [

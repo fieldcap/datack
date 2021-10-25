@@ -22,7 +22,7 @@ const AgentSummaryTab: FC<Props> = (props) => {
 
     return (
         <>
-            <Table variant="simple">
+            <Table variant="simple" marginBottom={4}>
                 <Tbody>
                     <Tr>
                         <Td style={{ fontWeight: 'bold' }}>Name</Td>
@@ -42,6 +42,7 @@ const AgentSummaryTab: FC<Props> = (props) => {
                     </Tr>
                 </Tbody>
             </Table>
+            <a href={`/Api/Agents/Logs/${props.agent.agentId}`} target="_blank" rel="noreferrer">View last 100 lines of agent log</a>
         </>
     );
 };
