@@ -16,13 +16,17 @@ namespace Datack.Web.Web.Controllers
     {
         private readonly Jobs _jobs;
         private readonly JobRuns _jobRuns;
+        private readonly JobRunTasks _jobRunTasks;
+        private readonly JobRunTaskLogs _jobRunTaskLogs;
         private readonly JobRunner _jobRunner;
         private readonly JobTasks _jobTasks;
 
-        public JobsController(Jobs jobs, JobRuns jobRuns, JobRunner jobRunner, JobTasks jobTasks)
+        public JobsController(Jobs jobs, JobRuns jobRuns, JobRunTasks jobRunTasks, JobRunTaskLogs jobRunTaskLogs, JobRunner jobRunner, JobTasks jobTasks)
         {
             _jobs = jobs;
             _jobRuns = jobRuns;
+            _jobRunTasks = jobRunTasks;
+            _jobRunTaskLogs = jobRunTaskLogs;
             _jobRunner = jobRunner;
             _jobTasks = jobTasks;
         }
@@ -106,6 +110,8 @@ namespace Datack.Web.Web.Controllers
         [Route("Delete/{jobId:guid}")]
         public async Task<ActionResult<Job>> Delete(Guid jobId, CancellationToken cancellationToken)
         {
+            await _jobRunTaskLogs.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
+            await _jobRunTasks.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
             await _jobRuns.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
             await _jobTasks.DeleteForJob(jobId, cancellationToken);
             await _jobs.Delete(jobId, cancellationToken);

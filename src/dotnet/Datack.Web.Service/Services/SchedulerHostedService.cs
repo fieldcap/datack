@@ -151,7 +151,9 @@ namespace Datack.Web.Service.Services
 
                 var jobsService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
                 var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
-                
+                var jobRunTaskRepository = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
+                var jobRunTaskLogRepository = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
+
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     var jobs = await jobsService.GetList(cancellationToken);
@@ -163,7 +165,7 @@ namespace Datack.Web.Service.Services
                             continue;
                         }
 
-                        var deleteDate = DateTimeOffset.UtcNow;
+                        var deleteDate = DateTime.UtcNow;
 
                         deleteDate = job.DeleteLogsTimeSpanType switch
                         {
@@ -175,7 +177,9 @@ namespace Datack.Web.Service.Services
                             _ => deleteDate
                         };
 
-                        await jobRunsService.DeleteForJob(job.JobId, deleteDate, cancellationToken);
+                        var result1 = await jobRunTaskLogRepository.DeleteForJob(job.JobId, deleteDate, cancellationToken);
+                        var result2 = await jobRunTaskRepository.DeleteForJob(job.JobId, deleteDate, cancellationToken);
+                        var result3 = await jobRunsService.DeleteForJob(job.JobId, deleteDate, cancellationToken);
                     }
 
                     await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);

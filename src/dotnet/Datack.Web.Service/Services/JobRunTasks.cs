@@ -54,5 +54,10 @@ namespace Datack.Web.Service.Services
                 await _remoteService.WebJobRunTask(jobRunTasks);
             }, cancellationToken);
         }
+
+        public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
+        {
+            return await _jobRunTaskRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
+        }
     }
 }

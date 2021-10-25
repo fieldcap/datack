@@ -25,8 +25,8 @@ namespace Datack.Web.Service.Services
 
             var subject = jobRun.IsError ? $"Job {jobRun.Job.Name} failed with errors" : $"Job {jobRun.Job.Name} succesfully completed";
 
-            var body = $"Started: {jobRun.Started:f}<br/>" +
-                       $"Completed: {jobRun.Completed:f}<br/>" +
+            var body = $"Started: {jobRun.Started.ToLocalTime():f}<br/>" +
+                       $"Completed: {jobRun.Completed.Value.ToLocalTime():f}<br/>" +
                        $"Result: {jobRun.Result}";
 
             await Send(jobRun.Job.Settings.EmailTo, subject, body, cancellationToken);

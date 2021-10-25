@@ -23,6 +23,11 @@ namespace Datack.Web.Service.Tasks
 
         public async Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, Guid jobRunId, CancellationToken cancellationToken)
         {
+            if (jobTask.Settings?.CreateBackup == null)
+            {
+                throw new Exception("No CreateBackupTask settings found");
+            }
+
             var allDatabases = await _remoteService.GetDatabaseList(jobTask.Agent,
                                                                     jobTask.Settings.CreateBackup.ConnectionString,
                                                                     jobTask.Settings.CreateBackup.ConnectionStringPassword,

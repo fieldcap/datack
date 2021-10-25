@@ -199,7 +199,7 @@ namespace Datack.Web.Service.Services
                 }
                 catch (Exception ex)
                 {
-                    jobRun.Result = ex.Message;
+                    jobRun.Result = $"{ex.Message}{Environment.NewLine}{ex.StackTrace}";
                     jobRun.IsError = true;
                     jobRun.Completed = DateTimeOffset.UtcNow;
 

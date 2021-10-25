@@ -85,13 +85,13 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
+        public async Task<Int32> DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
         {
-            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRunTasks
+            return await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRunTasks
 WHERE JobRunTaskId IN(
     SELECT JobRunTasks.JobRunTaskId FROM JobRunTasks
     INNER JOIN JobRuns ON JobRuns.JobRunId = JobRunTasks.JobRunId
-    WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate}
+    WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate.Ticks}
 )", cancellationToken);
         }
 

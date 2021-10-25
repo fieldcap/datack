@@ -32,5 +32,10 @@ namespace Datack.Web.Service.Services
         {
             return await _jobRunTaskLogRepository.GetByJobRunTaskId(jobRunTaskId, cancellationToken);
         }
+
+        public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
+        {
+            return await _jobRunTaskLogRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
+        }
     }
 }

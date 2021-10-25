@@ -11,19 +11,13 @@ namespace Datack.Web.Service.Services
     {
         private readonly Emails _emails;
         private readonly JobRunRepository _jobRunRepository;
-        private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
-        private readonly JobRunTaskRepository _jobRunTaskRepository;
         private readonly RemoteService _remoteService;
 
         public JobRuns(JobRunRepository jobRunRepository,
-                       JobRunTaskRepository jobRunTaskRepository,
-                       JobRunTaskLogRepository jobRunTaskLogRepository,
                        Emails emails,
                        RemoteService remoteService)
         {
             _jobRunRepository = jobRunRepository;
-            _jobRunTaskLogRepository = jobRunTaskLogRepository;
-            _jobRunTaskRepository = jobRunTaskRepository;
             _emails = emails;
             _remoteService = remoteService;
         }
@@ -86,11 +80,9 @@ namespace Datack.Web.Service.Services
             }, cancellationToken);
         }
 
-        public async Task DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
+        public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
         {
-            await _jobRunTaskLogRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
-            await _jobRunTaskRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
-            await _jobRunRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
+            return await _jobRunRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
         }
     }
 }
