@@ -16,8 +16,6 @@ namespace Datack.Agent.Services
 {
     public class RpcService
     {
-        public event EventHandler OnConnect; 
-
         private readonly AppSettings _appSettings;
 
         private HubConnection _connection;
@@ -121,8 +119,6 @@ namespace Datack.Agent.Services
                 }
 
                 await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
-
-                OnConnect?.Invoke(this, null!);
             }, cancellationToken);
 
             return Task.CompletedTask;

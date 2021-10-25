@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
 using Datack.Web.Service.Models;
 using Datack.Web.Service.Services;
@@ -63,16 +62,6 @@ namespace Datack.Web.Service.Hubs
         public void Response(RpcResult rpcResult)
         {
             Transactions.TryAdd(rpcResult.TransactionId, rpcResult);
-        }
-
-        public async Task<RpcUpdate> RpcUpdate(String key)
-        {
-            var agent = await _agents.GetByKey(key, CancellationToken.None);
-
-            return new RpcUpdate
-            {
-                Agent = agent
-            };
         }
 
         public async Task TaskProgress(RpcProgressEvent progressEvent)

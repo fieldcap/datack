@@ -67,8 +67,6 @@ namespace Datack.Agent.Services
                 await File.WriteAllTextAsync(filePath, appSettingsSerialized, cancellationToken);
             }
 
-            _rpcService.OnConnect += (_, _) => Connect();
-
             _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
             _rpcService.Subscribe<String, String, Boolean>("GetDatabaseList", (connectionString, password, decryptPassword) => GetDatabaseList(connectionString, password, decryptPassword));
             _rpcService.Subscribe("GetLogs", () => GetLogs());
@@ -87,14 +85,7 @@ namespace Datack.Agent.Services
 
             _jobRunner.StopAllTasks();
         }
-
-        private async void Connect()
-        {
-            _logger.LogTrace("Connect");
-            
-            var response = await _rpcService.Send<RpcUpdate>("RpcUpdate");
-        }
-
+        
         private async Task<String> Encrypt(String input)
         {
             _logger.LogTrace("Encrypt");
