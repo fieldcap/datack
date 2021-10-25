@@ -8,6 +8,7 @@ using Datack.Common.Models.Data;
 using Datack.Web.Service.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Datack.Web.Service.Services
 {
@@ -17,12 +18,14 @@ namespace Datack.Web.Service.Services
     /// </summary>
     public class SchedulerHostedService : IHostedService
     {
+        private readonly ILogger<SchedulerHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
         
         private CancellationToken _cancellationToken;
 
-        public SchedulerHostedService(IServiceProvider serviceProvider)
+        public SchedulerHostedService(ILogger<SchedulerHostedService> logger, IServiceProvider serviceProvider)
         {
+            _logger = logger;
             _serviceProvider = serviceProvider;
 
             AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
@@ -32,6 +35,8 @@ namespace Datack.Web.Service.Services
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _cancellationToken = cancellationToken;
+
+            _logger.LogDebug("Starting SchedulerHostedService");
 
             // Job initiator.
             _ = Task.Run(async () =>
@@ -61,6 +66,8 @@ namespace Datack.Web.Service.Services
 
                             if (nextDate.HasValue && nextDate.Value == now)
                             {
+                                _logger.LogDebug($"Cron matches for job {job.Name}");
+
                                 groupResults.Add(job);
                             }
                         }
@@ -70,6 +77,8 @@ namespace Datack.Web.Service.Services
                         if (groupResults.Count > 0)
                         {
                             var jobToRun = groupResults.OrderBy(m => m.Priority).First();
+
+                            _logger.LogDebug($"Starting run for job {jobToRun.Name}");
 
                             _ = Task.Run(async () =>
                             {
@@ -116,6 +125,8 @@ namespace Datack.Web.Service.Services
                                 // Try sending a signal to the client to force it to stop it's task.
                                 try
                                 {
+                                    _logger.LogDebug($"Timeout for job run task {jobRunTask.JobRunTaskId}");
+
                                     _ = Task.Run(async () =>
                                     {
                                         await remoteService.Stop(jobRunTask, cancellationToken);
@@ -123,6 +134,8 @@ namespace Datack.Web.Service.Services
                                 }
                                 catch
                                 {
+                                    _logger.LogDebug($"Killing job run task {jobRunTask.JobRunTaskId}");
+
                                     // If that doesn't work (client disconnected?) force complete the task.
                                     _ = Task.Run(async () =>
                                     {
@@ -180,6 +193,8 @@ namespace Datack.Web.Service.Services
                         var result1 = await jobRunTaskLogRepository.DeleteForJob(job.JobId, deleteDate, cancellationToken);
                         var result2 = await jobRunTaskRepository.DeleteForJob(job.JobId, deleteDate, cancellationToken);
                         var result3 = await jobRunsService.DeleteForJob(job.JobId, deleteDate, cancellationToken);
+
+                        _logger.LogDebug($"Cleaned {result1} job run task logs, {result2} job run tasks, {result3} job runs that are older then {deleteDate} for job {job.Name}.");
                     }
 
                     await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
@@ -199,6 +214,8 @@ namespace Datack.Web.Service.Services
         /// </summary>
         private async void HandleClientConnect(String agentKey)
         {
+            _logger.LogDebug($"Connect agent with key {agentKey}");
+
             using var serviceScope = _serviceProvider.CreateScope();
 
             var agentsService = serviceScope.ServiceProvider.GetRequiredService<Agents>();
@@ -208,6 +225,12 @@ namespace Datack.Web.Service.Services
 
             var agent = await agentsService.GetByKey(agentKey, _cancellationToken);
 
+            if (agent == null)
+            {
+                _logger.LogDebug($"Agent with key {agentKey} not found!");
+                return;
+            }
+            
             var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
 
             // Check if this agent has running tasks, if it does, reset the task and execute them again.
@@ -221,6 +244,8 @@ namespace Datack.Web.Service.Services
                 {
                     foreach (var runningTask in runningTasks)
                     {
+                        _logger.LogDebug($"Restarting task {runningTask.JobRunTaskId} for job run {runningTask.JobRunId}");
+
                         await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, runningTask.JobRunId, null, _cancellationToken);
 
                         await jobRunTaskLogsService.Add(new JobRunTaskLog
@@ -248,6 +273,8 @@ namespace Datack.Web.Service.Services
         /// </summary>
         private async void HandleClientDisconnect(String agentKey)
         {
+            _logger.LogDebug($"Disconnect agent with key {agentKey}");
+
             using var serviceScope = _serviceProvider.CreateScope();
 
             var agentsService = serviceScope.ServiceProvider.GetRequiredService<Agents>();
@@ -256,6 +283,12 @@ namespace Datack.Web.Service.Services
             var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
 
             var agent = await agentsService.GetByKey(agentKey, _cancellationToken);
+
+            if (agent == null)
+            {
+                _logger.LogDebug($"Agent with key {agentKey} not found!");
+                return;
+            }
 
             var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
 
