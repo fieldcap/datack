@@ -43,7 +43,7 @@ namespace Datack.Web.Service.Services
                 // The main scheduler loop.
                 while (!cancellationToken.IsCancellationRequested)
                 {
-                    var now = DateTimeOffset.UtcNow;
+                    var now = DateTimeOffset.Now;
                     now = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
 
                     // Get all the jobs and group them by Group.

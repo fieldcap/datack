@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
 using Serilog.Events;
@@ -94,6 +95,7 @@ namespace Datack.Agent
                        })
                        .ConfigureLogging((_, logging) =>
                        {
+                           logging.AddFilter("Microsoft", LogLevel.Information);
                            logging.AddSerilog();
                        })
                        .ConfigureServices((_, services) =>

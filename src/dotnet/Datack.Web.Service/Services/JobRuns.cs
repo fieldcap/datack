@@ -55,9 +55,9 @@ namespace Datack.Web.Service.Services
 
         public async Task UpdateComplete(Guid jobRunId, CancellationToken cancellationToken)
         {
-            var jobRun = await GetById(jobRunId, cancellationToken);
+            await _jobRunRepository.UpdateComplete(jobRunId, cancellationToken);
 
-            String error = null;
+            var jobRun = await GetById(jobRunId, cancellationToken);
 
             try
             {
@@ -65,14 +65,8 @@ namespace Datack.Web.Service.Services
             }
             catch (Exception ex)
             {
-                error = ex.Message;
+                await _jobRunRepository.UpdateError(jobRunId, ex.Message, cancellationToken);
             }
-            finally
-            {
-                await _jobRunRepository.UpdateComplete(jobRunId, error, cancellationToken);
-            }
-
-            jobRun = await GetById(jobRunId, CancellationToken.None);
 
             _ = Task.Run(async () =>
             {

@@ -23,9 +23,13 @@ namespace Datack.Web.Service.Services
                 return;
             }
 
-            var subject = jobRun.IsError ? $"Job {jobRun.Job.Name} failed with error" : $"Job {jobRun.Job.Name} succesfully completed";
+            var subject = jobRun.IsError ? $"Job {jobRun.Job.Name} failed with errors" : $"Job {jobRun.Job.Name} succesfully completed";
 
-            await Send(jobRun.Job.Settings.EmailTo, subject, subject, cancellationToken);
+            var body = $"Started: {jobRun.Started:f}<br/>" +
+                       $"Completed: {jobRun.Completed:f}<br/>" +
+                       $"Result: {jobRun.Result}";
+
+            await Send(jobRun.Job.Settings.EmailTo, subject, body, cancellationToken);
         }
 
         public async Task SendTest(String to, CancellationToken cancellationToken)

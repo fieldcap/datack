@@ -62,7 +62,7 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task UpdateComplete(Guid jobRunId, String error, CancellationToken cancellationToken)
+        public async Task UpdateComplete(Guid jobRunId, CancellationToken cancellationToken)
         {
             var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
 
@@ -80,12 +80,7 @@ namespace Datack.Web.Data.Repositories
 
             dbJobRun.RunTime = (Int64) timespan.Value.TotalSeconds;
 
-            if (!String.IsNullOrWhiteSpace(error))
-            {
-                dbJobRun.IsError = true;
-                dbJobRun.Result = $"Job completed with {dbJobRunTasksWithErrors} errors in {timespan:g}.{Environment.NewLine}{error}";
-            }
-            else if (dbJobRunTasksWithErrors > 0)
+            if (dbJobRunTasksWithErrors > 0)
             {
                 dbJobRun.IsError = true;
                 dbJobRun.Result = $"Job completed with {dbJobRunTasksWithErrors} errors in {timespan:g}";
@@ -120,11 +115,24 @@ namespace Datack.Web.Data.Repositories
             await _dataContext.SaveChangesAsync(cancellationToken);
         }
 
+        public async Task UpdateError(Guid jobRunId, String errorMsg, CancellationToken cancellationToken)
+        {
+            var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+
+            if (dbJobRun == null)
+            {
+                return;
+            }
+
+            dbJobRun.IsError = true;
+            dbJobRun.Result = errorMsg;
+            
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
+
         public async Task DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
         {
-            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE JobRuns
-FROM JobRuns
-WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate}", cancellationToken);
+            await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRuns WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate}", cancellationToken);
         }
     }
 }
