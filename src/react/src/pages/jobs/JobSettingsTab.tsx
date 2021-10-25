@@ -48,7 +48,7 @@ const JobSettingsTab: FC<Props> = (props) => {
     );
     const [cron, setCron] = useState<string>(props.job?.cron ?? '');
     const [cronOccurrences, setCronOccurrences] = useState<string[]>([]);
-    const [settings, setSettings] = useState<JobSettings | null>(null);
+    const [settings, setSettings] = useState<JobSettings | null>(props.job?.settings ?? null);
 
     const [testResult, setTestResult] = useState<TestCronResult | null>(null);
     const [error, setError] = useState<string | null>(null);

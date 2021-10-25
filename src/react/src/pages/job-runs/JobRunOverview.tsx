@@ -82,9 +82,13 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         }
 
         if (connection.state !== HubConnectionState.Disconnected) {
+            connection.off('JobRun');
+            connection.off('JobRunTask');
+            connection.off('JobRunTaskLog');
+
             connection.on('JobRun', (updatedJobRun: JobRun) => {
                 if (updatedJobRun.jobRunId === jobRun?.jobRunId) {
-                    setJobRun(jobRun);
+                    setJobRun(updatedJobRun);
                 }
             });
 
@@ -93,7 +97,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                     return;
                 }
                 if (updatedJobRunTasks[0].jobRunId === jobRun?.jobRunId) {
-                    setJobRunTasks(jobRunTasks);
+                    setJobRunTasks(updatedJobRunTasks);
                 }
             });
 
@@ -103,7 +107,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 }
             });
         }
-    }, [connection, connection?.state, activeJobRunTask, jobRun, jobRunTasks]);
+    }, [connection, connection?.state, activeJobRunTask, jobRun]);
 
     const handleJobRunTaskClick = async (jobRunTask: JobRunTask) => {
         setJobRunTaskLogs([]);

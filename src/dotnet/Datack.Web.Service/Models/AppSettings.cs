@@ -10,11 +10,6 @@ namespace Datack.Web.Service.Models
         public String HostUrl { get; set; }
     }
 
-    public class AppSettingsConnectionStrings
-    {
-        public String Datack { get; set; }
-    }
-
     public class AppSettingsLogging
     {
         public AppSettingsLoggingFile File { get; set; }

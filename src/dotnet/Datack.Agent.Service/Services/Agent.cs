@@ -59,7 +59,10 @@ namespace Datack.Agent.Services
 
                 _appSettings.Token = Guid.NewGuid().ToString();
 
-                var appSettingsSerialized = JsonSerializer.Serialize(_appSettings);
+                var appSettingsSerialized = JsonSerializer.Serialize(_appSettings, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
                 
                 await File.WriteAllTextAsync(filePath, appSettingsSerialized, cancellationToken);
             }

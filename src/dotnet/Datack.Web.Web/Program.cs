@@ -111,6 +111,7 @@ namespace Datack.Web.Web
                            webBuilder.UseUrls(appSettings.HostUrl)
                                      .UseSerilog()
                                      .UseKestrel()
+                                     .UseIIS()
                                      .UseStartup<Startup>();
                        });
         }
