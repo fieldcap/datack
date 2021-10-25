@@ -24,7 +24,7 @@ const MainLayout: FC = () => {
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
     return (
-        <Flex height="100%">
+        <Flex height="100%" alignItems="stretch">
             {variants?.navigationButton ? (
                 <IconButton
                     icon={<ChevronRightIcon w={8} h={8} />}

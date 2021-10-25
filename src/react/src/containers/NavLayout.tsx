@@ -82,7 +82,7 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
                 p={5}
                 w="320px"
                 top={0}
-                h="100vh"
+                minH="100vh"
                 boxShadow="0 3px 30px rgba(0, 0, 0, 0.1), 0 3px 20px rgba(0, 0, 0, 0.1)"
             >
                 {content}
