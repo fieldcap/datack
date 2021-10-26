@@ -13,7 +13,7 @@ namespace Datack.Agent.Services.Tasks
     /// </summary>
     public class DeleteFileTask : BaseTask
     {
-        public override Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+        public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
             try
             {
@@ -50,8 +50,29 @@ namespace Datack.Agent.Services.Tasks
                     var fileInfo = new FileInfo(sourceFileName);
                     var fileSize = fileInfo.Length;
 
-                    fileInfo.Delete();
+                    var retryCount = 0;
 
+                    while (true)
+                    {
+                        try
+                        {
+                            fileInfo.Delete();
+
+                            break;
+                        }
+                        catch
+                        {
+                            retryCount++;
+
+                            if (retryCount >= 5)
+                            {
+                                throw;
+                            }
+
+                            await Task.Delay(5000 * retryCount, cancellationToken);
+                        }
+                    }
+                    
                     sw.Stop();
 
                     var message = $"Completed deletion of {jobRunTask.ItemName} ({ByteSize.FromBytes(fileSize):0.00}) in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
@@ -65,8 +86,6 @@ namespace Datack.Agent.Services.Tasks
 
                 OnComplete(jobRunTask.JobRunTaskId, message, null, true);
             }
-
-            return Task.CompletedTask;
         }
     }
 }
