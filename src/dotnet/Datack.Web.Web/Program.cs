@@ -108,7 +108,7 @@ namespace Datack.Web.Web
             return Host.CreateDefaultBuilder(args)
                        .ConfigureLogging(logging =>
                        {
-                           logging.AddFilter("Microsoft", LogLevel.Information);
+                           logging.AddFilter("Microsoft", LogLevel.Warning);
                        })
                        .UseWindowsService()
                        .ConfigureWebHostDefaults(webBuilder =>

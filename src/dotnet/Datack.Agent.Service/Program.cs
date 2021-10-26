@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Core;
@@ -31,8 +32,15 @@ namespace Datack.Agent
                 
                 var version = Assembly.GetEntryAssembly()?.GetName().Version;
                 Log.Warning($"Starting host on version {version}");
-                
-                await builder.RunConsoleAsync();
+
+                if (WindowsServiceHelpers.IsWindowsService())
+                {
+                    await builder.Build().RunAsync();
+                }
+                else
+                {
+                    await builder.RunConsoleAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -95,7 +103,7 @@ namespace Datack.Agent
                        })
                        .ConfigureLogging((_, logging) =>
                        {
-                           logging.AddFilter("Microsoft", LogLevel.Information);
+                           logging.AddFilter("Microsoft", LogLevel.Warning);
                            logging.AddSerilog();
                        })
                        .ConfigureServices((_, services) =>
