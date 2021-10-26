@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.RPC;
@@ -13,14 +14,14 @@ namespace Datack.Web.Service.Hubs
     {
         public static event EventHandler<ClientConnectEvent> OnClientConnect;
         public static event EventHandler<ClientDisconnectEvent> OnClientDisconnect;
+        public static event EventHandler<RpcProgressEvent> OnProgressTask;
+        public static event EventHandler<RpcCompleteEvent> OnCompleteTask;
 
         private readonly Agents _agents;
-        private readonly JobRunner _jobRunner;
 
-        public AgentHub(Agents agents, JobRunner jobRunner)
+        public AgentHub(Agents agents)
         {
             _agents = agents;
-            _jobRunner = jobRunner;
         }
 
         public static readonly ConcurrentDictionary<String, AgentConnection> Agents = new();
@@ -50,13 +51,13 @@ namespace Datack.Web.Service.Hubs
                 throw new Exception($"Agent with key {key} was not found");
             }
 
-            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
-
             Agents.TryAdd(key, new AgentConnection
             {
                 ConnectionId = Context.ConnectionId,
                 Version = version
             });
+
+            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
         }
 
         public void Response(RpcResult rpcResult)
@@ -64,15 +65,23 @@ namespace Datack.Web.Service.Hubs
             Transactions.TryAdd(rpcResult.TransactionId, rpcResult);
         }
 
-        public async Task TaskProgress(RpcProgressEvent progressEvent)
+        public void Update(List<RpcProgressEvent> progressEvents, List<RpcCompleteEvent> completedEvents)
         {
-            await _jobRunner.ProgressTask(progressEvent.JobRunTaskId, progressEvent.Message, progressEvent.IsError, CancellationToken.None);
-        }
+            foreach (var progressEvent in progressEvents)
+            {
+                OnProgressTask?.Invoke(null, progressEvent);
+            }
 
-        public async Task TaskComplete(RpcCompleteEvent completeEvent)
-        {
-            await _jobRunner.ProgressTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.IsError, CancellationToken.None);
-            await _jobRunner.CompleteTask(completeEvent.JobRunTaskId, completeEvent.Message, completeEvent.ResultArtifact, completeEvent.IsError, CancellationToken.None);
+            foreach (var completeEvent in completedEvents)
+            {
+                OnProgressTask?.Invoke(null, new RpcProgressEvent
+                {
+                    JobRunTaskId = completeEvent.JobRunTaskId,
+                    Message = completeEvent.Message,
+                    IsError = completeEvent.IsError
+                });
+                OnCompleteTask?.Invoke(null, completeEvent);
+            }
         }
     }
 

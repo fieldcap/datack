@@ -72,13 +72,8 @@ namespace Datack.Web.Service.Services
                 Request = method,
                 Payload = JsonSerializer.Serialize(payload)
             };
-
-            var sendArgs = new[]
-            {
-                request
-            };
-
-            await _agentHub.Clients.Client(connectionId).SendCoreAsync("request", sendArgs, cancellationToken);
+            
+            await _agentHub.Clients.Client(connectionId).SendAsync("request", request, cancellationToken);
 
             var timeout = DateTime.UtcNow.AddSeconds(30);
 

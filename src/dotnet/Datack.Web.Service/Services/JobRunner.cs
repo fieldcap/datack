@@ -349,25 +349,5 @@ namespace Datack.Web.Service.Services
                 _executeJobRunLock.Release();
             }
         }
-
-        public async Task ProgressTask(Guid jobRunTaskId, String message, Boolean isError, CancellationToken cancellationToken)
-        {
-            await _jobRunTaskLogs.Add(new JobRunTaskLog
-            {
-                JobRunTaskId = jobRunTaskId,
-                DateTime = DateTimeOffset.UtcNow,
-                Message = message,
-                IsError = isError
-            }, cancellationToken);
-        }
-
-        public async Task CompleteTask(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
-        {
-            var jobRunTask = await _jobRunTasks.GetById(jobRunTaskId, cancellationToken);
-
-            await _jobRunTasks.UpdateCompleted(jobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, isError, cancellationToken);
-
-            await ExecuteJobRun(jobRunTask.JobRunId, cancellationToken);
-        }
     }
 }

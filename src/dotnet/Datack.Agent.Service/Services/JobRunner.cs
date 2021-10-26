@@ -69,7 +69,7 @@ namespace Datack.Agent.Services
 
                     _runningTasks.Remove(evt.JobRunTaskId);
 
-                    await _rpcService.SendComplete(evt);
+                    await _rpcService.QueueComplete(evt);
                 };
                 task.OnProgressEvent += async (_, evt) =>
                 {
@@ -82,7 +82,7 @@ namespace Datack.Agent.Services
                         _logger.LogInformation("{jobRunTaskId}: {message}", evt.JobRunTaskId, evt.Message);
                     }
 
-                    await _rpcService.SendProgress(evt);
+                    await _rpcService.QueueProgress(evt);
                 };
             }
         }
@@ -143,7 +143,7 @@ namespace Datack.Agent.Services
             }
             catch (Exception ex)
             {
-                await _rpcService.SendComplete(new CompleteEvent
+                await _rpcService.QueueComplete(new CompleteEvent
                 {
                     IsError = true,
                     JobRunTaskId = jobRunTask.JobRunTaskId,

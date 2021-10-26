@@ -30,6 +30,8 @@ namespace Datack.Web.Service.Services
 
             AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
             AgentHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
+            AgentHub.OnProgressTask += async (_, evt) => await HandleProgressTask(evt.JobRunTaskId, evt.Message, evt.IsError, CancellationToken.None);
+            AgentHub.OnCompleteTask += async (_, evt) => await HandleCompleteTask(evt.JobRunTaskId, evt.Message, evt.ResultArtifact, evt.IsError, CancellationToken.None);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -137,17 +139,11 @@ namespace Datack.Web.Service.Services
                                     _logger.LogDebug($"Killing job run task {jobRunTask.JobRunTaskId}");
 
                                     // If that doesn't work (client disconnected?) force complete the task.
-                                    _ = Task.Run(async () =>
-                                    {
-                                        using var blockServiceScope = _serviceProvider.CreateScope();
-                                        var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
-
-                                        await jobRunnerService.CompleteTask(jobRunTask.JobRunTaskId,
-                                                                            $"Task has timed out after {jobRunTask.JobTask.Timeout} seconds",
-                                                                            null,
-                                                                            true,
-                                                                            cancellationToken);
-                                    }, cancellationToken);
+                                    await HandleCompleteTask(jobRunTask.JobRunTaskId,
+                                                             $"Task has timed out after {jobRunTask.JobTask.Timeout} seconds",
+                                                             null,
+                                                             true,
+                                                             cancellationToken);
                                 }
                             }
                         }
@@ -230,15 +226,19 @@ namespace Datack.Web.Service.Services
                 _logger.LogDebug($"Agent with key {agentKey} not found!");
                 return;
             }
+
+            // Wait 10 seconds to give the agent time to send completed and progress tasks.
+            await Task.Delay(10000, _cancellationToken);
             
             var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
 
             // Check if this agent has running tasks, if it does, reset the task and execute them again.
             foreach (var runningJob in runningJobs)
             {
-                var runningTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, _cancellationToken);
+                var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, _cancellationToken);
 
-                runningTasks = runningTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.AgentId == agent.AgentId).ToList();
+                var runningTasks = jobRunTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.AgentId == agent.AgentId).ToList();
+                var pendingTasks = jobRunTasks.Where(m => m.Completed == null && m.Started == null && m.JobTask.AgentId == agent.AgentId).ToList();
 
                 if (runningTasks.Count > 0)
                 {
@@ -258,6 +258,15 @@ namespace Datack.Web.Service.Services
                                                         _cancellationToken);
                     }
 
+                    _ = Task.Run(async () =>
+                    {
+                        using var blockServiceScope = _serviceProvider.CreateScope();
+                        var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                        await jobRunnerService.ExecuteJobRun(runningJob.JobRunId, _cancellationToken);
+                    }, _cancellationToken);
+                }
+                else if (pendingTasks.Count > 0)
+                {
                     _ = Task.Run(async () =>
                     {
                         using var blockServiceScope = _serviceProvider.CreateScope();
@@ -307,6 +316,39 @@ namespace Datack.Web.Service.Services
                     }, _cancellationToken);
                 }
             }
+        }
+
+        private async Task HandleProgressTask(Guid jobRunTaskId, String message, Boolean isError, CancellationToken cancellationToken)
+        {
+            using var serviceScope = _serviceProvider.CreateScope();
+
+            var jobRunTaskLogsService = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
+
+            await jobRunTaskLogsService.Add(new JobRunTaskLog
+            {
+                JobRunTaskId = jobRunTaskId,
+                DateTime = DateTimeOffset.UtcNow,
+                Message = message,
+                IsError = isError
+            }, cancellationToken);
+        }
+
+        private async Task HandleCompleteTask(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
+        {
+            using var serviceScope = _serviceProvider.CreateScope();
+
+            var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
+
+            var jobRunTask = await jobRunTasksService.GetById(jobRunTaskId, cancellationToken);
+
+            await jobRunTasksService.UpdateCompleted(jobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, isError, cancellationToken);
+
+            _ = Task.Run(async () =>
+            {
+                using var blockServiceScope = _serviceProvider.CreateScope();
+                var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                await jobRunnerService.ExecuteJobRun(jobRunTask.JobRunId, cancellationToken);
+            }, _cancellationToken);
         }
     }
 }

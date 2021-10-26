@@ -11,6 +11,7 @@ using Datack.Common.Models.RPC;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
 using Serilog.Extensions.Logging;
+using Timer = System.Timers.Timer;
 
 namespace Datack.Agent.Services
 {
@@ -22,6 +23,11 @@ namespace Datack.Agent.Services
 
         private readonly Dictionary<String, Expression> _requestMethods = new();
         private readonly String _version;
+
+        private readonly SemaphoreSlim _sendLock = new(1);
+        private readonly Timer _sendTimer = new Timer(1000);
+        private readonly Dictionary<Guid, RpcProgressEvent> _progressEvents = new();
+        private readonly Dictionary<Guid, RpcCompleteEvent> _completeEvents = new();
 
         public RpcService(AppSettings appSettings)
         {
@@ -52,6 +58,9 @@ namespace Datack.Agent.Services
             _connection.Closed += _ => Connect(cancellationToken);
 
             _connection.On<RpcRequest>("request", HandleRequest);
+
+            _sendTimer.Elapsed += async (_, _) => await TimerTick();
+            _sendTimer.Start();
 
             Connect(cancellationToken);
         }
@@ -102,14 +111,7 @@ namespace Datack.Agent.Services
                     }
                     catch
                     {
-                        if (_connection.State == HubConnectionState.Disconnected)
-                        {
-                            await Task.Delay(1000, cancellationToken);
-                        }
-                        else
-                        {
-                            throw;
-                        }
+                        await Task.Delay(5000, cancellationToken);
                     }
                 }
 
@@ -189,36 +191,111 @@ namespace Datack.Agent.Services
             }
             finally
             {
-                await _connection.SendAsync("response", result);   
+                if (_connection.State == HubConnectionState.Connected)
+                {
+                    await _connection.SendAsync("response", result);
+                }
             }
         }
 
-        public async Task<T> Send<T>(String methodName)
+        private async Task TimerTick()
         {
-            var response = await _connection.InvokeAsync<T>(methodName, _appSettings.Token);
+            if (_connection.State != HubConnectionState.Connected)
+            {
+                return;
+            }
 
-            return response;
+            Dictionary<Guid, RpcProgressEvent> progressEvents;
+            Dictionary<Guid, RpcCompleteEvent> completeEvents;
+
+            var receivedLock = await _sendLock.WaitAsync(500);
+
+            if (!receivedLock)
+            {
+                return;
+            }
+
+            try
+            {
+                if (!_progressEvents.Any() && !_completeEvents.Any())
+                {
+                    return;
+                }
+
+                progressEvents = new Dictionary<Guid, RpcProgressEvent>(_progressEvents);
+                completeEvents = new Dictionary<Guid, RpcCompleteEvent>(_completeEvents);
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
+
+            try
+            {
+                await _connection.SendAsync("Update", progressEvents.Values.ToList(), completeEvents.Values.ToList());
+
+                await _sendLock.WaitAsync();
+
+                try
+                {
+                    foreach (var (key, _) in progressEvents)
+                    {
+                        _progressEvents.Remove(key);
+                    }
+
+                    foreach (var (key, _) in completeEvents)
+                    {
+                        _completeEvents.Remove(key);
+                    }
+                }
+                finally
+                {
+                    _sendLock.Release();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
         }
 
-        public async Task SendProgress(ProgressEvent progressEvent)
+        public async Task QueueProgress(ProgressEvent progressEvent)
         {
-            await _connection.SendCoreAsync("TaskProgress", new Object[]{ new RpcProgressEvent
+            await _sendLock.WaitAsync();
+
+            try
             {
-                IsError = progressEvent.IsError,
-                JobRunTaskId = progressEvent.JobRunTaskId,
-                Message = progressEvent.Message
-            }});
+                _progressEvents.Add(Guid.NewGuid(), new RpcProgressEvent
+                {
+                    IsError = progressEvent.IsError,
+                    JobRunTaskId = progressEvent.JobRunTaskId,
+                    Message = progressEvent.Message
+                });
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
         }
 
-        public async Task SendComplete(CompleteEvent completeEvent)
+        public async Task QueueComplete(CompleteEvent completeEvent)
         {
-            await _connection.SendCoreAsync("TaskComplete", new Object[]{ new RpcCompleteEvent
+            await _sendLock.WaitAsync();
+
+            try
             {
-                IsError = completeEvent.IsError,
-                JobRunTaskId= completeEvent.JobRunTaskId,
-                Message = completeEvent.Message,
-                ResultArtifact = completeEvent.ResultArtifact
-            }});
+                _completeEvents.Add(Guid.NewGuid(), new RpcCompleteEvent
+                {
+                    IsError = completeEvent.IsError,
+                    JobRunTaskId = completeEvent.JobRunTaskId,
+                    Message = completeEvent.Message,
+                    ResultArtifact = completeEvent.ResultArtifact
+                });
+            }
+            finally
+            {
+                _sendLock.Release();
+            }
         }
     }
 }

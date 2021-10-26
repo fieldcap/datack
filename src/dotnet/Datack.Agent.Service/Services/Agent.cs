@@ -136,16 +136,22 @@ namespace Datack.Agent.Services
             return String.Join(Environment.NewLine, queue.ToList());
         }
 
-        private async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
+        private Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
         {
-            await _jobRunner.ExecuteJobRunTask(jobRunTask, previousTask, _cancellationToken);
+            _ = Task.Run(async () =>
+            {
+                await _jobRunner.ExecuteJobRunTask(jobRunTask, previousTask, _cancellationToken);
+            }, _cancellationToken);
 
-            return "Success";
+            return Task.FromResult("Success");
         }
 
         private Task<String> Stop(Guid jobRunTaskId)
         {
-            _jobRunner.StopTask(jobRunTaskId);
+            _ = Task.Run(() =>
+            {
+                _jobRunner.StopTask(jobRunTaskId);
+            }, _cancellationToken);
 
             return Task.FromResult("Success");
         }
