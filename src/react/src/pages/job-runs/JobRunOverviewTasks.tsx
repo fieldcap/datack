@@ -3,7 +3,7 @@ import { Spinner, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
 import { format, formatDistanceStrict, parseISO } from 'date-fns';
-import React, { FC, useEffect, useMemo, useRef } from 'react';
+import React, { FC, useMemo } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
 import { JobRunTask } from '../../models/job-run-task';
 import JobTasks from '../../services/jobTasks';
@@ -15,20 +15,6 @@ type Props = {
 
 const JobRunOverviewTasks: FC<Props> = (props) => {
     const { jobRunTasks, onRowClick } = props;
-
-    const bottomRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-        if (bottomRef == null || bottomRef.current == null) {
-            return;
-        }
-
-        const completedTasks = props.jobRunTasks.filter((m) => m.completed != null && m.started != null);
-
-        if (completedTasks.length > 0) {
-            bottomRef.current.scrollIntoView({ behavior: 'auto' });
-        }
-    }, [props.jobRunTasks]);
 
     const columns = useMemo(() => {
         const columns: Column<JobRunTask>[] = [
@@ -143,7 +129,6 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
                     })}
                 </Tbody>
             </Table>
-            <div ref={bottomRef}></div>
         </>
     );
 };
