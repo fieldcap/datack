@@ -69,11 +69,13 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                 Header: 'Runtime',
                 accessor: 'runTime',
                 sortType: 'datetime',
-                Cell: ({ cell: { value } }) => {
-                    if (value == null) {
-                        return '';
+                Cell: (c) => {
+                    if (c.row.original.completed == null) {
+                        formatDistanceStrict(parseISO(c.row.original.started), new Date());
+                    } else if (c.value != null) {
+                        return formatDistanceStrict(0, c.value * 1000);
                     }
-                    return formatDistanceStrict(0, value * 1000);
+                    return '';
                 },
             },
             {

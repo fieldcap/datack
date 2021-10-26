@@ -67,7 +67,7 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
             <Table style={{ width: '100%' }} size="sm" marginBottom={4}>
                 <Tbody>
                     <Tr>
-                        <Td style={{ fontWeight: 'bold', width:'110px' }}>Started</Td>
+                        <Td style={{ fontWeight: 'bold', width: '110px' }}>Started</Td>
                         <Td>
                             {props.jobRunTask.started != null
                                 ? format(parseISO(props.jobRunTask.started), 'd MMMM yyyy HH:mm')
@@ -85,7 +85,11 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
                     <Tr>
                         <Td style={{ fontWeight: 'bold' }}>Runtime</Td>
                         <Td>
-                            {props.jobRunTask.runTime != null
+                            {props.jobRunTask != null &&
+                            props.jobRunTask.started != null &&
+                            props.jobRunTask.completed != null
+                                ? formatDistanceStrict(parseISO(props.jobRunTask.started), new Date())
+                                : props.jobRunTask.runTime != null
                                 ? formatDistanceStrict(0, props.jobRunTask.runTime * 1000)
                                 : ''}
                         </Td>

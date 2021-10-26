@@ -43,11 +43,13 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
             {
                 Header: 'Runtime',
                 accessor: 'runTime',
-                Cell: ({ cell: { value } }) => {
-                    if (value == null) {
-                        return '';
+                Cell: (c) => {
+                    if (c.row.original.completed == null && c.row.original.started != null) {
+                        formatDistanceStrict(parseISO(c.row.original.started), new Date());
+                    } else if (c.value != null) {
+                        return formatDistanceStrict(0, c.value * 1000);
                     }
-                    return formatDistanceStrict(0, value * 1000);
+                    return '';
                 },
             },
             {
