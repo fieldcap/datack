@@ -284,9 +284,9 @@ namespace Datack.Web.Service.Services
                     runningJobRunTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
 
                     // Check if the previous task is completed for this item
-                    if (jobRunTask.JobTask.Order > 0)
+                    if (jobRunTask.TaskOrder > 0)
                     {
-                        var previousTask = completedJobRunTasks.FirstOrDefault(m => m.ItemName == jobRunTask.ItemName && m.JobTask.Order == jobRunTask.JobTask.Order - 1);
+                        var previousTask = completedJobRunTasks.FirstOrDefault(m => m.ItemName == jobRunTask.ItemName && m.TaskOrder == jobRunTask.TaskOrder - 1);
 
                         if (previousTask == null)
                         {
