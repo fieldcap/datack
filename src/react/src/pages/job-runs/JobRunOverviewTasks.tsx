@@ -5,7 +5,6 @@ import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
 import { format, formatDistanceStrict, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
-import { setTimeout } from 'timers';
 import { JobRunTask } from '../../models/job-run-task';
 import JobTasks from '../../services/jobTasks';
 
@@ -24,19 +23,9 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
             return;
         }
 
-        const runningTasks = props.jobRunTasks.filter((m) => m.completed == null && m.started != null);
         const completedTasks = props.jobRunTasks.filter((m) => m.completed != null && m.started != null);
 
-        if (runningTasks.length > 0) {
-            const runningTask = runningTasks[0];
-            setTimeout(() => {
-                const elm = document.getElementById(`JobRunTaskRow-${runningTask.jobRunTaskId}`);
-                if (!elm) {
-                    return;
-                }
-                elm.scrollIntoView({ behavior: 'smooth' });
-            }, 500);
-        } else if (completedTasks.length > 0) {
+        if (completedTasks.length > 0) {
             bottomRef.current.scrollIntoView({ behavior: 'auto' });
         }
     }, [props.jobRunTasks]);
