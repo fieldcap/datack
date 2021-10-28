@@ -11,8 +11,12 @@ export const formatRuntime = (jobRun: JobRun): string => {
     }
 
     if (jobRun.runTime != null) {
+        if (jobRun.runTime <= 0) {
+            return '< 0 seconds';
+        }
         return formatDuration(intervalToDuration({ start: 0, end: jobRun.runTime * 1000 }));
     }
+
     return '';
 };
 
@@ -26,6 +30,9 @@ export const formatRuntimeTask = (jobRunTask: JobRunTask): string => {
     }
 
     if (jobRunTask.runTime != null) {
+        if (jobRunTask.runTime <= 0) {
+            return '< 0 seconds';
+        }
         return formatDuration(intervalToDuration({ start: 0, end: jobRunTask.runTime * 1000 }));
     }
     return '';

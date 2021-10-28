@@ -1,5 +1,5 @@
 import { Heading, Table, Tbody, Td, Tr } from '@chakra-ui/react';
-import { format, formatDuration, parseISO } from 'date-fns';
+import { format, formatDuration, intervalToDuration, parseISO } from 'date-fns';
 import React, { FC, useEffect, useState } from 'react';
 import { JobRunTask } from '../../models/job-run-task';
 import { JobTask } from '../../models/job-task';
@@ -17,6 +17,8 @@ type TaskSummary = {
     lastStart: Date | null;
     firstComplete: Date | null;
     lastComplete: Date | null;
+    longestItem: string | null;
+    longestRunTime: number | null;
 };
 
 const JobRunOverviewQueues: FC<Props> = (props) => {
@@ -47,6 +49,8 @@ const JobRunOverviewQueues: FC<Props> = (props) => {
                     lastStart: null,
                     firstComplete: null,
                     lastComplete: null,
+                    longestItem: null,
+                    longestRunTime: null,
                 };
                 queues.push(queue);
             }
@@ -58,6 +62,13 @@ const JobRunOverviewQueues: FC<Props> = (props) => {
                     queue.success += 1;
                 }
                 queue.totalRunTime += jobTask.runTime ?? 0;
+
+                if (jobTask.runTime != null) {
+                    if (queue.longestRunTime == null || jobTask.runTime > queue.longestRunTime) {
+                        queue.longestItem = jobTask.itemName;
+                        queue.longestRunTime = jobTask.runTime;
+                    }
+                }
 
                 if (jobTask.started != null) {
                     const started = parseISO(jobTask.started);
@@ -89,6 +100,7 @@ const JobRunOverviewQueues: FC<Props> = (props) => {
             });
         }
         setQueues(queues);
+        console.log(queues);
     }, [jobRunTasks]);
 
     return (
@@ -110,12 +122,19 @@ const JobRunOverviewQueues: FC<Props> = (props) => {
                             </Tr>
                             <Tr>
                                 <Td style={{ fontWeight: 'bold' }}>Total run time</Td>
-                                <Td>{formatDuration({ seconds: queue.totalRunTime })}</Td>
+                                <Td>
+                                    {formatDuration(intervalToDuration({ start: 0, end: queue.totalRunTime * 1000 }))}
+                                </Td>
                             </Tr>
                             <Tr>
                                 <Td style={{ fontWeight: 'bold' }}>Average run time</Td>
                                 <Td>
-                                    {formatDuration({ seconds: (queue.totalRunTime  / (queue.success + queue.errors)) })}
+                                    {formatDuration(
+                                        intervalToDuration({
+                                            start: 0,
+                                            end: (queue.totalRunTime * 1000) / (queue.success + queue.errors),
+                                        })
+                                    )}
                                 </Td>
                             </Tr>
                             <Tr>
@@ -142,6 +161,17 @@ const JobRunOverviewQueues: FC<Props> = (props) => {
                                     {queue.lastStart != null ? format(queue.lastStart, 'd MMMM yyyy HH:mm') : 'Never'}
                                 </Td>
                             </Tr>
+                            {queue.longestItem != null && queue.longestRunTime != null ? (
+                                <Tr>
+                                    <Td style={{ fontWeight: 'bold' }}>Longest Runtime</Td>
+                                    <Td>
+                                        {formatDuration(
+                                            intervalToDuration({ start: 0, end: queue.longestRunTime * 1000 })
+                                        )}{' '}
+                                        ({queue.longestItem})
+                                    </Td>
+                                </Tr>
+                            ) : null}
                         </Tbody>
                     </Table>
                 </div>
