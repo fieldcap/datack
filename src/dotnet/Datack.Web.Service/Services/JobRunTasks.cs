@@ -37,10 +37,10 @@ namespace Datack.Web.Service.Services
         {
             await _jobRunTaskRepository.UpdateStarted(jobRunTaskId, date, cancellationToken);
 
-            var jobRunTasks = await GetByJobRunId(jobRunId, CancellationToken.None);
+            var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
             _ = Task.Run(async () =>
             {
-                await _remoteService.WebJobRunTask(jobRunTasks);
+                await _remoteService.WebJobRunTask(jobRunTask);
             }, cancellationToken);
         }
 
@@ -48,10 +48,10 @@ namespace Datack.Web.Service.Services
         {
             await _jobRunTaskRepository.UpdateCompleted(jobRunTaskId, result, resultArtifact, isError, cancellationToken);
 
-            var jobRunTasks = await GetByJobRunId(jobRunId, CancellationToken.None);
+            var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
             _ = Task.Run(async () =>
             {
-                await _remoteService.WebJobRunTask(jobRunTasks);
+                await _remoteService.WebJobRunTask(jobRunTask);
             }, cancellationToken);
         }
 

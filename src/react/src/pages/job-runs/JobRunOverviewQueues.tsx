@@ -1,5 +1,5 @@
 import { Heading, Table, Tbody, Td, Tr } from '@chakra-ui/react';
-import { format, formatDistanceStrict, parseISO } from 'date-fns';
+import { format, formatDuration, parseISO } from 'date-fns';
 import React, { FC, useEffect, useState } from 'react';
 import { JobRunTask } from '../../models/job-run-task';
 import { JobTask } from '../../models/job-task';
@@ -110,15 +110,12 @@ const JobRunOverviewQueues: FC<Props> = (props) => {
                             </Tr>
                             <Tr>
                                 <Td style={{ fontWeight: 'bold' }}>Total run time</Td>
-                                <Td>{formatDistanceStrict(0, queue.totalRunTime * 1000)}</Td>
+                                <Td>{formatDuration({ seconds: queue.totalRunTime })}</Td>
                             </Tr>
                             <Tr>
                                 <Td style={{ fontWeight: 'bold' }}>Average run time</Td>
                                 <Td>
-                                    {formatDistanceStrict(
-                                        0,
-                                        (queue.totalRunTime * 1000) / (queue.success + queue.errors)
-                                    )}
+                                    {formatDuration({ seconds: (queue.totalRunTime  / (queue.success + queue.errors)) })}
                                 </Td>
                             </Tr>
                             <Tr>

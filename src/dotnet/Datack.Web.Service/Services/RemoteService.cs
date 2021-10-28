@@ -104,7 +104,7 @@ namespace Datack.Web.Service.Services
             await _webHub.Clients.All.SendAsync("JobRun", jobRun);
         }
 
-        public async Task WebJobRunTask(IList<JobRunTask> jobRunTask)
+        public async Task WebJobRunTask(JobRunTask jobRunTask)
         {
             await _webHub.Clients.All.SendAsync("JobRunTask", jobRunTask);
         }

@@ -92,12 +92,12 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 }
             });
 
-            connection.on('JobRunTask', (updatedJobRunTasks: JobRunTask[]) => {
-                if (updatedJobRunTasks.length === 0) {
-                    return;
-                }
-                if (updatedJobRunTasks[0].jobRunId === jobRun?.jobRunId) {
-                    setJobRunTasks(updatedJobRunTasks);
+            connection.on('JobRunTask', (updatedJobRunTask: JobRunTask) => {
+                setJobRunTasks((m) =>
+                    m.map((m) => (m.jobRunTaskId === updatedJobRunTask.jobRunTaskId ? { ...updatedJobRunTask } : m))
+                );
+                if (activeJobRunTask != null && activeJobRunTask.jobRunTaskId) {
+                    setActiveJobRunTask(updatedJobRunTask);
                 }
             });
 
@@ -153,7 +153,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
                             <TabPanels>
                                 <TabPanel>
-                                    <Box overflowY="auto" overflowX="hidden"  style={{ height: 'calc(100vh - 362px)' }}>
+                                    <Box overflowY="auto" overflowX="hidden" style={{ height: 'calc(100vh - 362px)' }}>
                                         <JobRunOverviewTasks
                                             jobRunTasks={jobRunTasks}
                                             onRowClick={handleJobRunTaskClick}

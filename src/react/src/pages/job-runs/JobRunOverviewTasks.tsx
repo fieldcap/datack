@@ -1,9 +1,9 @@
 import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
-import { Spinner, Th, Thead } from '@chakra-ui/react';
+import { Checkbox, FormControl, HStack, Select, Spinner, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
 import { format, parseISO } from 'date-fns';
-import React, { FC, useMemo } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
 import { JobRunTask } from '../../models/job-run-task';
 import { formatRuntimeTask } from '../../services/date';
@@ -15,7 +15,35 @@ type Props = {
 };
 
 const JobRunOverviewTasks: FC<Props> = (props) => {
-    const { jobRunTasks, onRowClick } = props;
+    const { onRowClick } = props;
+
+    const [gridItems, setGridItems] = useState<JobRunTask[]>([]);
+    const [filterItem, setFilterItem] = useState<string>('');
+    const [filterErrors, setFilterErrors] = useState<boolean>(false);
+    const [items, setItems] = useState<string[]>([]);
+
+    useEffect(() => {
+        const items = props.jobRunTasks
+            .select((m) => m.itemName)
+            .distinctBy((m) => m)
+            .orderBy((m) => m);
+        setItems(items);
+        // eslint-disable-next-line
+    }, [props.jobRunTasks]);
+
+    useEffect(() => {
+        let items = props.jobRunTasks || [];
+
+        if (filterItem != null && filterItem !== '') {
+            items = items.filter((m) => m.itemName === filterItem);
+        }
+
+        if (filterErrors) {
+            items = items.filter(m => m.isError);
+        }
+
+        setGridItems(items);
+    }, [props.jobRunTasks, filterItem, filterErrors]);
 
     const columns = useMemo(() => {
         const columns: Column<JobRunTask>[] = [
@@ -80,12 +108,33 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
     }, []);
 
     const { getTableProps, getTableBodyProps, headerGroups, rows, prepareRow } = useTable<JobRunTask>(
-        { columns, data: jobRunTasks },
+        { columns, data: gridItems },
         useSortBy
     );
 
     return (
         <>
+            <form>
+                <HStack marginBottom={4}>
+                    <FormControl id="name" w={250}>
+                        <Select
+                            placeholder="Select an item to filter by"
+                            value={filterItem || ''}
+                            onChange={(e) => setFilterItem(e.target.value)}
+
+                        >
+                            {items.map((item) => (
+                                <option value={item} key={item}>
+                                    {item}
+                                </option>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <Checkbox isChecked={filterErrors} onChange={(e) => setFilterErrors(e.currentTarget.checked)}>
+                        Show only errors
+                    </Checkbox>
+                </HStack>
+            </form>
             <Table {...getTableProps()} style={{ width: 'auto' }} size="sm">
                 <Thead>
                     {headerGroups.map((headerGroup) => (
