@@ -145,7 +145,9 @@ namespace Datack.Agent.Services.Tasks
                 
                 if (!String.IsNullOrWhiteSpace(password))
                 {
-                    cmd = cmd.Replace(password, "****");
+                    var decryptedPassword = _dataProtector.Decrypt(password);
+
+                    cmd = cmd.Replace(decryptedPassword, "****");
                 }
 
                 OnProgress(jobRunTask.JobRunTaskId, $"Starting compress cmd {jobRunTask.ItemName} with parameters {cmd}");
