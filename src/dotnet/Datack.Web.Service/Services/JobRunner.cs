@@ -12,15 +12,13 @@ namespace Datack.Web.Service.Services
     public class JobRunner
     {
         private readonly JobRuns _jobRuns;
-        private readonly JobRunTaskLogs _jobRunTaskLogs;
         private readonly JobRunTasks _jobRunTasks;
-        private readonly Jobs _jobs;
         private readonly JobTasks _jobTasks;
         private readonly ILogger<JobRunner> _logger;
         private readonly RemoteService _remoteService;
 
-        private readonly SemaphoreSlim _setupJobRunLock = new(1, 1);
-        private readonly SemaphoreSlim _executeJobRunLock = new(1, 1);
+        private static readonly SemaphoreSlim SetupJobRunLock = new(1, 1);
+        private static readonly SemaphoreSlim ExecuteJobRunLock = new(1, 1);
 
         private readonly Dictionary<String, IBaseTask> _tasks;
 
@@ -29,20 +27,16 @@ namespace Datack.Web.Service.Services
         /// </summary>
         public JobRunner(ILogger<JobRunner> logger,
                          RemoteService remoteService,
-                         Jobs jobs,
                          JobRuns jobRuns,
                          JobTasks jobTasks,
                          JobRunTasks jobRunTasks,
-                         JobRunTaskLogs jobRunTaskLogs,
                          CreateBackupTask createBackupTask)
         {
             _logger = logger;
             _remoteService = remoteService;
-            _jobs = jobs;
             _jobRuns = jobRuns;
             _jobTasks = jobTasks;
             _jobRunTasks = jobRunTasks;
-            _jobRunTaskLogs = jobRunTaskLogs;
 
             _logger.LogTrace("Constructor");
 
@@ -83,7 +77,7 @@ namespace Datack.Web.Service.Services
             _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
             // Make sure only 1 process setup a new job otherwise it's possible that a job is duplicated.
-            var receivedLockSuccesfully = await _setupJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            var receivedLockSuccesfully = await SetupJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
             if (!receivedLockSuccesfully)
             {
@@ -211,7 +205,7 @@ namespace Datack.Web.Service.Services
             finally
             {
                 _logger.LogDebug("Releasing lock for job {name}", job.Name);
-                _setupJobRunLock.Release();
+                SetupJobRunLock.Release();
             }
         }
 
@@ -220,7 +214,7 @@ namespace Datack.Web.Service.Services
             _logger.LogDebug("ExecuteJobRun for job run {jobRunId}", jobRunId);
 
             // Make sure only 1 process executes a job run otherwise it might run duplicate tasks.
-            var receivedLockSuccesfully = await _executeJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            var receivedLockSuccesfully = await ExecuteJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
             if (!receivedLockSuccesfully)
             {
@@ -346,7 +340,7 @@ namespace Datack.Web.Service.Services
             finally
             {
                 _logger.LogDebug("Releasing lock for job run {jobRunId}", jobRunId);
-                _executeJobRunLock.Release();
+                ExecuteJobRunLock.Release();
             }
         }
     }
