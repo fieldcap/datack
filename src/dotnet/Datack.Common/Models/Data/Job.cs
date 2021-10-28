@@ -11,6 +11,8 @@ namespace Datack.Common.Models.Data
 
         public String Name { get; set; }
 
+        public Boolean IsActive { get; set; }
+
         public String Group { get; set; }
 
         public Int32 Priority { get; set; }

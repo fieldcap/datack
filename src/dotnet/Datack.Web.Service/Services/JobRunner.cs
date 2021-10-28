@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
+using Datack.Web.Service.Exceptions;
 using Datack.Web.Service.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -11,14 +12,16 @@ namespace Datack.Web.Service.Services
 {
     public class JobRunner
     {
+        public static readonly SemaphoreSlim ExecuteJobRunLock = new(1, 1);
+
         private readonly JobRuns _jobRuns;
         private readonly JobRunTasks _jobRunTasks;
         private readonly JobTasks _jobTasks;
         private readonly ILogger<JobRunner> _logger;
         private readonly RemoteService _remoteService;
+        private readonly Emails _emails;
 
         private static readonly SemaphoreSlim SetupJobRunLock = new(1, 1);
-        private static readonly SemaphoreSlim ExecuteJobRunLock = new(1, 1);
 
         private readonly Dictionary<String, IBaseTask> _tasks;
 
@@ -27,6 +30,7 @@ namespace Datack.Web.Service.Services
         /// </summary>
         public JobRunner(ILogger<JobRunner> logger,
                          RemoteService remoteService,
+                         Emails emails,
                          JobRuns jobRuns,
                          JobTasks jobTasks,
                          JobRunTasks jobRunTasks,
@@ -34,6 +38,7 @@ namespace Datack.Web.Service.Services
         {
             _logger = logger;
             _remoteService = remoteService;
+            _emails = emails;
             _jobRuns = jobRuns;
             _jobTasks = jobTasks;
             _jobRunTasks = jobRunTasks;
@@ -101,6 +106,8 @@ namespace Datack.Web.Service.Services
 
                 await _jobRuns.Create(jobRun, cancellationToken);
 
+                jobRun.Job = job;
+
                 _logger.LogDebug("Created jobRun record {jobRunId} for job {name}", jobRun.JobRunId, job.Name);
 
                 try
@@ -115,9 +122,7 @@ namespace Datack.Web.Service.Services
 
                     if (runningTasks.Count > 0)
                     {
-                        var runningTasksList = String.Join(", ", runningTasks.Select(m => $"{m.JobRunId} (started {m.Started:g})"));
-
-                        throw new Exception($"Cannot start job {job.Name} for group {job.Group}, there is already another job still running ({runningTasksList})");
+                        throw new AlreadyStartedException(job, runningTasks);
                     }
 
                     // Get all the tasks for the job and run the through the task Setup procedure.
@@ -125,13 +130,14 @@ namespace Datack.Web.Service.Services
                     // This queue will be used to run the tasks for each item.
                     var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
 
+                    jobTasks = jobTasks.Where(m => m.IsActive).ToList();
+
                     _logger.LogDebug("Found {count} job tasks for job {name}", jobTasks.Count, job.Name);
 
                     var allJobRunTasks = new List<JobRunTask>();
 
                     foreach (var jobTask in jobTasks)
                     {
-                       
                         _logger.LogDebug("Setting up job run task {type} for job {name}", jobTask.Type, job.Name);
 
                         var previousJobRunTasks = new List<JobRunTask>();
@@ -198,6 +204,11 @@ namespace Datack.Web.Service.Services
                     jobRun.Completed = DateTimeOffset.UtcNow;
 
                     await _jobRuns.Update(jobRun, cancellationToken);
+
+                    if (ex is not AlreadyStartedException)
+                    {
+                        await _emails.SendComplete(jobRun, cancellationToken);
+                    }
                 }
 
                 return jobRun.JobRunId;
@@ -274,8 +285,9 @@ namespace Datack.Web.Service.Services
 
                 foreach (var jobRunTask in pendingJobRunTasks)
                 {
-                    // Update running tasks as it could've updated it in this loop
+                    // Update tasks as they could've updated it in this loop
                     runningJobRunTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
+                    completedJobRunTasks = jobRunTasks.Where(m => m.Started != null && m.Completed != null).ToList();
 
                     // Check if the previous task is completed for this item
                     if (jobRunTask.TaskOrder > 0)
@@ -294,37 +306,33 @@ namespace Datack.Web.Service.Services
                     // Calculate how many parallel tasks we can still run for this task.
                     var taskSpacePending = jobRunTask.JobTask.Parallel - taskRunning;
 
-                    // If there is a place in the queue, start the task.
-                    if (taskSpacePending > 0)
+                    // Check how many items are pending for the next task, otherwise skip.
+                    if (jobRunTask.JobTask.MaxItemsToKeep > 0)
                     {
-                        _logger.LogDebug("Starting task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}",
-                                         jobRunTask.JobRunTaskId,
-                                         jobRunTask.ItemName,
-                                         jobRunTask.Type,
-                                         taskRunning,
-                                         jobRunTask.JobTask.Parallel,
-                                         jobRunId,
-                                         jobRun.Job.Name);
+                        var pendingForNextTask = jobRunTasks
+                                                 .Where(m => m.JobTaskId == jobRunTask.JobTaskId & m.Completed != null)
+                                                 .Select(t => jobRunTasks.FirstOrDefault(m => m.ItemName == t.ItemName && m.TaskOrder == jobRunTask.TaskOrder + 1))
+                                                 .Where(t => t != null)
+                                                 .Count(nextTask => nextTask.Completed == null);
 
-                        // Find the previous task for this item and pass it down
-                        JobRunTask previousTask = null;
+                        _logger.LogDebug($"Found {pendingForNextTask} tasks pending in the next task");
 
-                        if (jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId != null)
+                        if (pendingForNextTask > jobRunTask.JobTask.MaxItemsToKeep)
                         {
-                            previousTask = completedJobRunTasks.FirstOrDefault(m => m.ItemName == jobRunTask.ItemName &&
-                                                                                    m.JobTaskId == jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId);
+                            _logger.LogDebug("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {pendingForNextTask} tasks pending for the next task, max items to keep is {maxItemsToKeep} for {jobRunId} {name}",
+                                             jobRunTask.JobRunTaskId,
+                                             jobRunTask.ItemName,
+                                             jobRunTask.Type,
+                                             pendingForNextTask,
+                                             jobRunTask.JobTask.MaxItemsToKeep,
+                                             jobRunId,
+                                             jobRun.Job.Name);
+                            continue;
                         }
-
-                        // Mark the task as started
-                        jobRunTask.Started = DateTimeOffset.UtcNow;
-                        await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, jobRunTask.Started, cancellationToken);
-                        
-                        _ = Task.Run(async () =>
-                        {
-                            await _remoteService.Run(jobRunTask, previousTask, cancellationToken);
-                        }, cancellationToken);
                     }
-                    else
+                    
+                    // If there is a place in the queue, start the task.
+                    if (taskSpacePending <= 0)
                     {
                         _logger.LogDebug("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}",
                                          jobRunTask.JobRunTaskId,
@@ -334,7 +342,38 @@ namespace Datack.Web.Service.Services
                                          jobRunTask.JobTask.Parallel,
                                          jobRunId,
                                          jobRun.Job.Name);
+
+                        continue;
                     }
+
+                    
+                    _logger.LogDebug("Starting task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}",
+                                     jobRunTask.JobRunTaskId,
+                                     jobRunTask.ItemName,
+                                     jobRunTask.Type,
+                                     taskRunning,
+                                     jobRunTask.JobTask.Parallel,
+                                     jobRunId,
+                                     jobRun.Job.Name);
+
+                    // Find the previous task for this item and pass it down
+                    JobRunTask previousArtifactTask = null;
+
+                    if (jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId != null)
+                    {
+                        previousArtifactTask = completedJobRunTasks.FirstOrDefault(m => m.ItemName == jobRunTask.ItemName &&
+                                                                                        m.JobTaskId == jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId);
+                    }
+
+                    // Mark the task as started
+                    jobRunTask.Started = DateTimeOffset.UtcNow;
+                    await _jobRunTasks.UpdateStarted(jobRunTask.JobRunTaskId, jobRunTask.JobRunId, jobRunTask.Started, cancellationToken);
+
+                    _ = Task.Run(async () =>
+                                 {
+                                     await _remoteService.Run(jobRunTask, previousArtifactTask, cancellationToken);
+                                 },
+                                 cancellationToken);
                 }
             }
             finally

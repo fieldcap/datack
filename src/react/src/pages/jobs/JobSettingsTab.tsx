@@ -38,6 +38,7 @@ type Props = {
 const JobSettingsTab: FC<Props> = (props) => {
     const [name, setName] = useState<string>(props.job?.name ?? '');
     const [description, setDescription] = useState<string>(props.job?.description ?? '');
+    const [isActive, setIsActive] = useState<boolean>(props.job?.isActive ?? false);
     const [group, setGroup] = useState<string>(props.job?.group ?? '');
     const [priority, setPriority] = useState<number>(props.job?.priority ?? 0);
     const [deleteLogsTimeSpanAmount, setDeleteLogsTimeSpanAmount] = useState<number | null>(
@@ -100,6 +101,7 @@ const JobSettingsTab: FC<Props> = (props) => {
         try {
             const newJob: Job = {
                 jobId: props.job!.jobId,
+                isActive,
                 name,
                 group,
                 priority,
@@ -169,6 +171,11 @@ const JobSettingsTab: FC<Props> = (props) => {
                     <FormLabel>Description</FormLabel>
                     <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
                     <FormHelperText>A description for this job.</FormHelperText>
+                </FormControl>
+                <FormControl id="isActive" marginBottom={4}>
+                    <Checkbox isChecked={isActive} onChange={(evt) => setIsActive(evt.target.checked)}>
+                        Is Active
+                    </Checkbox>
                 </FormControl>
                 <FormControl id="group" marginBottom={4}>
                     <FormLabel>Job Group</FormLabel>

@@ -95,6 +95,8 @@ namespace Datack.Web.Web
                                        retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
                          .WriteTo.Console()
                          .MinimumLevel.ControlledBy(LoggingLevelSwitch)
+                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                         .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
                          .CreateLogger();
 
             SelfLog.Enable(msg =>

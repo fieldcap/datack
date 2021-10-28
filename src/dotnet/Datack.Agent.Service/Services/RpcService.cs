@@ -120,7 +120,9 @@ namespace Datack.Agent.Services
                     return;
                 }
 
-                await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
+                var hasPendingEvents = _progressEvents.Any() && _completeEvents.Any();
+
+                await _connection.SendAsync("Connect", _appSettings.Token, _version, hasPendingEvents, cancellationToken);
             }, cancellationToken);
 
             return Task.CompletedTask;

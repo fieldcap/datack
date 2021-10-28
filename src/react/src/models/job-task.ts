@@ -5,8 +5,10 @@ export type JobTask = {
     jobTaskId: string;
     jobId: string;
     job?: Job | null;
+    isActive: boolean;
     type: string;
     parallel: number;
+    maxItemsToKeep: number;
     name: string;
     description: string;
     order: number;

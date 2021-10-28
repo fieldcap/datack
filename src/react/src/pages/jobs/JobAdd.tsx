@@ -35,6 +35,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
         const job: Job = {
             jobId: v4(),
             name,
+            isActive: true,
             cron: '',
             group: '',
             priority: 1,

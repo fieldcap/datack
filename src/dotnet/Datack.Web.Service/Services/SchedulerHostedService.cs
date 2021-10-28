@@ -28,7 +28,7 @@ namespace Datack.Web.Service.Services
             _logger = logger;
             _serviceProvider = serviceProvider;
 
-            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
+            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey, evt.HasPendingEvents);
             AgentHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
             AgentHub.OnProgressTask += async (_, evt) => await HandleProgressTask(evt.JobRunTaskId, evt.Message, evt.IsError, CancellationToken.None);
             AgentHub.OnCompleteTask += async (_, evt) => await HandleCompleteTask(evt.JobRunTaskId, evt.Message, evt.ResultArtifact, evt.IsError, CancellationToken.None);
@@ -46,6 +46,10 @@ namespace Datack.Web.Service.Services
                 using var serviceScope = _serviceProvider.CreateScope();
 
                 var jobsService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
+                
+                await Task.Delay((60 - DateTime.Now.Second) * 1000, cancellationToken);
+
+                _logger.LogDebug($"Starting Job initiator");
 
                 // The main scheduler loop.
                 while (!cancellationToken.IsCancellationRequested)
@@ -57,6 +61,8 @@ namespace Datack.Web.Service.Services
                     // This enables the user to have multiple tasks fire at the same time
                     // and give priority to certain tasks in a group.
                     var jobs = await jobsService.GetList(cancellationToken);
+
+                    jobs = jobs.Where(m => m.IsActive).ToList();
 
                     foreach (var jobsGroup in jobs.GroupBy(m => m.Group))
                     {
@@ -208,7 +214,7 @@ namespace Datack.Web.Service.Services
         /// <summary>
         /// Handle the connection of an agent.
         /// </summary>
-        private async void HandleClientConnect(String agentKey)
+        private async void HandleClientConnect(String agentKey, Boolean hasPendingEvents)
         {
             _logger.LogDebug($"Connect agent with key {agentKey}");
 
@@ -227,53 +233,76 @@ namespace Datack.Web.Service.Services
                 return;
             }
 
-            // Wait 10 seconds to give the agent time to send completed and progress tasks.
-            await Task.Delay(10000, _cancellationToken);
-            
-            var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
-
-            // Check if this agent has running tasks, if it does, reset the task and execute them again.
-            foreach (var runningJob in runningJobs)
+            if (hasPendingEvents)
             {
-                var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, _cancellationToken);
+                _logger.LogDebug($"Agent with key {agentKey} has pending events, not resetting tasks");
+                return;
+            }
 
-                var runningTasks = jobRunTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.AgentId == agent.AgentId).ToList();
-                var pendingTasks = jobRunTasks.Where(m => m.Completed == null && m.Started == null && m.JobTask.AgentId == agent.AgentId).ToList();
+            _logger.LogDebug($"Agent with key {agentKey} has no pending events, resetting tasks");
+            
+            // Because this process alters the state of some tasks, make sure it's locked with other tasks.
+            var receivedLockSuccesfully = await JobRunner.ExecuteJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), _cancellationToken);
 
-                if (runningTasks.Count > 0)
+            if (!receivedLockSuccesfully)
+            {
+                // Lock timed out
+                throw new Exception($"Could not obtain runSetupLock within 30 seconds!");
+            }
+
+            try
+            {
+                var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
+
+                // Check if this agent has running tasks, if it does, reset the task and execute them again.
+                foreach (var runningJob in runningJobs)
                 {
-                    foreach (var runningTask in runningTasks)
+                    var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, _cancellationToken);
+
+                    var runningTasks = jobRunTasks.Where(m => m.Completed == null && m.Started.HasValue && m.JobTask.AgentId == agent.AgentId).ToList();
+                    var pendingTasks = jobRunTasks.Where(m => m.Completed == null && m.Started == null && m.JobTask.AgentId == agent.AgentId).ToList();
+
+                    if (runningTasks.Count > 0)
                     {
-                        _logger.LogDebug($"Restarting task {runningTask.JobRunTaskId} for job run {runningTask.JobRunId}");
+                        foreach (var runningTask in runningTasks)
+                        {
+                            _logger.LogDebug($"Restarting task {runningTask.JobRunTaskId} for job run {runningTask.JobRunId}");
 
-                        await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, runningTask.JobRunId, null, _cancellationToken);
+                            await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, runningTask.JobRunId, null, _cancellationToken);
 
-                        await jobRunTaskLogsService.Add(new JobRunTaskLog
-                                                        {
-                                                            JobRunTaskId = runningTask.JobRunTaskId,
-                                                            DateTime = DateTimeOffset.UtcNow,
-                                                            Message = $"Agent '{agent.Name}' is connected",
-                                                            IsError = false
-                                                        },
-                                                        _cancellationToken);
+                            await jobRunTaskLogsService.Add(new JobRunTaskLog
+                                                            {
+                                                                JobRunTaskId = runningTask.JobRunTaskId,
+                                                                DateTime = DateTimeOffset.UtcNow,
+                                                                Message = $"Agent '{agent.Name}' is connected",
+                                                                IsError = false
+                                                            },
+                                                            _cancellationToken);
+                        }
+
+                        _ = Task.Run(async () =>
+                                     {
+                                         using var blockServiceScope = _serviceProvider.CreateScope();
+                                         var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                                         await jobRunnerService.ExecuteJobRun(runningJob.JobRunId, _cancellationToken);
+                                     },
+                                     _cancellationToken);
                     }
-
-                    _ = Task.Run(async () =>
+                    else if (pendingTasks.Count > 0)
                     {
-                        using var blockServiceScope = _serviceProvider.CreateScope();
-                        var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
-                        await jobRunnerService.ExecuteJobRun(runningJob.JobRunId, _cancellationToken);
-                    }, _cancellationToken);
+                        _ = Task.Run(async () =>
+                                     {
+                                         using var blockServiceScope = _serviceProvider.CreateScope();
+                                         var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                                         await jobRunnerService.ExecuteJobRun(runningJob.JobRunId, _cancellationToken);
+                                     },
+                                     _cancellationToken);
+                    }
                 }
-                else if (pendingTasks.Count > 0)
-                {
-                    _ = Task.Run(async () =>
-                    {
-                        using var blockServiceScope = _serviceProvider.CreateScope();
-                        var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
-                        await jobRunnerService.ExecuteJobRun(runningJob.JobRunId, _cancellationToken);
-                    }, _cancellationToken);
-                }
+            }
+            finally
+            {
+                JobRunner.ExecuteJobRunLock.Release();
             }
         }
 

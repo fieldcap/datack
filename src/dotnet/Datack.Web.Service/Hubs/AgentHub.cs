@@ -7,6 +7,7 @@ using Datack.Common.Models.RPC;
 using Datack.Web.Service.Models;
 using Datack.Web.Service.Services;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace Datack.Web.Service.Hubs
 {
@@ -17,10 +18,12 @@ namespace Datack.Web.Service.Hubs
         public static event EventHandler<RpcProgressEvent> OnProgressTask;
         public static event EventHandler<RpcCompleteEvent> OnCompleteTask;
 
+        private readonly ILogger<AgentHub> _logger;
         private readonly Agents _agents;
 
-        public AgentHub(Agents agents)
+        public AgentHub(ILogger<AgentHub> logger, Agents agents)
         {
+            _logger = logger;
             _agents = agents;
         }
 
@@ -29,10 +32,17 @@ namespace Datack.Web.Service.Hubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
+            if (exception != null)
+            {
+                _logger.LogError(exception, "Exception when disconnecting: {message}", exception.Message);
+            }
+
             foreach (var (key, value) in Agents)
             {
                 if (value.ConnectionId == Context.ConnectionId)
                 {
+                    _logger.LogDebug("Agent with key {key} disconnected", key);
+
                     Agents.TryRemove(key, out _);
                     OnClientDisconnect?.Invoke(this, new ClientDisconnectEvent{ AgentKey = key });
                     break;
@@ -42,13 +52,20 @@ namespace Datack.Web.Service.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task Connect(String key, String version)
+        public async Task Connect(String key, String version, Boolean hasPendingEvents)
         {
+            _logger.LogDebug("Agent with key {key} (v{version}) connecting", key, version);
+
             var agent = await _agents.GetByKey(key, CancellationToken.None);
 
             if (agent == null)
             {
                 throw new Exception($"Agent with key {key} was not found");
+            }
+
+            if (Agents.TryRemove(key, out var agentConnection))
+            {
+                _logger.LogDebug("Force disconnect agent with key {key} {connectionId}", key, agentConnection.ConnectionId);
             }
 
             Agents.TryAdd(key, new AgentConnection
@@ -57,7 +74,7 @@ namespace Datack.Web.Service.Hubs
                 Version = version
             });
 
-            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
+            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key, HasPendingEvents = hasPendingEvents });
         }
 
         public void Response(RpcResult rpcResult)

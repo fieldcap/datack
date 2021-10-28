@@ -60,10 +60,12 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
             const newJobTask: JobTask = {
                 jobTaskId: v4(),
                 jobId: props.match.params.jobId,
+                isActive: true,
                 name: name,
                 description: description,
                 type: type,
                 parallel: 1,
+                maxItemsToKeep: 0,
                 order: 0,
                 timeout: 0,
                 usePreviousTaskArtifactsFromJobTaskId: null,

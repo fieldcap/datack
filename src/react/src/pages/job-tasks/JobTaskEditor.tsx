@@ -4,6 +4,7 @@ import {
     AlertIcon,
     Box,
     Button,
+    Checkbox,
     FormControl,
     FormHelperText,
     FormLabel,
@@ -49,8 +50,10 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
+    const [isActive, setIsActive] = useState<boolean>(false);
     const [type, setType] = useState<string>('');
     const [parallel, setParallel] = useState<number>(1);
+    const [maxItemsToKeep, setMaxItemsToKeep] = useState<number>(0);
     const [timeout, setTimeout] = useState<number | null>(null);
     const [usePreviousTaskArtifacts, setUsePreviousTaskArtifacts] = useState<string | null>(null);
     const [settings, setSettings] = useState<JobTaskSettings | null>(null);
@@ -71,9 +74,11 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             const result = await JobTasks.getById(props.match.params.id!, cancelToken);
             setJobTask(result);
             setName(result.name);
+            setIsActive(result.isActive);
             setDescription(result.description);
             setType(result.type);
             setParallel(result.parallel);
+            setMaxItemsToKeep(result.maxItemsToKeep);
             setUsePreviousTaskArtifacts(result.usePreviousTaskArtifactsFromJobTaskId);
             setSettings(result.settings);
             setAgentId(result.agentId);
@@ -110,9 +115,11 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             jobTask.name = name;
             jobTask.description = description;
             jobTask.type = type;
+            jobTask.isActive = isActive;
             jobTask.settings = settings || {};
             jobTask.agentId = agentId;
             jobTask.parallel = parallel;
+            jobTask.maxItemsToKeep = maxItemsToKeep;
             jobTask.timeout = timeout;
 
             if (!usePreviousTaskArtifacts) {
@@ -261,6 +268,11 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     <Textarea lines={4} value={description} onChange={(e) => setDescription(e.target.value)} />
                     <FormHelperText>A description of what the task does.</FormHelperText>
                 </FormControl>
+                <FormControl id="isActive" marginBottom={4}>
+                    <Checkbox isChecked={isActive} onChange={(evt) => setIsActive(evt.target.checked)}>
+                        Is Active
+                    </Checkbox>
+                </FormControl>
                 <FormControl id="agentId" isRequired marginBottom={4}>
                     <FormLabel>Agent</FormLabel>
                     <Select placeholder="Select an agent" value={agentId} onChange={(e) => setAgentId(e.target.value)}>
@@ -297,6 +309,22 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     />
                     <FormHelperText>The amount of items that will be executed in parallel.</FormHelperText>
                 </FormControl>
+                <FormControl id="maxItemsToKeep" isRequired marginBottom={4}>
+                    <FormLabel>Max Items To Keep</FormLabel>
+                    <Input
+                        type="number"
+                        min={0}
+                        max={999999}
+                        value={maxItemsToKeep}
+                        onChange={(e) => {
+                            setMaxItemsToKeep(Number(e.target.value));
+                        }}
+                    />
+                    <FormHelperText>
+                        The maximum amount of items it will run the task for that have not been moved to the next task
+                        yet. This prevents 1 running far ahead of the other tasks. When 0 don't put a limit.
+                    </FormHelperText>
+                </FormControl>
                 <FormControl id="usePreviousTaskArtifacts" marginBottom={4}>
                     <FormLabel>Use artifact results from previous task</FormLabel>
                     <Select
@@ -331,9 +359,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                     />
                     <FormHelperText>The timeout in seconds.</FormHelperText>
                 </FormControl>
-                <Box marginBottom={4}>
-                {getTaskType()}
-                </Box>
+                <Box marginBottom={4}>{getTaskType()}</Box>
                 {error != null ? (
                     <Alert mmarginBottom={4} status="error">
                         <AlertIcon />

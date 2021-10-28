@@ -106,7 +106,7 @@ namespace Datack.Agent.Services
 
         private async Task<String> GetLogs()
         {
-            _logger.LogTrace("GetDatabaseList");
+            _logger.LogTrace("GetLogs");
 
             var logFilePath = _appSettings.Logging.File.Path;
 
@@ -138,6 +138,8 @@ namespace Datack.Agent.Services
 
         private Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
         {
+            _logger.LogDebug("Run {jobRunTaskId}", jobRunTask.JobRunTaskId);
+
             _ = Task.Run(async () =>
             {
                 await _jobRunner.ExecuteJobRunTask(jobRunTask, previousTask, _cancellationToken);
@@ -148,6 +150,8 @@ namespace Datack.Agent.Services
 
         private Task<String> Stop(Guid jobRunTaskId)
         {
+            _logger.LogDebug("Stop {jobRunTaskId}", jobRunTaskId);
+
             _ = Task.Run(() =>
             {
                 _jobRunner.StopTask(jobRunTaskId);
@@ -158,7 +162,7 @@ namespace Datack.Agent.Services
 
         private async Task<String> TestDatabaseConnection(String connectionString, String password, Boolean decryptPassword)
         {
-            _logger.LogTrace("TestDatabaseConnection");
+            _logger.LogDebug("Received TestDatabaseConnection Command");
 
             var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 

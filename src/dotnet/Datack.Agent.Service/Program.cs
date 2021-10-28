@@ -79,6 +79,8 @@ namespace Datack.Agent
                                        retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
                          .WriteTo.Console()
                          .MinimumLevel.ControlledBy(LoggingLevelSwitch)
+                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                         .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
                          .CreateLogger();
 
             Serilog.Debugging.SelfLog.Enable(msg =>

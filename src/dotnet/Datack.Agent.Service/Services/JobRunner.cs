@@ -118,7 +118,7 @@ namespace Datack.Agent.Services
                         throw new Exception($"Unknown task type {jobRunTask.Type}");
                     }
 
-                    _ = Task.Run(() =>
+                    _ = Task.Run(async () =>
                     {
                         CancellationTokenSource cancellationTokenSource;
                         if (jobRunTask.JobTask.Timeout > 0)
@@ -130,9 +130,12 @@ namespace Datack.Agent.Services
                             cancellationTokenSource = new CancellationTokenSource();
                         }
 
-                        _runningTasks.Add(jobRunTask.JobRunTaskId, cancellationTokenSource);
+                        if (!_runningTasks.TryAdd(jobRunTask.JobRunTaskId, cancellationTokenSource))
+                        {
+                            return;
+                        }
 
-                        return task.Run(jobRunTask, previousTask, cancellationTokenSource.Token);
+                        await task.Run(jobRunTask, previousTask, cancellationTokenSource.Token);
                     }, cancellationToken);
                 }
                 finally

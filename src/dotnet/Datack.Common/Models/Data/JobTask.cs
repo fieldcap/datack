@@ -15,9 +15,13 @@ namespace Datack.Common.Models.Data
         [ForeignKey("JobId")]
         public Job Job { get; set; }
 
+        public Boolean IsActive { get; set; }
+
         public String Type { get; set; }
 
         public Int32 Parallel { get; set; }
+
+        public Int32 MaxItemsToKeep { get; set; }
 
         public String Name { get; set; }
 

@@ -1,6 +1,7 @@
 export type Job = {
     jobId: string;
     name: string;
+    isActive: boolean;
     group: string;
     priority: number;
     cron: string;

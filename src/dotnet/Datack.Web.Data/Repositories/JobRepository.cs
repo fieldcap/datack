@@ -70,6 +70,7 @@ namespace Datack.Web.Data.Repositories
             }
 
             dbJob.Name = job.Name;
+            dbJob.IsActive = job.IsActive;
             dbJob.Description = job.Description;
             dbJob.Cron = job.Cron;
             dbJob.Settings = job.Settings;
@@ -100,6 +101,7 @@ namespace Datack.Web.Data.Repositories
             {
                 JobId = Guid.NewGuid(),
                 Name = $"{dbJob.Name} (Copy)",
+                IsActive = dbJob.IsActive,
                 Group = dbJob.Group,
                 Description = dbJob.Description,
                 Cron = dbJob.Cron,
@@ -114,7 +116,9 @@ namespace Datack.Web.Data.Repositories
                 JobTaskId = Guid.NewGuid(),
                 JobId = newJob.JobId,
                 Type = dbJobTask.Type,
+                IsActive = dbJobTask.IsActive,
                 Parallel = dbJobTask.Parallel,
+                MaxItemsToKeep = dbJobTask.MaxItemsToKeep,
                 Name = dbJobTask.Name,
                 Description = dbJobTask.Description,
                 Order = dbJobTask.Order,

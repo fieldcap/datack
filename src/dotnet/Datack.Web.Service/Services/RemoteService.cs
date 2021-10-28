@@ -8,47 +8,62 @@ using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
 using Datack.Web.Service.Hubs;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Logging;
 
 namespace Datack.Web.Service.Services
 {
     public class RemoteService
     {
+        private readonly ILogger<RemoteService> _logger;
         private readonly IHubContext<AgentHub> _agentHub;
         private readonly IHubContext<WebHub> _webHub;
 
-        public RemoteService(IHubContext<AgentHub> agentHub, IHubContext<WebHub> webHub)
+        public RemoteService(ILogger<RemoteService> logger, IHubContext<AgentHub> agentHub, IHubContext<WebHub> webHub)
         {
+            _logger = logger;
             _agentHub = agentHub;
             _webHub = webHub;
         }
 
         public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("TestDatabaseConnection {name} {agentId}", agent.Name, agent.AgentId);
+
             return await Send<String>(agent.Key, "TestDatabaseConnection", cancellationToken, connectionString, password, decryptPassword);
         }
         
         public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("GetDatabaseList {name} {agentId}", agent.Name, agent.AgentId);
+
             return await Send<List<Database>>(agent.Key, "GetDatabaseList", cancellationToken, connectionString, password, decryptPassword);
         }
         
         public async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("GetDatabaseList {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
+
             return await Send<String>(jobRunTask.JobTask.Agent.Key, "Run", cancellationToken, jobRunTask, previousTask);
         }
 
         public async Task<String> Stop(JobRunTask jobRunTask, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Stop {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
+
             return await Send<String>(jobRunTask.JobTask.Agent.Key, "Stop", cancellationToken, jobRunTask.JobRunTaskId);
         }
 
         public async Task<String> Encrypt(Agent agent, String input, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Encrypt {name} {agentId}", agent.Name, agent.AgentId);
+
             return await Send<String>(agent.Key, "Encrypt", cancellationToken, input);
         }
 
         public async Task<String> GetLogs(Agent agent, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("GetLogs {name} {agentId}", agent.Name, agent.AgentId);
+
             return await Send<String>(agent.Key, "GetLogs", cancellationToken);
         }
 

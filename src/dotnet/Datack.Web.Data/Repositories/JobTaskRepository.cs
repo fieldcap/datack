@@ -72,11 +72,13 @@ namespace Datack.Web.Data.Repositories
             }
 
             dbJobTask.Name = jobTask.Name;
+            dbJobTask.IsActive = jobTask.IsActive;
             dbJobTask.Description = jobTask.Description;
             dbJobTask.Order = jobTask.Order;
             dbJobTask.UsePreviousTaskArtifactsFromJobTaskId = jobTask.UsePreviousTaskArtifactsFromJobTaskId;
             dbJobTask.Type = jobTask.Type;
             dbJobTask.Parallel = jobTask.Parallel;
+            dbJobTask.MaxItemsToKeep = jobTask.MaxItemsToKeep;
             dbJobTask.Timeout = jobTask.Timeout;
             dbJobTask.Settings = jobTask.Settings;
             dbJobTask.AgentId = jobTask.AgentId;
