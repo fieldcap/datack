@@ -2,10 +2,11 @@ import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } fr
 import { Spinner, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
-import { format, formatDistanceStrict, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import React, { FC, useMemo } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
 import { JobRunTask } from '../../models/job-run-task';
+import { formatRuntimeTask } from '../../services/date';
 import JobTasks from '../../services/jobTasks';
 
 type Props = {
@@ -43,14 +44,7 @@ const JobRunOverviewTasks: FC<Props> = (props) => {
             {
                 Header: 'Runtime',
                 accessor: 'runTime',
-                Cell: (c) => {
-                    if (c.row.original.completed == null && c.row.original.started != null) {
-                        formatDistanceStrict(parseISO(c.row.original.started), new Date());
-                    } else if (c.value != null) {
-                        return formatDistanceStrict(0, c.value * 1000);
-                    }
-                    return '';
-                },
+                Cell: (c) => formatRuntimeTask(c.row.original),
             },
             {
                 Header: 'Task',

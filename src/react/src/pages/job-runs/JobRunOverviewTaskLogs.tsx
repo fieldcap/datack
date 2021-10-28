@@ -2,11 +2,12 @@ import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { Heading, Th, Thead } from '@chakra-ui/react';
 import { chakra } from '@chakra-ui/system';
 import { Table, Tbody, Td, Tr } from '@chakra-ui/table';
-import { format, formatDistanceStrict, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useRef } from 'react';
 import { Column, useSortBy, useTable } from 'react-table';
 import { JobRunTask } from '../../models/job-run-task';
 import { JobRunTaskLog } from '../../models/job-run-task-log';
+import { formatRuntimeTask } from '../../services/date';
 import JobTasks from '../../services/jobTasks';
 
 type Props = {
@@ -84,15 +85,7 @@ const JobRunOverviewTaskLogs: FC<Props> = (props) => {
                     </Tr>
                     <Tr>
                         <Td style={{ fontWeight: 'bold' }}>Runtime</Td>
-                        <Td>
-                            {props.jobRunTask != null &&
-                            props.jobRunTask.started != null &&
-                            props.jobRunTask.completed != null
-                                ? formatDistanceStrict(parseISO(props.jobRunTask.started), new Date())
-                                : props.jobRunTask.runTime != null
-                                ? formatDistanceStrict(0, props.jobRunTask.runTime * 1000)
-                                : ''}
-                        </Td>
+                        <Td>{formatRuntimeTask(props.jobRunTask)}</Td>
                     </Tr>
                     <Tr>
                         <Td style={{ fontWeight: 'bold' }}>Task Type</Td>

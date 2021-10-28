@@ -1,6 +1,6 @@
 import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } from '@chakra-ui/icons';
 import { chakra, Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
-import { format, formatDistanceStrict, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
@@ -8,6 +8,7 @@ import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
 import { JobRun } from '../../models/job-run';
+import { formatRuntime } from '../../services/date';
 import JobRuns from '../../services/job-runs';
 
 type JobHistoryTabTabProps = {
@@ -69,14 +70,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
                 Header: 'Runtime',
                 accessor: 'runTime',
                 sortType: 'datetime',
-                Cell: (c) => {
-                    if (c.row.original.completed == null) {
-                        formatDistanceStrict(parseISO(c.row.original.started), new Date());
-                    } else if (c.value != null) {
-                        return formatDistanceStrict(0, c.value * 1000);
-                    }
-                    return '';
-                },
+                Cell: (c) => formatRuntime(c.row.original),
             },
             {
                 Header: 'Result',
