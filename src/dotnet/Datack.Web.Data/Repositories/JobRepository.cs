@@ -137,7 +137,7 @@ namespace Datack.Web.Data.Repositories
                     continue;
                 }
 
-                var dbJobTask = dbJobTasks.FirstOrDefault(m => m.UsePreviousTaskArtifactsFromJobTaskId == newJobTask.UsePreviousTaskArtifactsFromJobTaskId);
+                var dbJobTask = dbJobTasks.FirstOrDefault(m => m.JobTaskId == newJobTask.UsePreviousTaskArtifactsFromJobTaskId);
 
                 if (dbJobTask == null)
                 {

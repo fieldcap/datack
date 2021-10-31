@@ -96,7 +96,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 setJobRunTasks((m) =>
                     m.map((m) => (m.jobRunTaskId === updatedJobRunTask.jobRunTaskId ? { ...updatedJobRunTask } : m))
                 );
-                if (activeJobRunTask != null && activeJobRunTask.jobRunTaskId) {
+                if (activeJobRunTask != null && activeJobRunTask.jobRunTaskId === updatedJobRunTask.jobRunTaskId) {
                     setActiveJobRunTask(updatedJobRunTask);
                 }
             });

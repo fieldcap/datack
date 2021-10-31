@@ -53,7 +53,7 @@ cd ..
 
 Remove-Item -Path out -Recurse -Force
 
-gh-release --assets Datack.Server.zip,Datack.Agent.zip
+gh-release -w C:/Projects/datack --assets "Datack.Server.zip,Datack.Agent.zip"
 
 #Remove-Item Datack.Server.zip
 #Remove-Item Datack.Agent.zip

@@ -11,10 +11,10 @@ namespace Datack.Agent.Services
 {
     public class JobRunner
     {
+        private static readonly SemaphoreSlim ExecuteJobRunLock = new(1, 1);
+
         private readonly ILogger<JobRunner> _logger;
         private readonly RpcService _rpcService;
-
-        private readonly SemaphoreSlim _executeJobRunLock = new(1, 1);
 
         private readonly Dictionary<String, BaseTask> _tasks;
 
@@ -92,7 +92,7 @@ namespace Datack.Agent.Services
             _logger.LogDebug("Running job run task {jobRunTaskId}", jobRunTask.JobRunTaskId);
 
             // Make sure only 1 process executes a job run otherwise it might run duplicate tasks.
-            var receivedLockSuccesfully = await _executeJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+            var receivedLockSuccesfully = await ExecuteJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
 
             try
             {
@@ -141,7 +141,7 @@ namespace Datack.Agent.Services
                 finally
                 {
                     _logger.LogDebug("Releasing lock for job run {jobRunTaskId}", jobRunTask.JobRunTaskId);
-                    _executeJobRunLock.Release();
+                    ExecuteJobRunLock.Release();
                 }
             }
             catch (Exception ex)

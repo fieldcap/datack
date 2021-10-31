@@ -82,13 +82,16 @@ namespace Datack.Web.Service.Hubs
             Transactions.TryAdd(rpcResult.TransactionId, rpcResult);
         }
 
-        public void Update(List<RpcProgressEvent> progressEvents, List<RpcCompleteEvent> completedEvents)
+        public void UpdateProgress(List<RpcProgressEvent> progressEvents)
         {
             foreach (var progressEvent in progressEvents)
             {
                 OnProgressTask?.Invoke(null, progressEvent);
             }
-
+        }
+        
+        public void UpdateComplete(List<RpcCompleteEvent> completedEvents)
+        {
             foreach (var completeEvent in completedEvents)
             {
                 OnProgressTask?.Invoke(null, new RpcProgressEvent

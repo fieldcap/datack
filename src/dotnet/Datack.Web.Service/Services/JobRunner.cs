@@ -13,6 +13,7 @@ namespace Datack.Web.Service.Services
     public class JobRunner
     {
         public static readonly SemaphoreSlim ExecuteJobRunLock = new(1, 1);
+        private static readonly SemaphoreSlim SetupJobRunLock = new(1, 1);
 
         private readonly JobRuns _jobRuns;
         private readonly JobRunTasks _jobRunTasks;
@@ -20,8 +21,6 @@ namespace Datack.Web.Service.Services
         private readonly ILogger<JobRunner> _logger;
         private readonly RemoteService _remoteService;
         private readonly Emails _emails;
-
-        private static readonly SemaphoreSlim SetupJobRunLock = new(1, 1);
 
         private readonly Dictionary<String, IBaseTask> _tasks;
 
@@ -315,11 +314,9 @@ namespace Datack.Web.Service.Services
                                                  .Where(t => t != null)
                                                  .Count(nextTask => nextTask.Completed == null);
 
-                        _logger.LogDebug($"Found {pendingForNextTask} tasks pending in the next task");
-
                         if (pendingForNextTask > jobRunTask.JobTask.MaxItemsToKeep)
                         {
-                            _logger.LogDebug("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {pendingForNextTask} tasks pending for the next task, max items to keep is {maxItemsToKeep} for {jobRunId} {name}",
+                            _logger.LogTrace("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {pendingForNextTask} tasks pending for the next task, max items to keep is {maxItemsToKeep} for {jobRunId} {name}",
                                              jobRunTask.JobRunTaskId,
                                              jobRunTask.ItemName,
                                              jobRunTask.Type,
@@ -334,7 +331,7 @@ namespace Datack.Web.Service.Services
                     // If there is a place in the queue, start the task.
                     if (taskSpacePending <= 0)
                     {
-                        _logger.LogDebug("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}",
+                        _logger.LogTrace("Skipping Task {jobRunTaskId} ({itemName}) for type {type}. Found {count} tasks running, max parallel is {parallel} for {jobRunId} {name}",
                                          jobRunTask.JobRunTaskId,
                                          jobRunTask.ItemName,
                                          jobRunTask.Type,

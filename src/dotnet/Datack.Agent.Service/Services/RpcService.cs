@@ -17,6 +17,10 @@ namespace Datack.Agent.Services
 {
     public class RpcService
     {
+        private static readonly SemaphoreSlim TimerLock = new(1, 1);
+        private static readonly SemaphoreSlim SendLock = new(1, 1);
+
+        private readonly ILogger<RpcService> _logger;
         private readonly AppSettings _appSettings;
 
         private HubConnection _connection;
@@ -24,13 +28,13 @@ namespace Datack.Agent.Services
         private readonly Dictionary<String, Expression> _requestMethods = new();
         private readonly String _version;
 
-        private readonly SemaphoreSlim _sendLock = new(1);
         private readonly Timer _sendTimer = new Timer(1000);
         private readonly Dictionary<Guid, RpcProgressEvent> _progressEvents = new();
         private readonly Dictionary<Guid, RpcCompleteEvent> _completeEvents = new();
 
-        public RpcService(AppSettings appSettings)
+        public RpcService(ILogger<RpcService> logger, AppSettings appSettings)
         {
+            _logger = logger;
             _appSettings = appSettings;
             _version = VersionHelper.GetVersion();
         }
@@ -43,6 +47,8 @@ namespace Datack.Agent.Services
             }
 
             var url = $"{_appSettings.ServerUrl.TrimEnd('/')}/hubs/agent";
+
+            _logger.LogDebug("Connecting to {url}", url);
 
             _connection = new HubConnectionBuilder()
                           .WithUrl(url)
@@ -62,11 +68,15 @@ namespace Datack.Agent.Services
             _sendTimer.Elapsed += async (_, _) => await TimerTick();
             _sendTimer.Start();
 
+            _logger.LogDebug("Starting timer");
+
             Connect(cancellationToken);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Stopping");
+
             if (_connection != null)
             {
                 await _connection.StopAsync(cancellationToken);
@@ -95,6 +105,8 @@ namespace Datack.Agent.Services
 
         private Task Connect(CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Connecting...");
+
             _ = Task.Run(async () =>
             {
                 while (true)
@@ -114,6 +126,8 @@ namespace Datack.Agent.Services
                         await Task.Delay(5000, cancellationToken);
                     }
                 }
+
+                _logger.LogDebug("Connected");
 
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -202,68 +216,101 @@ namespace Datack.Agent.Services
 
         private async Task TimerTick()
         {
-            if (_connection.State != HubConnectionState.Connected)
+            var hasLock = await TimerLock.WaitAsync(100);
+
+            if (!hasLock)
             {
-                return;
-            }
-
-            Dictionary<Guid, RpcProgressEvent> progressEvents;
-            Dictionary<Guid, RpcCompleteEvent> completeEvents;
-
-            var receivedLock = await _sendLock.WaitAsync(500);
-
-            if (!receivedLock)
-            {
+                _logger.LogDebug("Failed lock");
                 return;
             }
 
             try
             {
-                if (!_progressEvents.Any() && !_completeEvents.Any())
+
+                if (_connection.State != HubConnectionState.Connected)
                 {
                     return;
                 }
 
-                progressEvents = new Dictionary<Guid, RpcProgressEvent>(_progressEvents);
-                completeEvents = new Dictionary<Guid, RpcCompleteEvent>(_completeEvents);
-            }
-            finally
-            {
-                _sendLock.Release();
-            }
+                Dictionary<Guid, RpcProgressEvent> progressEvents;
+                Dictionary<Guid, RpcCompleteEvent> completeEvents;
 
-            try
-            {
-                await _connection.SendAsync("Update", progressEvents.Values.ToList(), completeEvents.Values.ToList());
+                var receivedLock = await SendLock.WaitAsync(500);
 
-                await _sendLock.WaitAsync();
+                if (!receivedLock)
+                {
+                    return;
+                }
 
                 try
                 {
-                    foreach (var (key, _) in progressEvents)
+                    if (!_progressEvents.Any() && !_completeEvents.Any())
                     {
-                        _progressEvents.Remove(key);
+                        return;
                     }
 
-                    foreach (var (key, _) in completeEvents)
-                    {
-                        _completeEvents.Remove(key);
-                    }
+                    progressEvents = new Dictionary<Guid, RpcProgressEvent>(_progressEvents);
+                    completeEvents = new Dictionary<Guid, RpcCompleteEvent>(_completeEvents);
                 }
                 finally
                 {
-                    _sendLock.Release();
+                    SendLock.Release();
+                }
+
+                try
+                {
+                    _logger.LogDebug($"Sending {progressEvents.Count} progress events, {completeEvents.Count} complete events");
+
+                    var progressEventsChunks = progressEvents.ChunkBy(100);
+                    var completeEventsChunks = completeEvents.ChunkBy(100);
+
+                    foreach (var progressEventsChunk in progressEventsChunks)
+                    {
+                        await _connection.SendAsync("UpdateProgress", progressEventsChunk.Select(m => m.Value).ToList());
+                    }
+
+                    foreach (var completeEventsChunk in completeEventsChunks)
+                    {
+                        await _connection.SendAsync("UpdateComplete", completeEventsChunk.Select(m => m.Value).ToList());
+                    }
+
+                    await SendLock.WaitAsync();
+
+                    try
+                    {
+                        foreach (var (key, _) in progressEvents)
+                        {
+                            _progressEvents.Remove(key);
+                        }
+
+                        foreach (var (key, _) in completeEvents)
+                        {
+                            _completeEvents.Remove(key);
+                        }
+                    }
+                    finally
+                    {
+                        SendLock.Release();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error sending updates: {ex.Message}");
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignored
+                _logger.LogError(ex, $"Error in timer loop: {ex.Message}");
+            }
+            finally
+            {
+                TimerLock.Release();
             }
         }
 
         public async Task QueueProgress(ProgressEvent progressEvent)
         {
-            await _sendLock.WaitAsync();
+            await SendLock.WaitAsync();
 
             try
             {
@@ -276,13 +323,13 @@ namespace Datack.Agent.Services
             }
             finally
             {
-                _sendLock.Release();
+                SendLock.Release();
             }
         }
 
         public async Task QueueComplete(CompleteEvent completeEvent)
         {
-            await _sendLock.WaitAsync();
+            await SendLock.WaitAsync();
 
             try
             {
@@ -296,7 +343,7 @@ namespace Datack.Agent.Services
             }
             finally
             {
-                _sendLock.Release();
+                SendLock.Release();
             }
         }
     }

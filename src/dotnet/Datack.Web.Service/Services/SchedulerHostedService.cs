@@ -136,15 +136,17 @@ namespace Datack.Web.Service.Services
                                     _logger.LogDebug($"Timeout for job run task {jobRunTask.JobRunTaskId}");
 
                                     _ = Task.Run(async () =>
-                                    {
-                                        await remoteService.Stop(jobRunTask, cancellationToken);
-                                    }, cancellationToken);
+                                                 {
+                                                     await remoteService.Stop(jobRunTask, cancellationToken);
+                                                 },
+                                                 cancellationToken);
                                 }
                                 catch
                                 {
                                     _logger.LogDebug($"Killing job run task {jobRunTask.JobRunTaskId}");
-
-                                    // If that doesn't work (client disconnected?) force complete the task.
+                                }
+                                finally
+                                {
                                     await HandleCompleteTask(jobRunTask.JobRunTaskId,
                                                              $"Task has timed out after {jobRunTask.JobTask.Timeout} seconds",
                                                              null,
@@ -364,6 +366,8 @@ namespace Datack.Web.Service.Services
 
         private async Task HandleCompleteTask(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Received Complete Event for jobRunTaskId {jobRunTaskId}", jobRunTaskId);
+
             using var serviceScope = _serviceProvider.CreateScope();
 
             var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
