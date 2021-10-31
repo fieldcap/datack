@@ -9,6 +9,8 @@ If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
     Break
 }
 
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
 Write-Host "Stopping Datack Agent..."
 
 Stop-Service "Datack Agent"
@@ -36,7 +38,7 @@ Copy-Item -Path "$currentDirectory\appsettings.json" -Destination $tempExtract -
 
 Write-Host "Moving new files"
 
-Move-Item -Path "$tempExtract\*" -Destination $currentDirectory -Force
+Copy-Item -Path "$tempExtract\*" -Destination $currentDirectory -Force -Recurse
 
 Write-Host "Removing temp files"
 
@@ -46,6 +48,6 @@ Remove-Item $pathZip -Force
 
 Write-Host "Starting Datack..."
 
-Start-Service Datack
+Start-Service "Datack Agent"
 
 Write-Host "Started Datack Agent"
