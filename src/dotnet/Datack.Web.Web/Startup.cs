@@ -102,6 +102,8 @@ namespace Datack.Web.Web
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
+            app.UseDeveloperExceptionPage();
+
             if (env.IsDevelopment())
             {
                 app.UseCors("Dev");
