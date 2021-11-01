@@ -39,6 +39,18 @@ namespace Datack.Web.Data.Repositories
                                      .ToListAsync(cancellationToken);
         }
 
+        public async Task<List<JobRunTask>> GetByAgentId(Guid agentId, CancellationToken cancellationToken)
+        {
+            return await _dataContext.JobRunTasks
+                                     .AsNoTracking()
+                                     .Include(m => m.JobTask)
+                                     .Include(m => m.JobRun)
+                                     .Where(m => m.JobTask.AgentId == agentId)
+                                     .OrderBy(m => m.TaskOrder)
+                                     .ThenBy(m => m.ItemOrder)
+                                     .ToListAsync(cancellationToken);
+        }
+
         public async Task Create(IList<JobRunTask> jobRunTasks, CancellationToken cancellationToken)
         {
             await _dataContext.AddRangeAsync(jobRunTasks, cancellationToken);

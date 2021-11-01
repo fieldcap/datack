@@ -33,6 +33,7 @@ namespace Datack.Web.Data.Repositories
             return await _dataContext.JobTasks
                                      .AsNoTracking()
                                      .Include(m => m.Agent)
+                                     .Include(m => m.Job)
                                      .Where(m => m.AgentId == agentId)
                                      .ToListAsync(cancellationToken);
         }

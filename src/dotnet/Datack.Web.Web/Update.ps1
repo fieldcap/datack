@@ -1,6 +1,14 @@
 ﻿$currentDirectory = $PSScriptRoot
 
-Write-Host "Starting update script in $currentDirectory"
+$logfile = "$currentDirectory\upgrade_log.txt"
+Function Write-Log
+{
+   Param ([string]$logString)
+   Add-content $logfile -Value $logString
+   Write-Host $logString
+}
+
+Write-Log "Starting update script in $currentDirectory"
 
 If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator"))
 {   
@@ -11,43 +19,48 @@ If (-NOT ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-Write-Host "Stopping Datack..."
+Write-Log "Stopping Datack..."
 
 Stop-Service Datack
 
-Write-Host "Stopped Datack"
+Write-Log "Stopped Datack"
 
 $releasesUri = "https://api.github.com/repos/rogerfar/datack/releases/latest"
 $downloadUri = ((Invoke-RestMethod -Method GET -Uri $releasesUri).assets | Where-Object name -like "*Server.zip").browser_download_url
 
-Write-Host "Downloading $downloadUri"
+$tempPath = $([System.IO.Path]::GetTempPath())
+$tempName = $(Split-Path -Path $downloadUri -Leaf)
 
-$pathZip = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $(Split-Path -Path $downloadUri -Leaf)
+Write-Log "Downloading $downloadUri to $tempPath\$tempName"
+
+$pathZip = Join-Path -Path $tempPath -ChildPath $tempName
 
 Invoke-WebRequest -Uri $downloadUri -Out $pathZip
 
-$tempExtract = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath $((New-Guid).Guid)
+$tempExtract = Join-Path -Path $tempPath -ChildPath $((New-Guid).Guid)
 
-Write-Host "Extracting to $tempExtract"
+Write-Log "Extracting $pathZip to $tempExtract"
 
 Expand-Archive -Path $pathZip -DestinationPath $tempExtract -Force
 
-Write-Host "Backing up appsettings.json"
+Write-Log "Backing up appsettings.json"
 
 Copy-Item -Path "$currentDirectory\appsettings.json" -Destination $tempExtract -Force 
 
-Write-Host "Moving new files"
+Write-Log "Copying new files"
 
 Copy-Item -Path "$tempExtract\*" -Destination $currentDirectory -Force -Recurse
 
-Write-Host "Removing temp files"
+Write-Log "Removing temp files from $tempExtract"
 
 Remove-Item -Path $tempExtract -Force -Recurse -ErrorAction SilentlyContinue
 
+Write-Log "Removing $pathZip"
+
 Remove-Item $pathZip -Force
 
-Write-Host "Starting Datack..."
+Write-Log "Starting Datack..."
 
 Start-Service Datack
 
-Write-Host "Started Datack"
+Write-Log "Started Datack"

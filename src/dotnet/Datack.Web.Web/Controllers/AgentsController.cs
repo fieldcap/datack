@@ -95,5 +95,14 @@ namespace Datack.Web.Web.Controllers
 
             return Ok(logs);
         }
+
+        [HttpGet]
+        [Route("UpgradeAgent/{agentId:guid}")]
+        public async Task<ActionResult> UpgradeAgent(Guid agentId, CancellationToken cancellationToken)
+        {
+            await _agents.UpgradeAgent(agentId, cancellationToken);
+
+            return Ok();
+        }
     }
 }

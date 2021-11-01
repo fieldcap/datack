@@ -102,11 +102,15 @@ namespace Datack.Web.Web
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
         {
-            app.UseDeveloperExceptionPage();
-
             if (env.IsDevelopment())
             {
+                app.UseDeveloperExceptionPage();
                 app.UseCors("Dev");
+            }
+            else
+            {
+                app.UseHttpsRedirection();
+                app.UseHsts();
             }
 
             app.ConfigureExceptionHandler();

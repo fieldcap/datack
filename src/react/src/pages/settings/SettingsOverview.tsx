@@ -93,7 +93,7 @@ const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
                 <Heading size="md">Server Logging</Heading>
             </Box>
             <Box marginBottom={4}>
-                Server version <span id="version">1.0.2</span>
+                Server version <span id="version">1.0.4</span>
             </Box>
             <Box marginBottom={4}>
                 <SettingsSetting

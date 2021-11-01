@@ -29,6 +29,11 @@ export namespace Agents {
         const config = { cancelToken: cancelToken.token };
         await axios.delete(`/api/Agents/Delete/${agentId}`, config);
     };
+
+    export const upgradeAgent = async (agentId: string, cancelToken: CancelTokenSource): Promise<void> => {
+        const config = { cancelToken: cancelToken.token };
+        await axios.get(`/api/Agents/UpgradeAgent/${agentId}`, config);
+    };
 }
 
 export default Agents;

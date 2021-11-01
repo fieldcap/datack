@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -73,6 +75,7 @@ namespace Datack.Agent.Services
             _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
             _rpcService.Subscribe<String, String, Boolean>("TestDatabaseConnection", (connectionString, password, decryptPassword) => TestDatabaseConnection(connectionString, password, decryptPassword));
+            _rpcService.Subscribe("UpgradeAgent", () => UpgradeAgent());
 
             _rpcService.StartAsync(cancellationToken);
         }
@@ -167,6 +170,53 @@ namespace Datack.Agent.Services
             var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 
             return await _databaseAdapter.TestConnection(fullConnectionString, CancellationToken.None);
+        }
+
+        private async Task<String> UpgradeAgent()
+        {
+            await Task.Delay(1, _cancellationToken);
+
+            var entryAssembly = Assembly.GetEntryAssembly();
+
+            if (entryAssembly == null)
+            {
+                throw new Exception($"Cannot find EntryAssembly");
+            }
+
+            var root = Path.GetDirectoryName(entryAssembly.Location);
+
+            if (root == null)
+            {
+                throw new Exception($"Cannot create root path from {entryAssembly.Location}");
+            }
+
+            var updatePath = Path.Combine(root, "Update.ps1");
+
+            if (!File.Exists(updatePath))
+            {
+                throw new Exception($"Cannot find update file at {updatePath}");
+            }
+
+            _logger.LogDebug($"Starting upgrade {updatePath}");
+
+            try
+            {
+                var processStartInfo = new ProcessStartInfo
+                {
+                    UseShellExecute = true,
+                    WorkingDirectory = root,
+                    FileName = @"C:\windows\system32\windowspowershell\v1.0\powershell.exe",
+                    Arguments = "-File Update.ps1"
+                };
+
+                Process.Start(processStartInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
+
+            return "Success";
         }
     }
 }
