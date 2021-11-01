@@ -92,7 +92,7 @@ namespace Datack.Web.Service.Services
                             {
                                 using var blockServiceScope = _serviceProvider.CreateScope();
                                 var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
-                                await jobRunnerService.SetupJobRun(jobToRun, cancellationToken);
+                                await jobRunnerService.SetupJobRun(jobToRun, null, cancellationToken);
                             }, cancellationToken);
                         }
                     }

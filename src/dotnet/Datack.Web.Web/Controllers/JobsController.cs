@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,8 @@ namespace Datack.Web.Web.Controllers
     [Route("Api/Jobs")]
     public class JobsController : Controller
     {
+        private readonly RemoteService _remoteService;
+        private readonly Agents _agents;
         private readonly Jobs _jobs;
         private readonly JobRuns _jobRuns;
         private readonly JobRunTasks _jobRunTasks;
@@ -21,8 +24,10 @@ namespace Datack.Web.Web.Controllers
         private readonly JobRunner _jobRunner;
         private readonly JobTasks _jobTasks;
 
-        public JobsController(Jobs jobs, JobRuns jobRuns, JobRunTasks jobRunTasks, JobRunTaskLogs jobRunTaskLogs, JobRunner jobRunner, JobTasks jobTasks)
+        public JobsController(RemoteService remoteService, Agents agents, Jobs jobs, JobRuns jobRuns, JobRunTasks jobRunTasks, JobRunTaskLogs jobRunTaskLogs, JobRunner jobRunner, JobTasks jobTasks)
         {
+            _remoteService = remoteService;
+            _agents = agents;
             _jobs = jobs;
             _jobRuns = jobRuns;
             _jobRunTasks = jobRunTasks;
@@ -144,7 +149,13 @@ namespace Datack.Web.Web.Controllers
                 throw new Exception($"Job with ID {request.JobId} not found");
             }
 
-            var jobRunId = await _jobRunner.SetupJobRun(job, cancellationToken);
+            var overrideItemList = new List<String>();
+            if (!String.IsNullOrWhiteSpace(request.ItemList))
+            {
+                overrideItemList = request.ItemList.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+            }
+
+            var jobRunId = await _jobRunner.SetupJobRun(job, overrideItemList, cancellationToken);
 
             return Ok(jobRunId);
         }
@@ -156,6 +167,35 @@ namespace Datack.Web.Web.Controllers
             await _jobRunner.Stop(request.JobRunId, cancellationToken);
 
             return Ok();
+        }
+        
+        [HttpPost]
+        [Route("GetDatabaseList")]
+        public async Task<ActionResult> GetDatabaseList([FromBody] JobGetDatabaseListRequest request, CancellationToken cancellationToken)
+        {
+            var job = await _jobs.GetById(request.JobId, cancellationToken);
+
+            if (job == null)
+            {
+                throw new Exception($"Job with ID {request.JobId} not found");
+            }
+
+            var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
+
+            var jobTask = jobTasks.FirstOrDefault(m => m.Order == 0 && m.Type == "createBackup");
+
+            if (jobTask == null)
+            {
+                return Ok(new List<String>());
+            }
+
+            var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
+
+            var databases = await _remoteService.GetDatabaseList(agent, jobTask.Settings.CreateBackup.ConnectionString, jobTask.Settings.CreateBackup.ConnectionStringPassword, true, cancellationToken);
+
+            var databaseList = databases.Where(m => m.HasAccess).Select(m => m.DatabaseName).ToList();
+
+            return Ok(databaseList);
         }
     }
 
@@ -172,10 +212,16 @@ namespace Datack.Web.Web.Controllers
     public class JobRunRequest
     {
         public Guid JobId { get; set; }
+        public String ItemList { get; set; }
     }
 
     public class JobStopRequest
     {
         public Guid JobRunId { get; set; }
+    }
+
+    public class JobGetDatabaseListRequest
+    {
+        public Guid JobId { get; set; }
     }
 }

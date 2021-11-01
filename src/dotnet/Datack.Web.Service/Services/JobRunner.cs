@@ -76,7 +76,7 @@ namespace Datack.Web.Service.Services
         /// <summary>
         ///     Setup a new job.
         /// </summary>
-        public async Task<Guid> SetupJobRun(Job job, CancellationToken cancellationToken)
+        public async Task<Guid> SetupJobRun(Job job, IList<String> overrideItemList, CancellationToken cancellationToken)
         {
             _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
@@ -148,7 +148,24 @@ namespace Datack.Web.Service.Services
 
                         List<JobRunTask> jobRunTasks;
 
-                        if (_tasks.TryGetValue(jobTask.Type, out var task))
+                        if (overrideItemList != null && overrideItemList.Count > 0)
+                        {
+                            var itemIndex = 0;
+                            jobRunTasks = overrideItemList.Select(m => new JobRunTask
+                                                          {
+                                                              JobRunTaskId = Guid.NewGuid(),
+                                                              JobTaskId = jobTask.JobTaskId,
+                                                              JobRunId = jobRun.JobRunId,
+                                                              Type = jobTask.Type,
+                                                              ItemName = m,
+                                                              ItemOrder = itemIndex++,
+                                                              IsError = false,
+                                                              Result = null,
+                                                              Settings = jobTask.Settings
+                                                          })
+                                                          .ToList();
+                        }
+                        else if (_tasks.TryGetValue(jobTask.Type, out var task))
                         {
                             jobRunTasks = await task.Setup(job, jobTask, previousJobRunTasks, jobRun.JobRunId, cancellationToken);   
                         }

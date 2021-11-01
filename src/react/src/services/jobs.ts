@@ -47,10 +47,23 @@ export namespace Jobs {
         return result.data;
     };
 
-    export const run = async (jobId: string): Promise<string> => {
+    export const run = async (jobId: string, itemList: string): Promise<string> => {
         const result = await axios.post<string>(`/api/Jobs/Run/`, {
             jobId,
+            itemList,
         });
+        return result.data;
+    };
+
+    export const getDatabaseList = async (jobId: string, cancelToken: CancelTokenSource): Promise<string[]> => {
+        const config = { cancelToken: cancelToken.token };
+        const result = await axios.post<string[]>(
+            `/api/Jobs/GetDatabaseList/`,
+            {
+                jobId,
+            },
+            config
+        );
         return result.data;
     };
 }

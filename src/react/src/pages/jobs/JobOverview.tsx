@@ -1,4 +1,26 @@
-import { Box, Button, Heading, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
+import {
+    Box,
+    Button,
+    Checkbox,
+    FormControl,
+    FormHelperText,
+    FormLabel,
+    Heading,
+    HStack,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    Select,
+    Tab,
+    TabList,
+    TabPanel,
+    TabPanels,
+    Tabs
+} from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import Loader from '../../components/loader';
@@ -17,6 +39,12 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [job, setJob] = useState<Job | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    const [showRunModal, setShowRunModal] = useState<boolean>(false);
+    const [runType, setRunType] = useState<string>('All');
+    const [runDatabases, setRunDatabases] = useState<string[]>([]);
+
+    const [testResult, setTestResult] = useState<string[]>([]);
+
     const history = useHistory();
 
     const cancelToken = useCancellationToken();
@@ -33,40 +61,119 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         })();
     }, [props.match.params.id, cancelToken]);
 
-    const run = async () => {
-        var jobRunId = await Jobs.run(job!.jobId);
+    useEffect(() => {
+        if (runType === 'All') {
+            return;
+        }
+
+        (async () => {
+            const result = await Jobs.getDatabaseList(props.match.params.id, cancelToken);
+            setTestResult(result);
+        })();
+    }, [showRunModal, runType, props.match.params.id, cancelToken]);
+
+    const handleRunJob = () => {
+        setShowRunModal(true);
+    };
+
+    const handleRunCancel = () => {
+        setShowRunModal(false);
+    };
+
+    const handleRunOk = async () => {
+        setShowRunModal(false);
+
+        let databaseList = runDatabases.join(',');
+        if (runType === 'All') {
+            databaseList = '';
+        }
+
+        var jobRunId = await Jobs.run(job!.jobId, databaseList);
 
         history.push(`/run/${jobRunId}`);
     };
 
-    return (
-        <Loader isLoaded={job != null} error={error}>
-            <Box marginBottom={4}>
-                <Heading>{job?.name}</Heading>
-            </Box>
-            <Box marginBottom={4}>
-                <Button onClick={() => run()}>Run Job</Button>
-            </Box>
-            <Tabs>
-                <TabList>
-                    <Tab>History</Tab>
-                    <Tab>Tasks</Tab>
-                    <Tab>Configuration</Tab>
-                </TabList>
+    const getCheckBoxIncludeValue = (name: string): boolean => {
+        return runDatabases.indexOf(name) > -1;
+    };
 
-                <TabPanels>
-                    <TabPanel>
-                        <JobHistoryTab job={job}></JobHistoryTab>
-                    </TabPanel>
-                    <TabPanel>
-                        <JobTasksTab job={job}></JobTasksTab>
-                    </TabPanel>
-                    <TabPanel>
-                        <JobSettingsTab job={job}></JobSettingsTab>
-                    </TabPanel>
-                </TabPanels>
-            </Tabs>
-        </Loader>
+    const handleCheckBoxIncludeChange = (name: string, checked: boolean): void => {
+        if (checked) {
+            setRunDatabases([...runDatabases, name]);
+        } else {
+            setRunDatabases([...runDatabases.filter((m) => m !== name)]);
+        }
+    };
+
+    return (
+        <>
+            <Loader isLoaded={job != null} error={error}>
+                <Box marginBottom={4}>
+                    <Heading>{job?.name}</Heading>
+                </Box>
+                <Box marginBottom={4}>
+                    <Button onClick={() => handleRunJob()}>Run Job</Button>
+                </Box>
+                <Tabs>
+                    <TabList>
+                        <Tab>History</Tab>
+                        <Tab>Tasks</Tab>
+                        <Tab>Configuration</Tab>
+                    </TabList>
+
+                    <TabPanels>
+                        <TabPanel>
+                            <JobHistoryTab job={job}></JobHistoryTab>
+                        </TabPanel>
+                        <TabPanel>
+                            <JobTasksTab job={job}></JobTasksTab>
+                        </TabPanel>
+                        <TabPanel>
+                            <JobSettingsTab job={job}></JobSettingsTab>
+                        </TabPanel>
+                    </TabPanels>
+                </Tabs>
+            </Loader>
+            <Modal isOpen={showRunModal} onClose={handleRunCancel} size="lg">
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Run Job</ModalHeader>
+                    <ModalCloseButton />
+                    <ModalBody>
+                        <FormControl id="runType" isRequired marginBottom={4}>
+                            <FormLabel>Run Type</FormLabel>
+                            <Select value={runType} onChange={(e) => setRunType(e.target.value)}>
+                                <option value="All">All items</option>
+                                <option value="Manual">Select items</option>
+                            </Select>
+                            <FormHelperText>
+                                Run the task for either all items generated by the first ask, or select which items to
+                                run the job for.
+                            </FormHelperText>
+                        </FormControl>
+                        {testResult.map((m) => (
+                            <FormControl marginBottom={2} key={m}>
+                                <Checkbox
+                                    isChecked={getCheckBoxIncludeValue(m)}
+                                    onChange={(e) => handleCheckBoxIncludeChange(m, e.currentTarget.checked)}
+                                >
+                                    {m}
+                                </Checkbox>
+                            </FormControl>
+                        ))}
+                    </ModalBody>
+
+                    <ModalFooter>
+                        <HStack>
+                            <Button onClick={() => handleRunOk()} colorScheme="blue">
+                                Run
+                            </Button>
+                            <Button onClick={() => handleRunCancel()}>Cancel</Button>
+                        </HStack>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </>
     );
 };
 

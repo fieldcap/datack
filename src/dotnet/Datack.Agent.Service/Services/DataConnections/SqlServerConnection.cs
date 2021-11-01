@@ -27,12 +27,17 @@ namespace Datack.Agent.Services.DataConnections
             await sqlConnection.OpenAsync(cancellationToken);
 
             var result = await sqlConnection.QueryAsync<Database>(@"SELECT 
+    database_id AS 'DatabaseId',
 	name AS 'DatabaseName', 
 	HAS_PERMS_BY_NAME(name, 'DATABASE', 'BACKUP DATABASE') AS 'HasAccess' 
 FROM 
 	sys.databases");
 
-            return result.ToList();
+            var databaseList = result
+                               .OrderBy(m => m.DatabaseId > 4 ? m.DatabaseName : "")
+                               .ToList();
+
+            return databaseList;
         }
 
         public async Task CreateBackup(String connectionString, String databaseName, String backupType, String options, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
