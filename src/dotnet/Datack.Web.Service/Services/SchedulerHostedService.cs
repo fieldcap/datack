@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datack.Common.Helpers;
 using Datack.Common.Models.Data;
+using Datack.Common.Models.RPC;
 using Datack.Web.Service.Hubs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -28,10 +29,10 @@ namespace Datack.Web.Service.Services
             _logger = logger;
             _serviceProvider = serviceProvider;
 
-            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey, evt.HasPendingEvents);
+            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey, evt.RunningJobRunTaskIds);
             AgentHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
-            AgentHub.OnProgressTask += async (_, evt) => await HandleProgressTask(evt.JobRunTaskId, evt.Message, evt.IsError, CancellationToken.None);
-            AgentHub.OnCompleteTask += async (_, evt) => await HandleCompleteTask(evt.JobRunTaskId, evt.Message, evt.ResultArtifact, evt.IsError, CancellationToken.None);
+            AgentHub.OnProgressTasks += async (_, evt) => await HandleProgressTasks(evt, CancellationToken.None);
+            AgentHub.OnCompleteTasks += async (_, evt) => await HandleCompleteTasks(evt, CancellationToken.None);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -147,11 +148,16 @@ namespace Datack.Web.Service.Services
                                 }
                                 finally
                                 {
-                                    await HandleCompleteTask(jobRunTask.JobRunTaskId,
-                                                             $"Task has timed out after {jobRunTask.JobTask.Timeout} seconds",
-                                                             null,
-                                                             true,
-                                                             cancellationToken);
+                                    await HandleCompleteTasks(new List<RpcCompleteEvent>
+                                    {
+                                        new RpcCompleteEvent
+                                        {
+                                            IsError = true,
+                                            Message = $"Task has timed out after {jobRunTask.JobTask.Timeout} seconds",
+                                            ResultArtifact = null,
+                                            JobRunTaskId = jobRunTask.JobRunTaskId
+                                        }
+                                    }, cancellationToken);
                                 }
                             }
                         }
@@ -216,7 +222,7 @@ namespace Datack.Web.Service.Services
         /// <summary>
         /// Handle the connection of an agent.
         /// </summary>
-        private async void HandleClientConnect(String agentKey, Boolean hasPendingEvents)
+        private async void HandleClientConnect(String agentKey, IList<Guid> runningJobRunTaskIds)
         {
             _logger.LogDebug($"Connect agent with key {agentKey}");
 
@@ -235,14 +241,15 @@ namespace Datack.Web.Service.Services
                 return;
             }
 
-            if (hasPendingEvents)
+            if (runningJobRunTaskIds.Count > 0)
             {
-                _logger.LogDebug($"Agent with key {agentKey} has pending events, not resetting tasks");
-                return;
+                _logger.LogDebug($"Agent with {agent.Name} has {runningJobRunTaskIds.Count} pending events");
+            }
+            else
+            {
+                _logger.LogDebug($"Agent with {agent.Name} has no pending events");
             }
 
-            _logger.LogDebug($"Agent with key {agentKey} has no pending events, resetting tasks");
-            
             // Because this process alters the state of some tasks, make sure it's locked with other tasks.
             var receivedLockSuccesfully = await JobRunner.ExecuteJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), _cancellationToken);
 
@@ -268,9 +275,16 @@ namespace Datack.Web.Service.Services
                     {
                         foreach (var runningTask in runningTasks)
                         {
-                            _logger.LogDebug($"Restarting task {runningTask.JobRunTaskId} for job run {runningTask.JobRunId}");
+                            if (runningJobRunTaskIds.Contains(runningTask.JobRunTaskId))
+                            {
+                                _logger.LogDebug($"Not restarting task {runningTask.JobRunTaskId} for job run {runningTask.JobRunId}");
+                            }
+                            else
+                            {
+                                _logger.LogDebug($"Restarting task {runningTask.JobRunTaskId} for job run {runningTask.JobRunId}");
 
-                            await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, runningTask.JobRunId, null, _cancellationToken);
+                                await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, runningTask.JobRunId, null, _cancellationToken);
+                            }
 
                             await jobRunTaskLogsService.Add(new JobRunTaskLog
                                                             {
@@ -349,39 +363,66 @@ namespace Datack.Web.Service.Services
             }
         }
 
-        private async Task HandleProgressTask(Guid jobRunTaskId, String message, Boolean isError, CancellationToken cancellationToken)
+        private async Task HandleProgressTasks(IList<RpcProgressEvent> progressEvents, CancellationToken cancellationToken)
         {
             using var serviceScope = _serviceProvider.CreateScope();
-
             var jobRunTaskLogsService = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
 
-            await jobRunTaskLogsService.Add(new JobRunTaskLog
+            foreach (var progressEvent in progressEvents)
             {
-                JobRunTaskId = jobRunTaskId,
-                DateTime = DateTimeOffset.UtcNow,
-                Message = message,
-                IsError = isError
-            }, cancellationToken);
+                await jobRunTaskLogsService.Add(new JobRunTaskLog
+                                                {
+                                                    JobRunTaskId = progressEvent.JobRunTaskId,
+                                                    DateTime = DateTimeOffset.UtcNow,
+                                                    Message = progressEvent.Message,
+                                                    IsError = progressEvent.IsError
+                                                },
+                                                cancellationToken);
+            }
         }
 
-        private async Task HandleCompleteTask(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
+        private async Task HandleCompleteTasks(IList<RpcCompleteEvent> completeEvents, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Received Complete Event for jobRunTaskId {jobRunTaskId}", jobRunTaskId);
+            var distinctJobRunIds = new List<Guid>();
 
             using var serviceScope = _serviceProvider.CreateScope();
-
             var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
+            var jobRunTaskLogsService = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
 
-            var jobRunTask = await jobRunTasksService.GetById(jobRunTaskId, cancellationToken);
-
-            await jobRunTasksService.UpdateCompleted(jobRunTaskId, jobRunTask.JobRunId, message, resultArtifact, isError, cancellationToken);
-
-            _ = Task.Run(async () =>
+            foreach (var completeEvent in completeEvents)
             {
-                using var blockServiceScope = _serviceProvider.CreateScope();
-                var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
-                await jobRunnerService.ExecuteJobRun(jobRunTask.JobRunId, cancellationToken);
-            }, _cancellationToken);
+                _logger.LogDebug("Received Complete Event for jobRunTaskId {jobRunTaskId}", completeEvent.JobRunTaskId);
+
+                var jobRunTask = await jobRunTasksService.GetById(completeEvent.JobRunTaskId, cancellationToken);
+
+                distinctJobRunIds.Add(jobRunTask.JobRunId);
+
+                await jobRunTaskLogsService.Add(new JobRunTaskLog
+                                                {
+                                                    JobRunTaskId = completeEvent.JobRunTaskId,
+                                                    DateTime = DateTimeOffset.UtcNow,
+                                                    Message = completeEvent.Message,
+                                                    IsError = completeEvent.IsError
+                                                },
+                                                cancellationToken);
+
+                await jobRunTasksService.UpdateCompleted(completeEvent.JobRunTaskId, jobRunTask.JobRunId, completeEvent.Message, completeEvent.ResultArtifact, completeEvent.IsError, cancellationToken);
+            }
+
+            distinctJobRunIds = distinctJobRunIds.Distinct().ToList();
+
+            foreach (var jobRunId in distinctJobRunIds)
+            {
+                _ = Task.Run(async () =>
+                             {
+                                 using var blockServiceScope = _serviceProvider.CreateScope();
+                                 var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                                 await jobRunnerService.ExecuteJobRun(jobRunId, cancellationToken);
+                             },
+                             _cancellationToken);
+
+                await Task.Delay(1000, cancellationToken);
+            }
         }
     }
 }

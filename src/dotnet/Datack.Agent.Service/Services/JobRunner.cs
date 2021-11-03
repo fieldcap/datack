@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,14 +12,14 @@ namespace Datack.Agent.Services
 {
     public class JobRunner
     {
+        public static readonly ConcurrentDictionary<Guid, CancellationTokenSource> RunningTasks = new();
+
         private static readonly SemaphoreSlim ExecuteJobRunLock = new(1, 1);
 
         private readonly ILogger<JobRunner> _logger;
         private readonly RpcService _rpcService;
 
         private readonly Dictionary<String, BaseTask> _tasks;
-
-        private readonly Dictionary<Guid, CancellationTokenSource> _runningTasks = new();
 
         public JobRunner(ILogger<JobRunner> logger,
                          RpcService rpcService,
@@ -67,7 +68,7 @@ namespace Datack.Agent.Services
                         _logger.LogInformation("{jobRunTaskId}: {message}", evt.JobRunTaskId, evt.Message);
                     }
 
-                    _runningTasks.Remove(evt.JobRunTaskId);
+                    RunningTasks.TryRemove(evt.JobRunTaskId, out var _);
 
                     await _rpcService.QueueComplete(evt);
                 };
@@ -117,6 +118,12 @@ namespace Datack.Agent.Services
                     {
                         throw new Exception($"Unknown task type {jobRunTask.Type}");
                     }
+                    
+                    if (RunningTasks.TryGetValue(jobRunTask.JobRunTaskId, out var runningTask))
+                    {
+                        _logger.LogDebug("Task {jobRunTaskId} is already running ", jobRunTask.JobRunTaskId);
+                        return;
+                    }
 
                     _ = Task.Run(async () =>
                     {
@@ -130,8 +137,9 @@ namespace Datack.Agent.Services
                             cancellationTokenSource = new CancellationTokenSource();
                         }
 
-                        if (!_runningTasks.TryAdd(jobRunTask.JobRunTaskId, cancellationTokenSource))
+                        if (!RunningTasks.TryAdd(jobRunTask.JobRunTaskId, cancellationTokenSource))
                         {
+                            _logger.LogDebug("Task {jobRunTaskId} cannot be added", jobRunTask.JobRunTaskId);
                             return;
                         }
 
@@ -160,7 +168,7 @@ namespace Datack.Agent.Services
         {
             _logger.LogDebug($"Stopping job run task {jobRunTaskId}");
 
-            _runningTasks.TryGetValue(jobRunTaskId, out var cancellationTokenSource);
+            RunningTasks.TryGetValue(jobRunTaskId, out var cancellationTokenSource);
 
             if (cancellationTokenSource == null)
             {
@@ -174,7 +182,7 @@ namespace Datack.Agent.Services
 
         public void StopAllTasks()
         {
-            foreach (var runningTask in _runningTasks)
+            foreach (var runningTask in RunningTasks)
             {
                 runningTask.Value.Cancel();
             }

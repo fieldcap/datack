@@ -90,6 +90,11 @@ namespace Datack.Agent.Services.Tasks
 
                 do
                 {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        throw new TaskCanceledException();
+                    }
+
                     var listObjectsResponse = await s3Client.ListObjectsV2Async(new ListObjectsV2Request
                                                                                 {
                                                                                     BucketName = jobRunTask.Settings.DeleteS3.Bucket,
@@ -109,6 +114,11 @@ namespace Datack.Agent.Services.Tasks
                     
                     foreach (var s3Object in listObjectsResponse.S3Objects)
                     {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            throw new TaskCanceledException();
+                        }
+
                         var s3Tags = await s3Client.GetObjectTaggingAsync(new GetObjectTaggingRequest
                         {
                             Key = s3Object.Key,

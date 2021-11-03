@@ -22,7 +22,7 @@ namespace Datack.Agent.Services.Tasks
             {
                 var diff = DateTime.UtcNow - _lastProgressUpdate;
 
-                if (diff.TotalMilliseconds < 1000 || _lastProgressMessage == message)
+                if (diff.TotalMilliseconds < 5000 || _lastProgressMessage == message)
                 {
                     return;
                 }

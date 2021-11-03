@@ -54,28 +54,27 @@ namespace Datack.Agent.Services.Tasks
 
                     while (true)
                     {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            throw new TaskCanceledException();
+                        }
+
                         try
                         {
                             fileInfo.Delete();
-
                             break;
                         }
                         catch
                         {
                             retryCount++;
 
-                            if (retryCount >= 5)
-                            {
-                                throw;
-                            }
-
-                            await Task.Delay(5000 * retryCount, cancellationToken);
+                            await Task.Delay(5000, cancellationToken);
                         }
                     }
                     
                     sw.Stop();
 
-                    var message = $"Completed deletion of {jobRunTask.ItemName} ({ByteSize.FromBytes(fileSize):0.00}) in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
+                    var message = $"Completed deletion of {jobRunTask.ItemName} with {retryCount} retries ({ByteSize.FromBytes(fileSize):0.00}) in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
 
                     OnComplete(jobRunTask.JobRunTaskId, message, null, false);
                 }

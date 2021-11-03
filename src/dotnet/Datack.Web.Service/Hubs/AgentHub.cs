@@ -15,8 +15,8 @@ namespace Datack.Web.Service.Hubs
     {
         public static event EventHandler<ClientConnectEvent> OnClientConnect;
         public static event EventHandler<ClientDisconnectEvent> OnClientDisconnect;
-        public static event EventHandler<RpcProgressEvent> OnProgressTask;
-        public static event EventHandler<RpcCompleteEvent> OnCompleteTask;
+        public static event EventHandler<IList<RpcProgressEvent>> OnProgressTasks;
+        public static event EventHandler<IList<RpcCompleteEvent>> OnCompleteTasks;
 
         private readonly ILogger<AgentHub> _logger;
         private readonly Agents _agents;
@@ -52,7 +52,7 @@ namespace Datack.Web.Service.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task Connect(String key, String version, Boolean hasPendingEvents)
+        public async Task Connect(String key, String version, List<Guid> runningJobRunTaskIds)
         {
             _logger.LogDebug("Agent with key {key} (v{version}) connecting", key, version);
 
@@ -74,7 +74,7 @@ namespace Datack.Web.Service.Hubs
                 Version = version
             });
 
-            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key, HasPendingEvents = hasPendingEvents });
+            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key, RunningJobRunTaskIds = runningJobRunTaskIds });
         }
 
         public void Response(RpcResult rpcResult)
@@ -84,24 +84,12 @@ namespace Datack.Web.Service.Hubs
 
         public void UpdateProgress(List<RpcProgressEvent> progressEvents)
         {
-            foreach (var progressEvent in progressEvents)
-            {
-                OnProgressTask?.Invoke(null, progressEvent);
-            }
+            OnProgressTasks?.Invoke(null, progressEvents);
         }
         
         public void UpdateComplete(List<RpcCompleteEvent> completedEvents)
         {
-            foreach (var completeEvent in completedEvents)
-            {
-                OnProgressTask?.Invoke(null, new RpcProgressEvent
-                {
-                    JobRunTaskId = completeEvent.JobRunTaskId,
-                    Message = completeEvent.Message,
-                    IsError = completeEvent.IsError
-                });
-                OnCompleteTask?.Invoke(null, completeEvent);
-            }
+            OnCompleteTasks?.Invoke(null, completedEvents);
         }
     }
 

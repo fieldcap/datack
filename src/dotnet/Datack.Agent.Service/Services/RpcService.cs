@@ -134,9 +134,25 @@ namespace Datack.Agent.Services
                     return;
                 }
 
-                var hasPendingEvents = _progressEvents.Any() && _completeEvents.Any();
+                await SendLock.WaitAsync(cancellationToken);
 
-                await _connection.SendAsync("Connect", _appSettings.Token, _version, hasPendingEvents, cancellationToken);
+                Int32 progressEvents;
+                Int32 completeEvents;
+                try
+                {
+                    progressEvents = _progressEvents.Count;
+                    completeEvents = _completeEvents.Count;
+                }
+                finally
+                {
+                    SendLock.Release();
+                }
+
+                var runningTasks = new List<Guid>(JobRunner.RunningTasks.Keys);
+
+                _logger.LogDebug("Connect {token} v{_version}, running tasks: {runningTasksCount} progress events: {progressEvents}, complete events: {completeEvents}", _appSettings.Token, _version, runningTasks.Count, progressEvents, completeEvents);
+
+                await _connection.SendAsync("Connect", _appSettings.Token, _version, runningTasks, cancellationToken);
             }, cancellationToken);
 
             return Task.CompletedTask;
@@ -226,7 +242,6 @@ namespace Datack.Agent.Services
 
             try
             {
-
                 if (_connection.State != HubConnectionState.Connected)
                 {
                     return;
