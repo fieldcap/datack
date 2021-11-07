@@ -72,6 +72,7 @@ namespace Datack.Agent.Services
             _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
             _rpcService.Subscribe<String, String, Boolean>("GetDatabaseList", (connectionString, password, decryptPassword) => GetDatabaseList(connectionString, password, decryptPassword));
             _rpcService.Subscribe("GetLogs", () => GetLogs());
+            _rpcService.Subscribe("GetRunningTasks", () => GetRunningTasks());
             _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
             _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
             _rpcService.Subscribe<String, String, Boolean>("TestDatabaseConnection", (connectionString, password, decryptPassword) => TestDatabaseConnection(connectionString, password, decryptPassword));
@@ -137,6 +138,13 @@ namespace Datack.Agent.Services
             }
 
             return String.Join(Environment.NewLine, queue.ToList());
+        }
+
+        private Task<List<Guid>> GetRunningTasks()
+        {
+            var result = JobRunner.RunningTasks.Select(m => m.Key).ToList();
+
+            return Task.FromResult(result);
         }
 
         private Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)

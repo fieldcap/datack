@@ -67,6 +67,13 @@ namespace Datack.Web.Service.Services
             return await Send<String>(agent.Key, "GetLogs", cancellationToken);
         }
 
+        public async Task<IList<Guid>> GetRunningTasks(Agent agent, CancellationToken cancellationToken)
+        {
+            _logger.LogDebug("GetLogs {name} {agentId}", agent.Name, agent.AgentId);
+
+            return await Send<IList<Guid>>(agent.Key, "GetRunningTasks", cancellationToken);
+        }
+
         public async Task<String> UpgradeAgent(Agent agent, CancellationToken cancellationToken)
         {
             return await Send<String>(agent.Key, "UpgradeAgent", cancellationToken);

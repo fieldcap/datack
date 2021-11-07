@@ -52,7 +52,7 @@ namespace Datack.Web.Service.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task Connect(String key, String version, List<Guid> runningJobRunTaskIds)
+        public async Task Connect(String key, String version)
         {
             _logger.LogDebug("Agent with key {key} (v{version}) connecting", key, version);
 
@@ -74,7 +74,7 @@ namespace Datack.Web.Service.Hubs
                 Version = version
             });
 
-            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key, RunningJobRunTaskIds = runningJobRunTaskIds });
+            OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
         }
 
         public void Response(RpcResult rpcResult)

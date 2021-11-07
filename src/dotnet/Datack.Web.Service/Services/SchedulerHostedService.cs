@@ -21,7 +21,7 @@ namespace Datack.Web.Service.Services
     {
         private readonly ILogger<SchedulerHostedService> _logger;
         private readonly IServiceProvider _serviceProvider;
-        
+
         private CancellationToken _cancellationToken;
 
         public SchedulerHostedService(ILogger<SchedulerHostedService> logger, IServiceProvider serviceProvider)
@@ -29,7 +29,7 @@ namespace Datack.Web.Service.Services
             _logger = logger;
             _serviceProvider = serviceProvider;
 
-            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey, evt.RunningJobRunTaskIds);
+            AgentHub.OnClientConnect += (_, evt) => HandleClientConnect(evt.AgentKey);
             AgentHub.OnClientDisconnect += (_, evt) => HandleClientDisconnect(evt.AgentKey);
             AgentHub.OnProgressTasks += async (_, evt) => await HandleProgressTasks(evt, CancellationToken.None);
             AgentHub.OnCompleteTasks += async (_, evt) => await HandleCompleteTasks(evt, CancellationToken.None);
@@ -222,7 +222,7 @@ namespace Datack.Web.Service.Services
         /// <summary>
         /// Handle the connection of an agent.
         /// </summary>
-        private async void HandleClientConnect(String agentKey, IList<Guid> runningJobRunTaskIds)
+        private async void HandleClientConnect(String agentKey)
         {
             _logger.LogDebug($"Connect agent with key {agentKey}");
 
@@ -232,6 +232,7 @@ namespace Datack.Web.Service.Services
             var jobRunTaskLogsService = serviceScope.ServiceProvider.GetRequiredService<JobRunTaskLogs>();
             var jobRunTasksService = serviceScope.ServiceProvider.GetRequiredService<JobRunTasks>();
             var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
+            var remoteService = serviceScope.ServiceProvider.GetRequiredService<RemoteService>();
 
             var agent = await agentsService.GetByKey(agentKey, _cancellationToken);
 
@@ -239,15 +240,6 @@ namespace Datack.Web.Service.Services
             {
                 _logger.LogDebug($"Agent with key {agentKey} not found!");
                 return;
-            }
-
-            if (runningJobRunTaskIds.Count > 0)
-            {
-                _logger.LogDebug($"Agent with {agent.Name} has {runningJobRunTaskIds.Count} pending events");
-            }
-            else
-            {
-                _logger.LogDebug($"Agent with {agent.Name} has no pending events");
             }
 
             // Because this process alters the state of some tasks, make sure it's locked with other tasks.
@@ -261,6 +253,18 @@ namespace Datack.Web.Service.Services
 
             try
             {
+                // Get the list of current running jobs on the agent
+                var runningJobRunTaskIds = await remoteService.GetRunningTasks(agent, _cancellationToken);
+
+                if (runningJobRunTaskIds.Count == 0)
+                {
+                    _logger.LogDebug($"Agent with {agent.Name} has no pending events");
+
+                    return;
+                }
+
+                _logger.LogDebug($"Agent with {agent.Name} has {runningJobRunTaskIds.Count} pending events: {String.Join(", ", runningJobRunTaskIds)}");
+
                 var runningJobs = await jobRunsService.GetRunning(_cancellationToken);
 
                 // Check if this agent has running tasks, if it does, reset the task and execute them again.

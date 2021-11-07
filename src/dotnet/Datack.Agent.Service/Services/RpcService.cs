@@ -61,6 +61,9 @@ namespace Datack.Agent.Services
                           })
                           .Build();
 
+            _connection.ServerTimeout = TimeSpan.FromMinutes(30);
+            _connection.HandshakeTimeout = TimeSpan.FromMinutes(2);
+
             _connection.Closed += _ => Connect(cancellationToken);
 
             _connection.On<RpcRequest>("request", HandleRequest);
@@ -133,26 +136,10 @@ namespace Datack.Agent.Services
                 {
                     return;
                 }
+                
+                _logger.LogDebug("Connect {token} v{_version}", _appSettings.Token, _version);
 
-                await SendLock.WaitAsync(cancellationToken);
-
-                Int32 progressEvents;
-                Int32 completeEvents;
-                try
-                {
-                    progressEvents = _progressEvents.Count;
-                    completeEvents = _completeEvents.Count;
-                }
-                finally
-                {
-                    SendLock.Release();
-                }
-
-                var runningTasks = new List<Guid>(JobRunner.RunningTasks.Keys);
-
-                _logger.LogDebug("Connect {token} v{_version}, running tasks: {runningTasksCount} progress events: {progressEvents}, complete events: {completeEvents}", _appSettings.Token, _version, runningTasks.Count, progressEvents, completeEvents);
-
-                await _connection.SendAsync("Connect", _appSettings.Token, _version, runningTasks, cancellationToken);
+                await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
             }, cancellationToken);
 
             return Task.CompletedTask;

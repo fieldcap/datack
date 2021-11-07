@@ -5,7 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Datack.Agent</AssemblyName>
     <RootNamespace>Datack.Agent</RootNamespace>
-    <Version>1.0.5</Version>
+    <Version>1.0.6</Version>
   </PropertyGroup>
 
   <ItemGroup>
