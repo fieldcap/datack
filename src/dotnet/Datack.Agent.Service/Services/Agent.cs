@@ -142,7 +142,19 @@ namespace Datack.Agent.Services
 
         private Task<List<Guid>> GetRunningTasks()
         {
-            var result = JobRunner.RunningTasks.Select(m => m.Key).ToList();
+            _logger.LogDebug("GetRunningTasks");
+
+            var jobRunnerTasks = JobRunner.RunningTasks.Select(m => m.Key).ToList();
+
+            var progressEvents = _rpcService.GetProgressEvents();
+
+            var result = new List<Guid>();
+            result.AddRange(jobRunnerTasks);
+            result.AddRange(progressEvents);
+
+            result = result.Distinct().ToList();
+
+            _logger.LogDebug($"Sending RunningTasks: {String.Join(", ", result)}");
 
             return Task.FromResult(result);
         }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Datack.Agent.Models;
@@ -70,6 +71,8 @@ namespace Datack.Agent.Services
 
                     RunningTasks.TryRemove(evt.JobRunTaskId, out var _);
 
+                    _logger.LogDebug($"Running tasks: {String.Join(", ", RunningTasks.Select(m => m.Key))}");
+
                     await _rpcService.QueueComplete(evt);
                 };
                 task.OnProgressEvent += async (_, evt) =>
@@ -119,9 +122,12 @@ namespace Datack.Agent.Services
                         throw new Exception($"Unknown task type {jobRunTask.Type}");
                     }
                     
-                    if (RunningTasks.TryGetValue(jobRunTask.JobRunTaskId, out var runningTask))
+                    if (RunningTasks.TryGetValue(jobRunTask.JobRunTaskId, out _))
                     {
                         _logger.LogDebug("Task {jobRunTaskId} is already running ", jobRunTask.JobRunTaskId);
+
+                        _logger.LogDebug($"Running tasks: {String.Join(", ", RunningTasks.Select(m => m.Key))}");
+
                         return;
                     }
 
@@ -136,6 +142,8 @@ namespace Datack.Agent.Services
                         {
                             cancellationTokenSource = new CancellationTokenSource();
                         }
+
+                        _logger.LogDebug($"Running tasks: {String.Join(", ", RunningTasks.Select(m => m.Key))}");
 
                         if (!RunningTasks.TryAdd(jobRunTask.JobRunTaskId, cancellationTokenSource))
                         {

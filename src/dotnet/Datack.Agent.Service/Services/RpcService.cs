@@ -28,9 +28,10 @@ namespace Datack.Agent.Services
         private readonly Dictionary<String, Expression> _requestMethods = new();
         private readonly String _version;
 
-        private readonly Timer _sendTimer = new Timer(1000);
         private readonly Dictionary<Guid, RpcProgressEvent> _progressEvents = new();
         private readonly Dictionary<Guid, RpcCompleteEvent> _completeEvents = new();
+
+        private readonly Timer _sendTimer = new Timer(1000);
 
         public RpcService(ILogger<RpcService> logger, AppSettings appSettings)
         {
@@ -64,7 +65,21 @@ namespace Datack.Agent.Services
             _connection.ServerTimeout = TimeSpan.FromMinutes(30);
             _connection.HandshakeTimeout = TimeSpan.FromMinutes(2);
 
-            _connection.Closed += _ => Connect(cancellationToken);
+            _connection.Closed += exception =>
+            {
+                if (exception == null)
+                {
+                    _logger.LogDebug("Connection Closed");
+                }
+                else
+                {
+                    _logger.LogError(exception, $"Connection Closed with error: {exception.Message}");
+                }
+
+                Connect(cancellationToken);
+
+                return Task.CompletedTask;
+            };
 
             _connection.On<RpcRequest>("request", HandleRequest);
 
@@ -106,7 +121,7 @@ namespace Datack.Agent.Services
             _requestMethods.Add(methodName, method);
         }
 
-        private Task Connect(CancellationToken cancellationToken)
+        private void Connect(CancellationToken cancellationToken)
         {
             _logger.LogDebug("Connecting...");
 
@@ -114,6 +129,8 @@ namespace Datack.Agent.Services
             {
                 while (true)
                 {
+                    _logger.LogDebug("Trying to connect");
+
                     try
                     {
                         await _connection.StartAsync(cancellationToken);
@@ -141,8 +158,6 @@ namespace Datack.Agent.Services
 
                 await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
             }, cancellationToken);
-
-            return Task.CompletedTask;
         }
 
         private async Task HandleRequest(RpcRequest rpcRequest)
@@ -268,12 +283,14 @@ namespace Datack.Agent.Services
 
                     foreach (var progressEventsChunk in progressEventsChunks)
                     {
-                        await _connection.SendAsync("UpdateProgress", progressEventsChunk.Select(m => m.Value).ToList());
+                        var innerCancellationToken = new CancellationTokenSource(500).Token;
+                        await _connection.SendAsync("UpdateProgress", progressEventsChunk.Select(m => m.Value).ToList(), innerCancellationToken);
                     }
 
                     foreach (var completeEventsChunk in completeEventsChunks)
                     {
-                        await _connection.SendAsync("UpdateComplete", completeEventsChunk.Select(m => m.Value).ToList());
+                        var innerCancellationToken = new CancellationTokenSource(500).Token;
+                        await _connection.SendAsync("UpdateComplete", completeEventsChunk.Select(m => m.Value).ToList(), innerCancellationToken);
                     }
 
                     await SendLock.WaitAsync();
@@ -347,6 +364,18 @@ namespace Datack.Agent.Services
             {
                 SendLock.Release();
             }
+        }
+
+        public IList<Guid> GetProgressEvents()
+        {
+            var progressEvents = _progressEvents.Keys.ToList();
+            var completeEvents = _completeEvents.Keys.ToList();
+
+            var result = new List<Guid>();
+            result.AddRange(progressEvents);
+            result.AddRange(completeEvents);
+
+            return result.Distinct().ToList();
         }
     }
 }
