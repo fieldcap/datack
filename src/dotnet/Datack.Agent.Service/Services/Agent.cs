@@ -154,7 +154,14 @@ namespace Datack.Agent.Services
 
             result = result.Distinct().ToList();
 
-            _logger.LogDebug($"Sending RunningTasks: {String.Join(", ", result)}");
+            if (result.Count > 0)
+            {
+                _logger.LogDebug($"Sending RunningTasks: {String.Join(", ", result)}");
+            }
+            else
+            {
+                _logger.LogDebug($"No RunningTasks to send.");
+            }
 
             return Task.FromResult(result);
         }

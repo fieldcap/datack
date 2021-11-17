@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
@@ -19,7 +20,7 @@ namespace Datack.Web.Data
     {
         private static readonly JsonSerializerOptions SerializerOptions = new()
         {
-            IgnoreNullValues = true
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         public DataContext(DbContextOptions options) : base(options)
