@@ -357,7 +357,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             }
                         }}
                     />
-                    <FormHelperText>The timeout in seconds.</FormHelperText>
+                    <FormHelperText>The timeout in seconds. When no value is given, the timeout defaults to 3600 seconds.</FormHelperText>
                 </FormControl>
                 <Box marginBottom={4}>{getTaskType()}</Box>
                 {error != null ? (

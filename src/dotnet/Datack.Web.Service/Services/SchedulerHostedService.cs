@@ -120,21 +120,28 @@ namespace Datack.Web.Service.Services
                     {
                         var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, cancellationToken);
 
-                        foreach (var jobRunTask in jobRunTasks.Where(m => m.Completed == null && m.JobTask.Timeout > 0))
+                        var runningTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
+
+                        // If there are no running tasks, complete the job
+                        if (runningTasks.Count == 0)
                         {
-                            if (jobRunTask.Started == null)
-                            {
-                                continue;
-                            }
+                            _logger.LogWarning($"No running tasks found for job {runningJob.JobRunId}, marking ask complete");
+
+                            await jobRunsService.UpdateComplete(runningJob.JobRunId, cancellationToken);
+                        }
+
+                        foreach (var jobRunTask in runningTasks)
+                        {
+                            var timeout = jobRunTask.JobTask.Timeout ?? 3600;
 
                             var timespan = DateTimeOffset.UtcNow - jobRunTask.Started;
 
-                            if (timespan.Value.TotalSeconds > jobRunTask.JobTask.Timeout)
+                            if (timespan.Value.TotalSeconds > timeout)
                             {
                                 // Try sending a signal to the client to force it to stop it's task.
                                 try
                                 {
-                                    _logger.LogDebug($"Timeout for job run task {jobRunTask.JobRunTaskId}");
+                                    _logger.LogWarning($"Server timeout for job run task {jobRunTask.JobRunTaskId} after {timeout} seconds");
 
                                     _ = Task.Run(async () =>
                                                  {
@@ -153,7 +160,7 @@ namespace Datack.Web.Service.Services
                                         new RpcCompleteEvent
                                         {
                                             IsError = true,
-                                            Message = $"Task has timed out after {jobRunTask.JobTask.Timeout} seconds",
+                                            Message = $"Task has timed out on the server after {timeout} seconds",
                                             ResultArtifact = null,
                                             JobRunTaskId = jobRunTask.JobRunTaskId
                                         }
