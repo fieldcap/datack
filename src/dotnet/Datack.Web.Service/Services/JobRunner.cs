@@ -388,6 +388,8 @@ namespace Datack.Web.Service.Services
                                      await _remoteService.Run(jobRunTask, previousArtifactTask, cancellationToken);
                                  },
                                  cancellationToken);
+
+                    await Task.Delay(100, cancellationToken);
                 }
             }
             finally
