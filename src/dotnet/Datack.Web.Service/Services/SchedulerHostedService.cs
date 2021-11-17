@@ -256,13 +256,6 @@ namespace Datack.Web.Service.Services
                 // Get the list of current running jobs on the agent
                 var runningJobRunTaskIds = await remoteService.GetRunningTasks(agent, _cancellationToken);
 
-                if (runningJobRunTaskIds.Count == 0)
-                {
-                    _logger.LogDebug($"Agent with {agent.Name} has no pending events");
-
-                    return;
-                }
-
                 _logger.LogDebug($"Agent with {agent.Name} has {runningJobRunTaskIds.Count} pending events: {String.Join(", ", runningJobRunTaskIds)}");
 
                 var runningJobs = await jobRunsService.GetRunning(_cancellationToken);

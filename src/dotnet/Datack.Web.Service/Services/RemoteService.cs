@@ -41,7 +41,7 @@ namespace Datack.Web.Service.Services
         
         public async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("GetDatabaseList {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
+            _logger.LogDebug("Run {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
 
             return await Send<String>(jobRunTask.JobTask.Agent.Key, "Run", cancellationToken, jobRunTask, previousTask);
         }
