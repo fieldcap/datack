@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
 import { FaSignOutAlt } from 'react-icons/fa';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import LogoIcon from '../icons/LogoIcon';
 import Auth from '../services/auth';
 
@@ -30,16 +30,16 @@ const NavLayout: FC<NavLayoutProps> = (props) => {
 
     const [activeRoute, setActiveRoute] = useState<string>(location.pathname);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const handleNavigate = (page: string) => {
-        history.push(page);
+        history(page);
         setActiveRoute(page);
     };
 
     const logout = async () => {
         await Auth.logout();
-        history.push('/login');
+        history('/login');
     };
 
     const content = (

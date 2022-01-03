@@ -22,7 +22,7 @@ import {
     Tabs
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Job } from '../../models/job';
@@ -31,11 +31,13 @@ import JobHistoryTab from './JobHistoryTab';
 import JobSettingsTab from './JobSettingsTab';
 import JobTasksTab from './JobTasksTab';
 
-type RouteParams = {
+type JobOverviewRouteParams = {
     id: string;
 };
 
-const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
+const JobOverview: FC = () => {
+    const params = useParams<JobOverviewRouteParams>();
+
     const [job, setJob] = useState<Job | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +47,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const [testResult, setTestResult] = useState<string[]>([]);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -53,13 +55,13 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         (async () => {
             try {
                 setError(null);
-                const result = await Jobs.getById(props.match.params.id, cancelToken);
+                const result = await Jobs.getById(params.id!, cancelToken);
                 setJob(result);
             } catch (err: any) {
                 setError(err);
             }
         })();
-    }, [props.match.params.id, cancelToken]);
+    }, [params.id, cancelToken]);
 
     useEffect(() => {
         if (runType === 'All') {
@@ -67,10 +69,10 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         }
 
         (async () => {
-            const result = await Jobs.getDatabaseList(props.match.params.id, cancelToken);
+            const result = await Jobs.getDatabaseList(params.id!, cancelToken);
             setTestResult(result);
         })();
-    }, [showRunModal, runType, props.match.params.id, cancelToken]);
+    }, [showRunModal, runType, params.id, cancelToken]);
 
     const handleRunJob = () => {
         setShowRunModal(true);
@@ -90,7 +92,7 @@ const JobOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         var jobRunId = await Jobs.run(job!.jobId, databaseList);
 
-        history.push(`/run/${jobRunId}`);
+        history(`/run/${jobRunId}`);
     };
 
     const getCheckBoxIncludeValue = (name: string): boolean => {

@@ -14,7 +14,7 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { v4 } from 'uuid';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
@@ -22,12 +22,14 @@ import { JobTask } from '../../models/job-task';
 import Agents from '../../services/agents';
 import JobTasks from '../../services/jobTasks';
 
-type RouteParams = {
-    id?: string;
+type JobTaskAddParams = {
+    id: string;
     jobId: string;
 };
 
-const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
+const JobTaskAdd: FC = () => {
+    const params = useParams<JobTaskAddParams>();
+
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [type, setType] = useState<string>('');
@@ -38,7 +40,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
     const [error, setError] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState<boolean>(false);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -59,7 +61,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
         try {
             const newJobTask: JobTask = {
                 jobTaskId: v4(),
-                jobId: props.match.params.jobId,
+                jobId: params.jobId!,
                 isActive: true,
                 name: name,
                 description: description,
@@ -75,7 +77,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
 
             const result = await JobTasks.add(newJobTask, cancelToken);
 
-            history.push(`/job/${props.match.params.jobId}/task/${result.jobTaskId}`);
+            history(`/job/${params.jobId!}/task/${result.jobTaskId}`);
         } catch (err: any) {
             setError(err);
         }
@@ -83,7 +85,7 @@ const JobTaskAdd: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     const cancel = () => {
-        history.push(`/job/${props.match.params.jobId}`);
+        history(`/job/${params.jobId!}`);
     };
 
     return (

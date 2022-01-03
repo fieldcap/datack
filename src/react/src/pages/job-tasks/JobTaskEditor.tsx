@@ -22,7 +22,7 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
@@ -36,12 +36,14 @@ import JobTaskDeleteS3 from './JobTaskDeleteS3';
 import JobTaskUploadAzure from './JobTaskUploadAzure';
 import JobTaskUploadS3 from './JobTaskUploadS3';
 
-type RouteParams = {
-    id?: string;
+type JobTaskEditorParams = {
+    id: string;
     jobId: string;
 };
 
-const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
+const JobTaskEditor: FC = () => {
+    const params = useParams<JobTaskEditorParams>();
+
     const [jobTask, setJobTask] = useState<JobTask | null>(null);
 
     const [allJobTasks, setAllJobTasks] = useState<JobTask[]>([]);
@@ -65,13 +67,13 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
     useEffect(() => {
         (async () => {
-            const result = await JobTasks.getById(props.match.params.id!, cancelToken);
+            const result = await JobTasks.getById(params.id!, cancelToken);
             setJobTask(result);
             setName(result.name);
             setIsActive(result.isActive);
@@ -87,7 +89,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         (async () => {
             try {
-                const result = await JobTasks.getForJob(props.match.params.jobId, cancelToken);
+                const result = await JobTasks.getForJob(params.jobId!, cancelToken);
                 setAllJobTasks(result);
             } catch (err: any) {
                 setError(`Cannot get job tasks: ${err}`);
@@ -102,7 +104,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                 setError(`Cannot get agents: ${err}`);
             }
         })();
-    }, [props.match.params.id, props.match.params.jobId, cancelToken]);
+    }, [params.id!, params.jobId!, cancelToken]);
 
     const save = async () => {
         setIsSaving(true);
@@ -130,7 +132,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
 
             await JobTasks.update(jobTask, cancelToken);
 
-            history.push(`/job/${jobTask.jobId}`);
+            history(`/job/${jobTask.jobId}`);
         } catch (err: any) {
             setIsSaving(false);
             setError(err);
@@ -152,7 +154,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
             await JobTasks.deleteJobTask(jobTask!.jobTaskId, cancelToken);
             setIsSaving(false);
 
-            history.push('/jobs');
+            history('/jobs');
         } catch (err: any) {
             setError(err);
             setIsSaving(false);
@@ -164,7 +166,7 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     const cancel = () => {
-        history.push(`/job/${props.match.params.jobId}`);
+        history(`/job/${params.jobId!}`);
     };
 
     const getTaskType = () => {
@@ -357,7 +359,9 @@ const JobTaskEditor: FC<RouteComponentProps<RouteParams>> = (props) => {
                             }
                         }}
                     />
-                    <FormHelperText>The timeout in seconds. When no value is given, the timeout defaults to 3600 seconds.</FormHelperText>
+                    <FormHelperText>
+                        The timeout in seconds. When no value is given, the timeout defaults to 3600 seconds.
+                    </FormHelperText>
                 </FormControl>
                 <Box marginBottom={4}>{getTaskType()}</Box>
                 {error != null ? (

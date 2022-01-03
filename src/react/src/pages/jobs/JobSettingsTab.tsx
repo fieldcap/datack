@@ -26,7 +26,7 @@ import {
 import { format, parseISO } from 'date-fns';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useState } from 'react';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router';
 import Loader from '../../components/loader';
 import { Job, JobSettings } from '../../models/job';
 import Jobs, { TestCronResult } from '../../services/jobs';
@@ -58,7 +58,7 @@ const JobSettingsTab: FC<Props> = (props) => {
 
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const handleChangeCrons = useCallback(() => {
         (async () => {
@@ -126,7 +126,7 @@ const JobSettingsTab: FC<Props> = (props) => {
 
         try {
             const newJob = await Jobs.duplicate(props.job!.jobId);
-            history.push(`/job/${newJob.jobId}`);
+            history(`/job/${newJob.jobId}`);
         } catch (err: any) {
             setError(err);
             setIsSaving(false);
@@ -148,7 +148,7 @@ const JobSettingsTab: FC<Props> = (props) => {
             await Jobs.deleteJob(props.job!.jobId);
             setIsSaving(false);
 
-            history.push('/jobs');
+            history('/jobs');
         } catch (err: any) {
             setError(err);
             setIsSaving(false);

@@ -1,19 +1,19 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { Button, chakra, Heading, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
 import Agents from '../../services/agents';
 
-const AgentList: FC<RouteComponentProps> = () => {
+const AgentList: FC = () => {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -30,11 +30,11 @@ const AgentList: FC<RouteComponentProps> = () => {
     }, [cancelToken]);
 
     const rowClick = (agentId: string): void => {
-        history.push(`/agent/${agentId}`);
+        history(`/agent/${agentId}`);
     };
 
     const handleAddNewAgentClick = () => {
-        history.push(`/agent/new`);
+        history(`/agent/new`);
     };
 
     const columns = useMemo(() => {

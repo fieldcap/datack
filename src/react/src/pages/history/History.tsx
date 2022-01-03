@@ -2,7 +2,7 @@ import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } fr
 import { Box, chakra, Heading, Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -10,14 +10,12 @@ import { JobRun } from '../../models/job-run';
 import { formatRuntime } from '../../services/date';
 import JobRuns from '../../services/job-runs';
 
-type RouteParams = {};
-
-const History: FC<RouteComponentProps<RouteParams>> = (props) => {
+const History: FC = () => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [jobRuns, setJobRuns] = useState<JobRun[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -35,7 +33,7 @@ const History: FC<RouteComponentProps<RouteParams>> = (props) => {
     }, [cancelToken]);
 
     const rowClick = (jobRunId: string): void => {
-        history.push(`/run/${jobRunId}`);
+        history(`/run/${jobRunId}`);
     };
 
     const columns = useMemo(() => {

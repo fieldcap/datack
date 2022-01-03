@@ -1,7 +1,7 @@
 import { ChevronRightIcon } from '@chakra-ui/icons';
 import { Box, Flex, IconButton, useBreakpointValue } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import AgentAdd from '../pages/agents/AgentAdd';
 import AgentList from '../pages/agents/AgentList';
 import AgentOverview from '../pages/agents/AgentOverview';
@@ -13,6 +13,7 @@ import JobAdd from '../pages/jobs/JobAdd';
 import JobList from '../pages/jobs/JobList';
 import JobOverview from '../pages/jobs/JobOverview';
 import SettingsOverview from '../pages/settings/SettingsOverview';
+import Auth from '../services/auth';
 import NavLayout from './NavLayout';
 
 const smVariant = { navigation: 'drawer', navigationButton: true };
@@ -22,6 +23,16 @@ const MainLayout: FC = () => {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const variants = useBreakpointValue({ base: smVariant, md: mdVariant });
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
+
+    if (!Auth.hasAuthToken()) {
+        return (
+            <Navigate
+                to={{
+                    pathname: '/login',
+                }}
+            />
+        );
+    }
 
     return (
         <Flex height="100%" alignItems="stretch">
@@ -45,19 +56,19 @@ const MainLayout: FC = () => {
             <NavLayout variant={variants?.navigation} isOpen={isSidebarOpen} onClose={toggleSidebar}></NavLayout>
 
             <Box flex="1" padding="24px">
-                <Switch>
-                    <Route path="/settings" render={(props) => <SettingsOverview {...props} />} />
-                    <Route path="/agents" render={(props) => <AgentList {...props} />} />
-                    <Route path="/agent/new" render={(props) => <AgentAdd {...props} />} />
-                    <Route path="/agent/:id" render={(props) => <AgentOverview {...props} />} />
-                    <Route path="/jobs" render={(props) => <JobList {...props} />} />
-                    <Route path="/job/new" render={(props) => <JobAdd {...props} />} />
-                    <Route path="/job/:jobId/task/add" render={(props) => <JobTaskAdd {...props} />} />
-                    <Route path="/job/:jobId/task/:id" render={(props) => <JobTaskEditor {...props} />} />
-                    <Route path="/job/:id" render={(props) => <JobOverview {...props} />} />
-                    <Route path="/run/:id" render={(props) => <JobRunOverview {...props} />} />
-                    <Route path="/history" render={(props) => <History {...props} />} />
-                </Switch>
+                <Routes>
+                    <Route path="/settings" element={<SettingsOverview />} />
+                    <Route path="/agents" element={<AgentList />} />
+                    <Route path="/agent/new" element={<AgentAdd />} />
+                    <Route path="/agent/:id" element={<AgentOverview />} />
+                    <Route path="/jobs" element={<JobList />} />
+                    <Route path="/job/new" element={<JobAdd />} />
+                    <Route path="/job/:jobId/task/add" element={<JobTaskAdd />} />
+                    <Route path="/job/:jobId/task/:id" element={<JobTaskEditor />} />
+                    <Route path="/job/:id" element={<JobOverview />} />
+                    <Route path="/run/:id" element={<JobRunOverview />} />
+                    <Route path="/history" element={<History />} />
+                </Routes>
             </Box>
         </Flex>
     );

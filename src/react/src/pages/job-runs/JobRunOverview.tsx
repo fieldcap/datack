@@ -2,7 +2,7 @@ import { Box, Button, Flex, Heading, Tab, TabList, TabPanel, TabPanels, Tabs } f
 import * as signalR from '@microsoft/signalr';
 import { HubConnectionState } from '@microsoft/signalr';
 import React, { FC, useEffect, useState } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { JobRun } from '../../models/job-run';
@@ -14,11 +14,13 @@ import JobRunOverviewQueues from './JobRunOverviewQueues';
 import JobRunOverviewTaskLogs from './JobRunOverviewTaskLogs';
 import JobRunOverviewTasks from './JobRunOverviewTasks';
 
-type RouteParams = {
+type JobRunOverviewParams = {
     id: string;
 };
 
-const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
+const JobRunOverview: FC = () => {
+    const params = useParams<JobRunOverviewParams>();
+
     const [jobRun, setJobRun] = useState<JobRun | null>(null);
     const [jobRunTasks, setJobRunTasks] = useState<JobRunTask[]>([]);
     const [jobRunTaskLogs, setJobRunTaskLogs] = useState<JobRunTaskLog[]>([]);
@@ -31,7 +33,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     useEffect(() => {
         (async () => {
             try {
-                const result = await JobRuns.getById(props.match.params.id, cancelToken);
+                const result = await JobRuns.getById(params.id!, cancelToken);
                 setJobRun(result);
             } catch (err: any) {
                 setError(err);
@@ -40,13 +42,13 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
 
         (async () => {
             try {
-                const result = await JobRuns.getTasks(props.match.params.id, cancelToken);
+                const result = await JobRuns.getTasks(params.id!, cancelToken);
                 setJobRunTasks(result);
             } catch (err: any) {
                 setError(err);
             }
         })();
-    }, [props.match.params.id, cancelToken]);
+    }, [params.id, cancelToken]);
 
     useEffect(() => {
         const newConnection = new signalR.HubConnectionBuilder().withUrl('/hubs/web').withAutomaticReconnect().build();
@@ -120,7 +122,7 @@ const JobRunOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
     };
 
     const stop = async () => {
-        await JobRuns.stop(props.match.params.id, cancelToken);
+        await JobRuns.stop(params.id!, cancelToken);
     };
 
     return (

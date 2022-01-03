@@ -1,7 +1,7 @@
 import { TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/icons';
 import { Button, chakra, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -18,7 +18,7 @@ const AgentJobList: FC<Props> = (props) => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -35,11 +35,11 @@ const AgentJobList: FC<Props> = (props) => {
     }, [props.agent, cancelToken]);
 
     const rowClick = (jobId: string): void => {
-        history.push(`/job/${jobId}`);
+        history(`/job/${jobId}`);
     };
 
     const handleAddNewJobClick = () => {
-        history.push(`/job/new`);
+        history(`/job/new`);
     };
 
     const columns = useMemo(() => {

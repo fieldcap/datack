@@ -2,7 +2,7 @@ import { CheckIcon, TimeIcon, TriangleDownIcon, TriangleUpIcon, WarningIcon } fr
 import { chakra, Spinner, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import { format, parseISO } from 'date-fns';
 import React, { FC, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Column, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -20,7 +20,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
     const [jobRuns, setJobRuns] = useState<JobRun[]>([]);
     const [error, setError] = useState<string | null>(null);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -44,7 +44,7 @@ const JobHistoryTab: FC<JobHistoryTabTabProps> = (props) => {
     }, [props.job, cancelToken]);
 
     const rowClick = (jobRunId: string): void => {
-        history.push(`/run/${jobRunId}`);
+        history(`/run/${jobRunId}`);
     };
 
     const columns = useMemo(() => {

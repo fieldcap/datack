@@ -6,20 +6,16 @@ import {
     chakra,
     Checkbox,
     Flex,
-    FormControl,
-    FormHelperText,
-    Heading,
+    FormControl, Heading,
     Input,
     InputGroup,
-    InputLeftElement,
-    Link,
-    Spinner,
+    InputLeftElement, Spinner,
     Stack,
     useColorModeValue
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
 import { FaLock, FaUserAlt } from 'react-icons/fa';
-import { Redirect, RouteComponentProps } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import BackgroundImage from '../assets/daniel-leone-g30P1zcOzXo-unsplash.jpg';
 import LogoIcon from '../icons/LogoIcon';
 import Auth from '../services/auth';
@@ -27,7 +23,7 @@ import Auth from '../services/auth';
 const CFaUserAlt = chakra(FaUserAlt);
 const CFaLock = chakra(FaLock);
 
-const Login: FC<RouteComponentProps> = () => {
+const Login: FC = () => {
     const bg = useColorModeValue('whiteAlpha.900', 'gray.700');
 
     const [email, setEmail] = useState<string>('');
@@ -70,7 +66,7 @@ const Login: FC<RouteComponentProps> = () => {
     };
 
     if (redirect) {
-        return <Redirect to="/" />;
+        return <Navigate to="/" />;
     }
 
     const loadingForm = (
@@ -111,9 +107,6 @@ const Login: FC<RouteComponentProps> = () => {
                     <InputLeftElement pointerEvents="none" children={<CFaLock />} />
                     <Input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
                 </InputGroup>
-                <FormHelperText textAlign="right">
-                    <Link>forgot password?</Link>
-                </FormHelperText>
             </FormControl>
             <FormControl>
                 <InputGroup>

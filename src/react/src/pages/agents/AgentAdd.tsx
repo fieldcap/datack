@@ -12,7 +12,7 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { v4 } from 'uuid';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
@@ -20,7 +20,7 @@ import Agents from '../../services/agents';
 
 type RouteParams = {};
 
-const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
+const AgentAdd: FC = () => {
     const [name, setName] = useState<string>('');
     const [key, setKey] = useState<string>('');
     const [description, setDescription] = useState<string>('');
@@ -29,7 +29,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
 
     const cancelToken = useCancellationToken();
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -48,7 +48,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
         try {
             setIsSaving(true);
             const newAgentId = await Agents.add(agent, cancelToken);
-            history.push(`/agent/${newAgentId}`);
+            history(`/agent/${newAgentId}`);
         } catch (err: any) {
             setIsSaving(false);
             setError(err);
@@ -57,7 +57,7 @@ const AgentAdd: FC<RouteComponentProps<RouteParams>> = () => {
 
     const handleCancel = (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        history.push(`/agents`);
+        history(`/agents`);
     };
 
     return (

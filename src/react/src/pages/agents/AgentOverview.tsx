@@ -1,6 +1,6 @@
 import { Heading, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
@@ -9,11 +9,13 @@ import AgentJobList from './AgentJobList';
 import AgentSettingsTab from './AgentSettingsTab';
 import AgentSummaryTab from './AgentSummaryTab';
 
-type RouteParams = {
+type AgentOverviewParams = {
     id: string;
 };
 
-const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
+const AgentOverview: FC = () => {
+    const params = useParams<AgentOverviewParams>();
+
     const [agent, setAgent] = useState<Agent | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,14 +25,14 @@ const AgentOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
         const fetchData = async () => {
             setError(null);
             try {
-                const result = await Agents.getById(props.match.params.id, cancelToken);
+                const result = await Agents.getById(params.id!, cancelToken);
                 setAgent(result);
             } catch (err: any) {
                 setError(err);
             }
         };
         fetchData();
-    }, [props.match.params.id, cancelToken]);
+    }, [params.id, cancelToken]);
 
     return (
         <Loader isLoaded={agent != null} error={error}>

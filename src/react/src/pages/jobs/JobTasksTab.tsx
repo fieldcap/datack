@@ -2,7 +2,7 @@ import { ArrowUpDownIcon, TriangleDownIcon, TriangleUpIcon } from '@chakra-ui/ic
 import { Button, chakra, Table, Tbody, Td, Th, Thead, Tr } from '@chakra-ui/react';
 import React, { FC, useEffect, useMemo, useState } from 'react';
 import { DragDropContext, Draggable, Droppable, DropResult } from 'react-beautiful-dnd';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { Column, useExpanded, useSortBy, useTable } from 'react-table';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
@@ -19,7 +19,7 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -47,11 +47,11 @@ const JobTasksTab: FC<JobTasksTabProps> = (props) => {
             return;
         }
 
-        history.push(`/job/${props.job?.jobId}/task/add`);
+        history(`/job/${props.job?.jobId}/task/add`);
     };
 
     const rowClick = (jobTaskId: string): void => {
-        history.push(`/job/${props.job?.jobId}/task/${jobTaskId}`);
+        history(`/job/${props.job?.jobId}/task/${jobTaskId}`);
     };
 
     const columns = useMemo(() => {

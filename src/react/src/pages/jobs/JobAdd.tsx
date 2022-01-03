@@ -12,20 +12,20 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
-import { RouteComponentProps, useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { v4 } from 'uuid';
 import { Job } from '../../models/job';
 import Jobs from '../../services/jobs';
 
 type RouteParams = {};
 
-const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
+const JobAdd: FC = () => {
     const [name, setName] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const handleSave = async (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
@@ -52,7 +52,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
         try {
             setIsSaving(true);
             const newJobId = await Jobs.add(job);
-            history.push(`/job/${newJobId}`);
+            history(`/job/${newJobId}`);
         } catch (err: any) {
             setIsSaving(false);
             setError(err);
@@ -61,7 +61,7 @@ const JobAdd: FC<RouteComponentProps<RouteParams>> = () => {
 
     const handleCancel = (event: React.FormEvent<HTMLButtonElement>) => {
         event.preventDefault();
-        history.push(`/job`);
+        history(`/job`);
     };
 
     return (

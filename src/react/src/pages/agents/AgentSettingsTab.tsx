@@ -18,7 +18,7 @@ import {
     Textarea
 } from '@chakra-ui/react';
 import React, { FC, useState } from 'react';
-import { useHistory } from 'react-router';
+import { useNavigate } from 'react-router';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Agent } from '../../models/agent';
@@ -41,7 +41,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
 
     const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
 
-    const history = useHistory();
+    const history = useNavigate();
 
     const cancelToken = useCancellationToken();
 
@@ -84,7 +84,7 @@ const AgentSettingsTab: FC<Props> = (props) => {
             await Agents.deleteAgent(props.agent!.agentId, cancelToken);
             setIsSaving(false);
 
-            history.push('/agents');
+            history('/agents');
         } catch (err: any) {
             setError(err);
             setIsSaving(false);

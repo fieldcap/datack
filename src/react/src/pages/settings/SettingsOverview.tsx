@@ -11,16 +11,13 @@ import {
     Input
 } from '@chakra-ui/react';
 import React, { FC, useEffect, useState } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
 import Loader from '../../components/loader';
 import useCancellationToken from '../../hooks/useCancellationToken';
 import { Setting } from '../../models/setting';
 import Settings from '../../services/settings';
 import SettingsSetting from './SettingsSetting';
 
-type RouteParams = {};
-
-const SettingsOverview: FC<RouteComponentProps<RouteParams>> = (props) => {
+const SettingsOverview: FC = () => {
     const [isLoaded, setIsLoaded] = useState<boolean>(false);
     const [settings, setSettings] = useState<Setting[]>([]);
     const [testEmailTo, setTestEmailTo] = useState<string>('');
