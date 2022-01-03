@@ -69,7 +69,7 @@ namespace Datack.Web.Service.Services
 
         public async Task<IList<Guid>> GetRunningTasks(Agent agent, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("GetLogs {name} {agentId}", agent.Name, agent.AgentId);
+            _logger.LogDebug("GetRunningTasks {name} {agentId}", agent.Name, agent.AgentId);
 
             return await Send<IList<Guid>>(agent.Key, "GetRunningTasks", cancellationToken);
         }
