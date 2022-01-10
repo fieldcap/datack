@@ -120,11 +120,13 @@ namespace Datack.Web.Service.Services
                     {
                         var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, cancellationToken);
 
+                        var allTasks = jobRunTasks.ToList();
                         var pendingTasks = jobRunTasks.Where(m => m.Completed == null).ToList();
                         var runningTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
+                        var jobTimeout = runningJob.Started.AddMinutes(60);
 
                         // If there are no running tasks, complete the job
-                        if (pendingTasks.Count == 0)
+                        if (pendingTasks.Count == 0 && (allTasks.Count > 0 || DateTime.UtcNow > jobTimeout))
                         {
                             _logger.LogWarning($"No pending or running tasks found for job {runningJob.JobRunId}, marking job run complete");
 

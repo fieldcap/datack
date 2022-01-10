@@ -4,7 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.9] - 2022-03-01
+## [1.0.10] - 2022-01-10
+### Changed
+- Fixed issue with the timeout checker timing out a job that hasn't created tasks yet.
+
+## [1.0.9] - 2022-01-03
 ### Changed
 - Fixed bug where the timeout checker would accidentally mark a job as complete if there are no running tasks.
 
