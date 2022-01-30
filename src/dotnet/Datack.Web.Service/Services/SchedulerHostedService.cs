@@ -118,15 +118,20 @@ namespace Datack.Web.Service.Services
 
                     foreach (var runningJob in runningJobs)
                     {
+                        // Skip checking if the job has just been created to prevent race conditions in the
+                        // job initialization procedures.
+                        if (runningJob.Started.AddMinutes(5) > DateTime.UtcNow)
+                        {
+                            continue;
+                        }
+
                         var jobRunTasks = await jobRunTasksService.GetByJobRunId(runningJob.JobRunId, cancellationToken);
 
                         var allTasks = jobRunTasks.ToList();
-                        var pendingTasks = jobRunTasks.Where(m => m.Completed == null).ToList();
-                        var runningTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
-                        var jobTimeout = runningJob.Started.AddMinutes(60);
+                        var pendingTasks = jobRunTasks.Where(m => m.Started == null && m.Completed == null).ToList();
+                        var runningTasks = jobRunTasks.Where(m => m.Started != null && m.Completed != null).ToList();
 
-                        // If there are no running tasks, complete the job
-                        if (pendingTasks.Count == 0 && (allTasks.Count > 0 || DateTime.UtcNow > jobTimeout))
+                        if (pendingTasks.Count == 0 && allTasks.Count > 0)
                         {
                             _logger.LogWarning($"No pending or running tasks found for job {runningJob.JobRunId}, marking job run complete");
 
