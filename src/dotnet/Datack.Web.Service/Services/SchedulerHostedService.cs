@@ -129,7 +129,7 @@ namespace Datack.Web.Service.Services
 
                         var allTasks = jobRunTasks.ToList();
                         var pendingTasks = jobRunTasks.Where(m => m.Started == null && m.Completed == null).ToList();
-                        var runningTasks = jobRunTasks.Where(m => m.Started != null && m.Completed != null).ToList();
+                        var runningTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
 
                         if (pendingTasks.Count == 0 && allTasks.Count > 0)
                         {
