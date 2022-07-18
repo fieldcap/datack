@@ -21,8 +21,6 @@ public class JobRunTaskLogRepository
     {
         await _dataContext.JobRunTaskLogs.AddAsync(message, cancellationToken);
 
-        throw new Exception("Test exception");
-
         await _dataContext.SaveChangesAsync(cancellationToken);
         
         return message;
