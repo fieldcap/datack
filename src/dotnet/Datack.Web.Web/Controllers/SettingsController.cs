@@ -1,66 +1,61 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Datack.Common.Models.Data;
+﻿using Datack.Common.Models.Data;
 using Datack.Web.Service.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog.Events;
 
-namespace Datack.Web.Web.Controllers
+namespace Datack.Web.Web.Controllers;
+
+[Authorize]
+[Route("Api/Settings")]
+public class SettingsController : Controller
 {
-    [Authorize]
-    [Route("Api/Settings")]
-    public class SettingsController : Controller
+    private readonly Settings _settings;
+    private readonly Emails _emails;
+
+    public SettingsController(Settings settings, Emails emails)
     {
-        private readonly Settings _settings;
-        private readonly Emails _emails;
+        _settings = settings;
+        _emails = emails;
+    }
 
-        public SettingsController(Settings settings, Emails emails)
-        {
-            _settings = settings;
-            _emails = emails;
-        }
+    [HttpGet]
+    [Route("")]
+    public async Task<ActionResult<IList<Setting>>> Get(CancellationToken cancellationToken)
+    {
+        var result = await _settings.GetAll(cancellationToken);
+        return Ok(result);
+    }
 
-        [HttpGet]
-        [Route("")]
-        public async Task<ActionResult<IList<Setting>>> Get(CancellationToken cancellationToken)
-        {
-            var result = await _settings.GetAll(cancellationToken);
-            return Ok(result);
-        }
-
-        [HttpPut]
-        [Route("")]
-        public async Task<ActionResult> Update([FromBody] IList<Setting> settings, CancellationToken cancellationToken)
-        {
-            await _settings.Update(settings, cancellationToken);
+    [HttpPut]
+    [Route("")]
+    public async Task<ActionResult> Update([FromBody] IList<Setting> settings, CancellationToken cancellationToken)
+    {
+        await _settings.Update(settings, cancellationToken);
             
-            var logLevelSetting = await _settings.Get<String>("LogLevel", cancellationToken);
+        var logLevelSetting = await _settings.Get<String>("LogLevel", cancellationToken);
 
-            if (!Enum.TryParse<LogEventLevel>(logLevelSetting, out var logLevel))
-            {
-                logLevel = LogEventLevel.Information;
-            }
-
-            Program.LoggingLevelSwitch.MinimumLevel = logLevel;
-
-            return Ok();
-        }
-
-        [HttpPost]
-        [Route("TestEmail")]
-        public async Task<ActionResult> TestEmail([FromBody] SettingsTestEmailRequest request, CancellationToken cancellationToken)
+        if (!Enum.TryParse<LogEventLevel>(logLevelSetting, out var logLevel))
         {
-            await _emails.SendTest(request.To, cancellationToken);
-
-            return Ok();
+            logLevel = LogEventLevel.Information;
         }
+
+        Settings.LoggingLevelSwitch.MinimumLevel = logLevel;
+
+        return Ok();
     }
 
-    public class SettingsTestEmailRequest
+    [HttpPost]
+    [Route("TestEmail")]
+    public async Task<ActionResult> TestEmail([FromBody] SettingsTestEmailRequest request, CancellationToken cancellationToken)
     {
-        public String To { get; set; }
+        await _emails.SendTest(request.To, cancellationToken);
+
+        return Ok();
     }
+}
+
+public class SettingsTestEmailRequest
+{
+    public String To { get; set; }
 }

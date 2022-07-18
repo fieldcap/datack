@@ -1,41 +1,36 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Datack.Common.Models.Data;
+﻿using Datack.Common.Models.Data;
 using Datack.Web.Data.Repositories;
 
-namespace Datack.Web.Service.Services
+namespace Datack.Web.Service.Services;
+
+public class JobRunTaskLogs
 {
-    public class JobRunTaskLogs
+    private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
+    private readonly RemoteService _remoteService;
+
+    public JobRunTaskLogs(JobRunTaskLogRepository jobRunTaskLogRepository, RemoteService remoteService)
     {
-        private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
-        private readonly RemoteService _remoteService;
+        _jobRunTaskLogRepository = jobRunTaskLogRepository;
+        _remoteService = remoteService;
+    }
 
-        public JobRunTaskLogs(JobRunTaskLogRepository jobRunTaskLogRepository, RemoteService remoteService)
+    public async Task Add(JobRunTaskLog jobRunTaskLog, CancellationToken cancellationToken)
+    {
+        var result = await _jobRunTaskLogRepository.Add(jobRunTaskLog, cancellationToken);
+
+        _ = Task.Run(async () =>
         {
-            _jobRunTaskLogRepository = jobRunTaskLogRepository;
-            _remoteService = remoteService;
-        }
+            await _remoteService.WebJobRunTaskLog(result);
+        }, cancellationToken);
+    }
 
-        public async Task Add(JobRunTaskLog jobRunTaskLog, CancellationToken cancellationToken)
-        {
-            var result = await _jobRunTaskLogRepository.Add(jobRunTaskLog, cancellationToken);
+    public async Task<IList<JobRunTaskLog>> GetByJobRunTaskId(Guid jobRunTaskId, CancellationToken cancellationToken)
+    {
+        return await _jobRunTaskLogRepository.GetByJobRunTaskId(jobRunTaskId, cancellationToken);
+    }
 
-            _ = Task.Run(async () =>
-            {
-                await _remoteService.WebJobRunTaskLog(result);
-            }, cancellationToken);
-        }
-
-        public async Task<IList<JobRunTaskLog>> GetByJobRunTaskId(Guid jobRunTaskId, CancellationToken cancellationToken)
-        {
-            return await _jobRunTaskLogRepository.GetByJobRunTaskId(jobRunTaskId, cancellationToken);
-        }
-
-        public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
-        {
-            return await _jobRunTaskLogRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
-        }
+    public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
+    {
+        return await _jobRunTaskLogRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
     }
 }

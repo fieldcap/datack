@@ -1,11 +1,8 @@
-﻿using System;
+﻿namespace Datack.Common.Models.RPC;
 
-namespace Datack.Common.Models.RPC
+public class RpcRequest
 {
-    public class RpcRequest
-    {
-        public Guid TransactionId { get; set; }
-        public String Request { get; set; }
-        public String Payload { get; set; }
-    }
+    public Guid TransactionId { get; set; }
+    public String Request { get; set; }
+    public String Payload { get; set; }
 }

@@ -1,21 +1,19 @@
-﻿using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Datack.Web.Data.Repositories
+namespace Datack.Web.Data.Repositories;
+
+public class UserRepository
 {
-    public class UserRepository
+    private readonly DataContext _dataContext;
+
+    public UserRepository(DataContext dataContext)
     {
-        private readonly DataContext _dataContext;
+        _dataContext = dataContext;
+    }
 
-        public UserRepository(DataContext dataContext)
-        {
-            _dataContext = dataContext;
-        }
-
-        public async Task<IdentityUser> GetUser()
-        {
-            return await _dataContext.Users.AsNoTracking().FirstOrDefaultAsync();
-        }
+    public async Task<IdentityUser> GetUser()
+    {
+        return await _dataContext.Users.AsNoTracking().FirstOrDefaultAsync();
     }
 }

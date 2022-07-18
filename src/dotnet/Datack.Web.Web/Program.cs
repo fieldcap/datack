@@ -1,126 +1,210 @@
-using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
+using System.Net;
+using System.Text.Json.Serialization;
 using Datack.Common.Helpers;
 using Datack.Web.Data;
-using Datack.Web.Service.Models;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Datack.Web.Data.Models;
+using Datack.Web.Service.Hubs;
+using Datack.Web.Service.Middleware;
+using Datack.Web.Service.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Hosting.WindowsServices;
 using Serilog;
-using Serilog.Core;
 using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Exceptions;
 
-namespace Datack.Web.Web
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
-    public class Program
+    Args = args,
+    ContentRootPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : default
+});
+
+// Bind the AppSettings from the appsettings.json files.
+builder.Configuration.AddJsonFile("appsettings.json", false, false);
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, false);
+
+// Bind AppSettings
+var appSettings = new AppSettings();
+builder.Configuration.Bind(appSettings);
+builder.Services.AddSingleton(appSettings);
+
+// Configure URLs
+if (appSettings.Port <= 0)
+{
+    appSettings.Port = 6500;
+}
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(appSettings.Port);
+});
+
+if (appSettings.Logging?.File?.Path != null)
+{
+    builder.Host.UseSerilog((_, lc) => lc.Enrich.FromLogContext()
+                                         .Enrich.WithExceptionDetails()
+                                         .WriteTo.File(appSettings.Logging.File.Path,
+                                                       rollOnFileSizeLimit: true,
+                                                       fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes,
+                                                       retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles,
+                                                       outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+                                         .WriteTo.Console()
+                                         .MinimumLevel.ControlledBy(Settings.LoggingLevelSwitch)
+                                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                                         .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning));
+}
+
+builder.Host.UseWindowsService();
+
+SelfLog.Enable(msg =>
+{
+    Debug.Print(msg);
+    Debugger.Break();
+    Console.WriteLine(msg);
+    File.WriteAllText(@"C:\Temp\Datack.txt", msg);
+});
+
+Log.Information($"Starting host version {VersionHelper.GetVersion()}");
+
+builder.Services.AddControllers()
+       .AddJsonOptions(opts =>
+        {
+            opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+            opts.JsonSerializerOptions.Converters.Add(new JsonProtectedConverter());
+        });
+
+builder.Services
+       .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+       .AddCookie(options =>
+       {
+           options.SlidingExpiration = true;
+       });
+
+builder.Services.AddAuthorization();
+
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+       {
+           options.User.RequireUniqueEmail = false;
+           options.Password.RequiredLength = 10;
+           options.Password.RequireUppercase = false;
+           options.Password.RequireLowercase = false;
+           options.Password.RequireNonAlphanumeric = false;
+           options.Password.RequiredUniqueChars = 5;
+       })
+       .AddEntityFrameworkStores<DataContext>()
+       .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Events.OnRedirectToLogin = context =>
     {
-        public static LoggingLevelSwitch LoggingLevelSwitch;
+        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        return Task.CompletedTask;
+    };
+    options.Cookie.Name = "Datack";
+});
 
-        public static async Task Main(String[] args)
-        {
-            try
-            {
-                Log.Information($"Starting host version {VersionHelper.GetVersion()}");
-                var host = CreateHostBuilder(args).Build();
+builder.Services.Configure<HostOptions>(hostOptions =>
+{
+    hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
 
-                // Perform migrations
-                using (var scope = host.Services.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<DataContext>();
-                    await dbContext.Database.MigrateAsync();
-                    await dbContext.Seed();
+// Configure development cors.
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Dev",
+                      corsBuilder => corsBuilder.AllowAnyMethod()
+                                                .AllowAnyHeader()
+                                                .AllowCredentials());
+});
 
-                    var logLevelSettingDb = await dbContext.Settings.FirstOrDefaultAsync(m => m.SettingId == "LogLevel");
-                    
-                    var logLevelSetting = "Information";
+// Configure misc services.
+builder.Services.AddResponseCaching();
+builder.Services.AddMemoryCache();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddHttpClient();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddSession();
 
-                    if (logLevelSettingDb != null)
-                    {
-                        logLevelSetting = logLevelSettingDb.Value;
-                    }
+builder.Services.AddSpaStaticFiles(spaBuilder =>
+{
+    spaBuilder.RootPath = "wwwroot";
+});
 
-                    if (!Enum.TryParse<LogEventLevel>(logLevelSetting, out var logLevel))
-                    {
-                        logLevel = LogEventLevel.Warning;
-                    }
+builder.Services.AddSignalR(hubOptions =>
+{
+    hubOptions.EnableDetailedErrors = true;
+    hubOptions.MaximumReceiveMessageSize = null;
+});
 
-                    LoggingLevelSwitch.MinimumLevel = logLevel;
-                }
+// ReSharper disable RedundantNameQualifier
+Datack.Web.Data.DiConfig.Config(builder.Services, appSettings);
+Datack.Web.Service.DiConfig.Config(builder.Services);
+// ReSharper restore RedundantNameQualifier
 
-                await host.RunAsync();
-            }
-            catch (Exception ex)
-            {
-                Log.Fatal(ex, "Host terminated unexpectedly");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
-        }
+ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-        // ReSharper disable once MemberCanBePrivate.Global
-        public static IHostBuilder CreateHostBuilder(String[] args)
-        {
-            var configuration = new ConfigurationBuilder()
-#if DEBUG
-                                .AddJsonFile("appsettings.Development.json", true, false)
-#else
-                                .AddJsonFile("appsettings.json", true, false)
-#endif
-                                .Build();
+try
+{
+    // Build the app
+    var app = builder.Build();
 
-            var appSettings = new AppSettings();
-            configuration.Bind(appSettings);
-
-            if (String.IsNullOrWhiteSpace(appSettings.HostUrl))
-            {
-                appSettings.HostUrl = "http://0.0.0.0:3000";
-            }
-
-            LoggingLevelSwitch = new LoggingLevelSwitch(LogEventLevel.Debug);
-
-            Log.Logger = new LoggerConfiguration()
-                         .Enrich.FromLogContext()
-                         .Enrich.WithExceptionDetails()
-                         .WriteTo.File(appSettings.Logging.File.Path,
-                                       rollOnFileSizeLimit: true,
-                                       fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes,
-                                       retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
-                         .WriteTo.Console()
-                         .MinimumLevel.ControlledBy(LoggingLevelSwitch)
-                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                         .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
-                         .CreateLogger();
-
-            SelfLog.Enable(msg =>
-            {
-                Debug.Print(msg);
-                Debugger.Break();
-                Console.WriteLine(msg);
-                Debug.WriteLine(msg);
-            });
-
-            return Host.CreateDefaultBuilder(args)
-                       .ConfigureLogging(logging =>
-                       {
-                           logging.AddFilter("Microsoft", LogLevel.Warning);
-                       })
-                       .UseWindowsService()
-                       .ConfigureWebHostDefaults(webBuilder =>
-                       {
-                           webBuilder.UseUrls(appSettings.HostUrl)
-                                     .UseSerilog()
-                                     .UseKestrel()
-                                     .UseIIS()
-                                     .UseStartup<Startup>();
-                       });
-        }
+    if (builder.Environment.IsDevelopment())
+    {
+        app.UseCors("Dev");
+        app.UseDeveloperExceptionPage();
     }
+    else
+    {
+        app.UseHsts();
+        app.UseHttpsRedirection();
+    }
+
+    app.ConfigureExceptionHandler();
+
+    app.Use(async (context, next) =>
+    {
+        await next.Invoke();
+
+        if (context.Response.StatusCode != 200)
+        {
+            Log.Warning("{StatusCode}: {Value}", context.Response.StatusCode, context.Request.Path.Value);
+        }
+    });
+
+    app.UseRouting();
+    
+    app.UseAuthentication();
+
+    app.UseAuthorization();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapHub<AgentHub>("/hubs/agent");
+        endpoints.MapHub<WebHub>("/hubs/web");
+        endpoints.MapControllers();
+    });
+    
+    app.MapWhen(x => !x.Request.Path.StartsWithSegments("/api"), routeBuilder =>
+    {
+        routeBuilder.UseSpaStaticFiles();
+        routeBuilder.UseSpa(spa =>
+        {
+            spa.Options.SourcePath = "wwwroot";
+            spa.Options.DefaultPage = "/index.html";
+        });
+    });
+
+    // Run the app
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Host terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }

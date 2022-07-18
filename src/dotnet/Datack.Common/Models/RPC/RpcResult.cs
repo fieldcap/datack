@@ -1,16 +1,13 @@
-﻿using System;
+﻿namespace Datack.Common.Models.RPC;
 
-namespace Datack.Common.Models.RPC
+public class RpcResult
 {
-    public class RpcResult
+    public RpcResult(Guid transactionId)
     {
-        public RpcResult(Guid transactionId)
-        {
-            TransactionId = transactionId;
-        }
-
-        public Guid TransactionId { get; set; }
-        public String Error { get; set; }
-        public String Result { get; set; }
+        TransactionId = transactionId;
     }
+
+    public Guid TransactionId { get; set; }
+    public String Error { get; set; }
+    public String Result { get; set; }
 }

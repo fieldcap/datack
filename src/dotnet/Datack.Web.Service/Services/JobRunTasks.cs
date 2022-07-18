@@ -1,63 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Datack.Common.Models.Data;
+﻿using Datack.Common.Models.Data;
 using Datack.Web.Data.Repositories;
 
-namespace Datack.Web.Service.Services
+namespace Datack.Web.Service.Services;
+
+public class JobRunTasks
 {
-    public class JobRunTasks
+    private readonly JobRunTaskRepository _jobRunTaskRepository;
+    private readonly RemoteService _remoteService;
+
+    public JobRunTasks(JobRunTaskRepository jobRunTaskRepository, RemoteService remoteService)
     {
-        private readonly JobRunTaskRepository _jobRunTaskRepository;
-        private readonly RemoteService _remoteService;
+        _jobRunTaskRepository = jobRunTaskRepository;
+        _remoteService = remoteService;
+    }
 
-        public JobRunTasks(JobRunTaskRepository jobRunTaskRepository, RemoteService remoteService)
+    public async Task<JobRunTask> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
+    {
+        return await _jobRunTaskRepository.GetById(jobRunTaskId, cancellationToken);
+    }
+
+    public async Task<IList<JobRunTask>> GetByJobRunId(Guid jobRunId, CancellationToken cancellationToken)
+    {
+        return await _jobRunTaskRepository.GetByJobRunId(jobRunId, cancellationToken);
+    }
+
+    public async Task Create(IList<JobRunTask> jobRunTasks, CancellationToken cancellationToken)
+    {
+        await _jobRunTaskRepository.Create(jobRunTasks, cancellationToken);
+    }
+
+    public async Task UpdateStarted(Guid jobRunTaskId, DateTimeOffset? date, CancellationToken cancellationToken)
+    {
+        await _jobRunTaskRepository.UpdateStarted(jobRunTaskId, date, cancellationToken);
+
+        var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
+        _ = Task.Run(async () =>
         {
-            _jobRunTaskRepository = jobRunTaskRepository;
-            _remoteService = remoteService;
-        }
+            await _remoteService.WebJobRunTask(jobRunTask);
+        }, cancellationToken);
+    }
 
-        public async Task<JobRunTask> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
+    public async Task UpdateCompleted(Guid jobRunTaskId, String result, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
+    {
+        await _jobRunTaskRepository.UpdateCompleted(jobRunTaskId, result, resultArtifact, isError, cancellationToken);
+
+        var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
+        _ = Task.Run(async () =>
         {
-            return await _jobRunTaskRepository.GetById(jobRunTaskId, cancellationToken);
-        }
+            await _remoteService.WebJobRunTask(jobRunTask);
+        }, cancellationToken);
+    }
 
-        public async Task<IList<JobRunTask>> GetByJobRunId(Guid jobRunId, CancellationToken cancellationToken)
-        {
-            return await _jobRunTaskRepository.GetByJobRunId(jobRunId, cancellationToken);
-        }
-
-        public async Task Create(IList<JobRunTask> jobRunTasks, CancellationToken cancellationToken)
-        {
-            await _jobRunTaskRepository.Create(jobRunTasks, cancellationToken);
-        }
-
-        public async Task UpdateStarted(Guid jobRunTaskId, Guid jobRunId, DateTimeOffset? date, CancellationToken cancellationToken)
-        {
-            await _jobRunTaskRepository.UpdateStarted(jobRunTaskId, date, cancellationToken);
-
-            var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
-            _ = Task.Run(async () =>
-            {
-                await _remoteService.WebJobRunTask(jobRunTask);
-            }, cancellationToken);
-        }
-
-        public async Task UpdateCompleted(Guid jobRunTaskId, Guid jobRunId, String result, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
-        {
-            await _jobRunTaskRepository.UpdateCompleted(jobRunTaskId, result, resultArtifact, isError, cancellationToken);
-
-            var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
-            _ = Task.Run(async () =>
-            {
-                await _remoteService.WebJobRunTask(jobRunTask);
-            }, cancellationToken);
-        }
-
-        public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
-        {
-            return await _jobRunTaskRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
-        }
+    public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
+    {
+        return await _jobRunTaskRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
     }
 }

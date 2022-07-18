@@ -1,7 +1,6 @@
-﻿namespace Datack.Common.Models.Internal
-{
-    public class AgentSettings
-    {
+﻿namespace Datack.Common.Models.Internal;
 
-    }
+public class AgentSettings
+{
+
 }

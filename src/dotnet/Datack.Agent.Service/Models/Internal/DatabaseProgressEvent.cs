@@ -1,10 +1,7 @@
-﻿using System;
+﻿namespace Datack.Agent.Models.Internal;
 
-namespace Datack.Agent.Models.Internal
+public class DatabaseProgressEvent
 {
-    public class DatabaseProgressEvent
-    {
-        public String Message { get; set; }
-        public String Source { get; set; }
-    }
+    public String Message { get; set; }
+    public String Source { get; set; }
 }

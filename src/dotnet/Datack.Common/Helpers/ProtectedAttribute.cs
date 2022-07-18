@@ -1,8 +1,6 @@
-﻿using System;
+﻿namespace Datack.Common.Helpers;
 
-namespace Datack.Common.Helpers
+[AttributeUsage(AttributeTargets.Property)]
+public class ProtectedAttribute : Attribute
 {
-    public class ProtectedAttribute : Attribute
-    {
-    }
 }

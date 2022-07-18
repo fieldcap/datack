@@ -1,63 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Datack.Agent.Models.Internal;
+﻿using Datack.Agent.Models.Internal;
 using Datack.Agent.Services.DataConnections;
 using Datack.Common.Models.Internal;
 using StringTokenFormatter;
 
-namespace Datack.Agent.Services
+namespace Datack.Agent.Services;
+
+public class DatabaseAdapter
 {
-    public class DatabaseAdapter
+    private readonly DataProtector _dataProtector;
+    private readonly SqlServerConnection _sqlServerConnection;
+
+    public DatabaseAdapter(SqlServerConnection sqlServerConnection, DataProtector dataProtector)
     {
-        private readonly DataProtector _dataProtector;
-        private readonly SqlServerConnection _sqlServerConnection;
+        _sqlServerConnection = sqlServerConnection;
+        _dataProtector = dataProtector;
+    }
 
-        public DatabaseAdapter(SqlServerConnection sqlServerConnection, DataProtector dataProtector)
+    public String CreateConnectionString(String connectionString, String password, Boolean decryptPassword)
+    {
+        if (decryptPassword && !String.IsNullOrWhiteSpace(password))
         {
-            _sqlServerConnection = sqlServerConnection;
-            _dataProtector = dataProtector;
+            password = _dataProtector.Decrypt(password);
         }
 
-        public String CreateConnectionString(String connectionString, String password, Boolean decryptPassword)
+        return connectionString.FormatToken("password", password ?? "");
+    }
+
+    public async Task<String> TestConnection(String connectionString, CancellationToken cancellationToken)
+    {
+        try
         {
-            if (decryptPassword && !String.IsNullOrWhiteSpace(password))
-            {
-                password = _dataProtector.Decrypt(password);
-            }
+            await _sqlServerConnection.Test(connectionString, cancellationToken);
 
-            return connectionString.FormatToken("password", password ?? "");
+            return "Success";
         }
-
-        public async Task<String> TestConnection(String connectionString, CancellationToken cancellationToken)
+        catch (Exception ex)
         {
-            try
-            {
-                await _sqlServerConnection.Test(connectionString, cancellationToken);
-
-                return "Success";
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
+            return ex.Message;
         }
+    }
 
-        public async Task<IList<Database>> GetDatabaseList(String connectionString, CancellationToken cancellationToken)
-        {
-            return await _sqlServerConnection.GetDatabaseList(connectionString, cancellationToken);
-        }
+    public async Task<IList<Database>> GetDatabaseList(String connectionString, CancellationToken cancellationToken)
+    {
+        return await _sqlServerConnection.GetDatabaseList(connectionString, cancellationToken);
+    }
 
-        public async Task CreateBackup(String connectionString,
-                                       String databaseName,
-                                       String backupType,
-                                       String options,
-                                       String destinationFilePath,
-                                       Action<DatabaseProgressEvent> progressCallback,
-                                       CancellationToken cancellationToken)
-        {
-            await _sqlServerConnection.CreateBackup(connectionString, databaseName, backupType, options, destinationFilePath, progressCallback, cancellationToken);
-        }
+    public async Task CreateBackup(String connectionString,
+                                   String databaseName,
+                                   String backupType,
+                                   String options,
+                                   String destinationFilePath,
+                                   Action<DatabaseProgressEvent> progressCallback,
+                                   CancellationToken cancellationToken)
+    {
+        await _sqlServerConnection.CreateBackup(connectionString, databaseName, backupType, options, destinationFilePath, progressCallback, cancellationToken);
     }
 }
