@@ -20,58 +20,58 @@ const smVariant = { navigation: 'drawer', navigationButton: true };
 const mdVariant = { navigation: 'sidebar', navigationButton: false };
 
 const MainLayout: FC = () => {
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
-    const variants = useBreakpointValue({ base: smVariant, md: mdVariant });
-    const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const variants = useBreakpointValue({ base: smVariant, md: mdVariant });
+  const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-    if (!Auth.hasAuthToken()) {
-        return (
-            <Navigate
-                to={{
-                    pathname: '/login',
-                }}
-            />
-        );
-    }
-
+  if (!Auth.hasAuthToken()) {
     return (
-        <Flex height="100%" alignItems="stretch">
-            {variants?.navigationButton ? (
-                <IconButton
-                    icon={<ChevronRightIcon w={8} h={8} />}
-                    colorScheme="blackAlpha"
-                    variant="outline"
-                    onClick={() => toggleSidebar()}
-                    position="fixed"
-                    top="12px"
-                    left="12px"
-                    aria-label=""
-                    zIndex="100"
-                    background="white"
-                    _hover={{
-                        background: 'white',
-                    }}
-                />
-            ) : null}
-            <NavLayout variant={variants?.navigation} isOpen={isSidebarOpen} onClose={toggleSidebar}></NavLayout>
-
-            <Box flex="1" padding="24px">
-                <Routes>
-                    <Route path="/settings" element={<SettingsOverview />} />
-                    <Route path="/agents" element={<AgentList />} />
-                    <Route path="/agent/new" element={<AgentAdd />} />
-                    <Route path="/agent/:id" element={<AgentOverview />} />
-                    <Route path="/jobs" element={<JobList />} />
-                    <Route path="/job/new" element={<JobAdd />} />
-                    <Route path="/job/:jobId/task/add" element={<JobTaskAdd />} />
-                    <Route path="/job/:jobId/task/:id" element={<JobTaskEditor />} />
-                    <Route path="/job/:id" element={<JobOverview />} />
-                    <Route path="/run/:id" element={<JobRunOverview />} />
-                    <Route path="/history" element={<History />} />
-                </Routes>
-            </Box>
-        </Flex>
+      <Navigate
+        to={{
+          pathname: '/login',
+        }}
+      />
     );
+  }
+
+  return (
+    <Flex height="100%" alignItems="stretch">
+      {variants?.navigationButton ? (
+        <IconButton
+          icon={<ChevronRightIcon w={8} h={8} />}
+          colorScheme="blackAlpha"
+          variant="outline"
+          onClick={() => toggleSidebar()}
+          position="fixed"
+          top="12px"
+          left="12px"
+          aria-label=""
+          zIndex="100"
+          background="white"
+          _hover={{
+            background: 'white',
+          }}
+        />
+      ) : null}
+      <NavLayout variant={variants?.navigation} isOpen={isSidebarOpen} onClose={toggleSidebar}></NavLayout>
+
+      <Box flex="1" padding="24px">
+        <Routes>
+          <Route path="/settings" element={<SettingsOverview />} />
+          <Route path="/agents" element={<AgentList />} />
+          <Route path="/agent/new" element={<AgentAdd />} />
+          <Route path="/agent/:id" element={<AgentOverview />} />
+          <Route path="/jobs" element={<JobList />} />
+          <Route path="/job/new" element={<JobAdd />} />
+          <Route path="/job/:jobId/task/add" element={<JobTaskAdd />} />
+          <Route path="/job/:jobId/task/:id" element={<JobTaskEditor />} />
+          <Route path="/job/:id" element={<JobOverview />} />
+          <Route path="/run/:id" element={<JobRunOverview />} />
+          <Route path="/history" element={<History />} />
+        </Routes>
+      </Box>
+    </Flex>
+  );
 };
 
 export default MainLayout;

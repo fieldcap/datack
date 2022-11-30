@@ -6,13 +6,13 @@ import reportWebVitals from './reportWebVitals';
 import theme from './Theme';
 
 ReactDOM.render(
-    <React.StrictMode>
-        <ChakraProvider>
-            <ColorModeScript initialColorMode={theme.config.initialColorMode} />
-            <App />
-        </ChakraProvider>
-    </React.StrictMode>,
-    document.getElementById('root')
+  <React.StrictMode>
+    <ChakraProvider>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <App />
+    </ChakraProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
 );
 
 // If you want to start measuring performance in your app, pass a function

@@ -1,5 +1,5 @@
 export type Setting = {
-    settingId: string;
-    value: string;
-    secure: boolean;
+  settingId: string;
+  value: string;
+  secure: boolean;
 };
