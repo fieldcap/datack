@@ -185,14 +185,11 @@ try
 
     app.UseAuthorization();
 
-    app.UseEndpoints(endpoints =>
-    {
-        endpoints.MapHub<AgentHub>("/hubs/agent");
-        endpoints.MapHub<WebHub>("/hubs/web");
-        endpoints.MapControllers();
-    });
+    app.MapHub<AgentHub>("/hubs/agent");
+    app.MapHub<WebHub>("/hubs/web");
+    app.MapControllers();
 
-    app.MapWhen(x => !x.Request.Path.StartsWithSegments("/api"),
+    app.UseWhen(x => !x.Request.Path.StartsWithSegments("/api"),
                 routeBuilder =>
                 {
                     routeBuilder.UseSpaStaticFiles();
