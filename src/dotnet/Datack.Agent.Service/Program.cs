@@ -114,7 +114,6 @@ public static class Program
                        services.AddSingleton<DataProtector>();
                        services.AddSingleton<JobRunner>();
                        services.AddSingleton<RpcService>();
-                       services.AddSingleton<SqlServerConnection>();
 
                        services.AddSingleton<CreateBackupTask>();
                        services.AddSingleton<CompressTask>();
@@ -122,6 +121,9 @@ public static class Program
                        services.AddSingleton<DeleteFileTask>();
                        services.AddSingleton<UploadAzureTask>();
                        services.AddSingleton<UploadS3Task>();
+
+                       services.AddSingleton<SqlServerConnection>();
+                       services.AddSingleton<PostgresConnection>();
 
                        services.AddHostedService<AgentHostedService>();
                    })

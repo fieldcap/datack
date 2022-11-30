@@ -6,7 +6,7 @@ using StringTokenFormatter;
 
 namespace Datack.Agent.Services.DataConnections;
 
-public class SqlServerConnection
+public class SqlServerConnection : IDatabaseConnection
 {
     public async Task Test(String connectionString, CancellationToken cancellationToken)
     {
@@ -35,7 +35,14 @@ FROM
         return databaseList;
     }
 
-    public async Task CreateBackup(String connectionString, String databaseName, String? backupType, String? options, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
+    public async Task CreateBackup(String connectionString, 
+                                   String databaseName, 
+                                   String? backupType, 
+                                   String? password, 
+                                   String? options, 
+                                   String destinationFilePath, 
+                                   Action<DatabaseProgressEvent> progressCallback, 
+                                   CancellationToken cancellationToken)
     {
         await using var sqlConnection = new SqlConnection(connectionString);
 

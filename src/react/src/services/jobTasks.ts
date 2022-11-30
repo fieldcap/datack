@@ -74,6 +74,7 @@ export namespace JobTasks {
     backupExcludeManual: string,
     agentId: string,
     jobTaskId: string,
+    databaseType: string,
     connectionString: string,
     connectionStringPassword: string | null,
     cancelToken: CancelTokenSource
@@ -90,6 +91,7 @@ export namespace JobTasks {
         backupExcludeManual,
         agentId,
         jobTaskId,
+        databaseType,
         connectionString,
         connectionStringPassword,
       },
@@ -101,6 +103,7 @@ export namespace JobTasks {
   export const testDatabaseConnection = async (
     agentId: string,
     jobTaskId: string,
+    databaseType: string,
     connectionString: string,
     connectionStringPassword: string | null,
     cancelToken: CancelTokenSource
@@ -111,6 +114,7 @@ export namespace JobTasks {
       {
         agentId,
         jobTaskId,
+        databaseType,
         connectionString,
         connectionStringPassword,
       },

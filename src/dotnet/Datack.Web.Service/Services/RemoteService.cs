@@ -19,18 +19,18 @@ public class RemoteService
         _webHub = webHub;
     }
 
-    public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
+    public async Task<String> TestDatabaseConnection(Agent agent, String databaseType, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
     {
         _logger.LogDebug("TestDatabaseConnection {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await GetConnection(agent).InvokeAsync<String>("TestDatabaseConnection", connectionString, password, decryptPassword, cancellationToken);
+        return await GetConnection(agent).InvokeAsync<String>("TestDatabaseConnection", databaseType, connectionString, password, decryptPassword, cancellationToken);
     }
         
-    public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
+    public async Task<IList<Database>> GetDatabaseList(Agent agent, String databaseType, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
     {
         _logger.LogDebug("GetDatabaseList {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await GetConnection(agent).InvokeAsync<IList<Database>>("GetDatabaseList", connectionString, password, decryptPassword, cancellationToken);
+        return await GetConnection(agent).InvokeAsync<IList<Database>>("GetDatabaseList", databaseType, connectionString, password, decryptPassword, cancellationToken);
     }
         
     public async Task<String> Run(Agent agent, JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)

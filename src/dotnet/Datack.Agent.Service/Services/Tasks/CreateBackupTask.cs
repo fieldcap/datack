@@ -11,10 +11,12 @@ namespace Datack.Agent.Services.Tasks;
 public class CreateBackupTask : BaseTask
 {
     private readonly DatabaseAdapter _databaseAdapter;
+    private readonly DataProtector _dataProtector;
 
-    public CreateBackupTask(DatabaseAdapter databaseAdapter)
+    public CreateBackupTask(DatabaseAdapter databaseAdapter, DataProtector dataProtector)
     {
         _databaseAdapter = databaseAdapter;
+        _dataProtector = dataProtector;
     }
         
     public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
@@ -88,16 +90,29 @@ public class CreateBackupTask : BaseTask
 
             OnProgress(jobRunTask.JobRunTaskId, $"Creating backup of database {jobRunTask.ItemName}");
 
+            if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.DatabaseType))
+            {
+                throw new Exception($"Job Task does not have a database type selected");
+            }
+
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.ConnectionString))
             {
                 throw new Exception($"Job Task does not have a connection string configured");
             }
 
             var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.CreateBackup.ConnectionString, jobRunTask.Settings.CreateBackup.ConnectionStringPassword, true);
+            var password = jobRunTask.Settings.CreateBackup.ConnectionStringPassword;
 
-            await _databaseAdapter.CreateBackup(connectionString,
+            if (!String.IsNullOrWhiteSpace(password))
+            {
+                password = _dataProtector.Decrypt(password);
+            }
+
+            await _databaseAdapter.CreateBackup(jobRunTask.Settings.CreateBackup.DatabaseType,
+                                                connectionString,
                                                 jobRunTask.ItemName,
                                                 jobRunTask.Settings.CreateBackup.BackupType,
+                                                password,
                                                 jobRunTask.Settings.CreateBackup.Options,
                                                 storePath,
                                                 evt =>

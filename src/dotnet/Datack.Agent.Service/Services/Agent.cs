@@ -93,13 +93,13 @@ public class AgentHostedService : IHostedService
         return _dataProtector.Encrypt(input);
     }
 
-    private async Task<IList<Database>> GetDatabaseList(String connectionString, String password, Boolean decryptPassword)
+    private async Task<IList<Database>> GetDatabaseList(String databaseType, String connectionString, String password, Boolean decryptPassword)
     {
         _logger.LogTrace("GetDatabaseList");
 
         var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 
-        return await _databaseAdapter.GetDatabaseList(fullConnectionString, CancellationToken.None);
+        return await _databaseAdapter.GetDatabaseList(databaseType, fullConnectionString, CancellationToken.None);
     }
 
     private async Task<String> GetLogs()
@@ -190,13 +190,13 @@ public class AgentHostedService : IHostedService
         return Task.FromResult("Success");
     }
 
-    private async Task<String> TestDatabaseConnection(String connectionString, String password, Boolean decryptPassword)
+    private async Task<String> TestDatabaseConnection(String databaseType, String connectionString, String password, Boolean decryptPassword)
     {
         _logger.LogDebug("Received TestDatabaseConnection Command");
 
         var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 
-        return await _databaseAdapter.TestConnection(fullConnectionString, CancellationToken.None);
+        return await _databaseAdapter.TestConnection(databaseType, fullConnectionString, CancellationToken.None);
     }
 
     private async Task<String> UpgradeAgent()

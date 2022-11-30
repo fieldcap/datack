@@ -125,7 +125,7 @@ public class JobTasksController : Controller
             decryptPassword = true;
         }
 
-        var result = await _remoteService.TestDatabaseConnection(agent, request.ConnectionString, password, decryptPassword, cancellationToken);
+        var result = await _remoteService.TestDatabaseConnection(agent, request.DatabaseType, request.ConnectionString, password, decryptPassword, cancellationToken);
 
         return Ok(result);
     }
@@ -161,7 +161,7 @@ public class JobTasksController : Controller
             decryptPassword = true;
         }
 
-        var databases = await _remoteService.GetDatabaseList(agent, request.ConnectionString, password, decryptPassword, cancellationToken);
+        var databases = await _remoteService.GetDatabaseList(agent, request.DatabaseType, request.ConnectionString, password, decryptPassword, cancellationToken);
 
         var result = DatabaseHelper.FilterDatabases(databases,
                                                     request.BackupDefaultExclude,
@@ -179,6 +179,7 @@ public class AgentsTestDatabaseConnectionRequest
 {
     public Guid AgentId { get; set; }
     public Guid JobTaskId { get; set; }
+    public required String DatabaseType { get; set; }
     public required String ConnectionString { get; set; }
     public required String ConnectionStringPassword { get; set; }
 }
@@ -193,6 +194,7 @@ public class JobTasksTestDatabaseRegexRequest
     public required String BackupExcludeManual { get; set; }
     public Guid AgentId { get; set; }
     public Guid JobTaskId { get; set; }
+    public required String DatabaseType { get; set; }
     public required String ConnectionString { get; set; }
     public required String ConnectionStringPassword { get; set; }
 }

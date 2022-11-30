@@ -14,12 +14,12 @@ public class RpcService
 {
 #nullable disable
     public Func<String, Task<String>> Encrypt;
-    public Func<String, String, Boolean, Task<IList<Database>>> GetDatabaseList;
+    public Func<String, String, String, Boolean, Task<IList<Database>>> GetDatabaseList;
     public Func<Task<String>> GetLogs;
     public Func<Task<List<Guid>>> GetRunningTasks;
     public Func<JobRunTask, JobRunTask, Task<String>> Run;
     public Func<Guid, Task<String>> Stop;
-    public Func<String, String, Boolean, Task<String>> TestDatabaseConnection;
+    public Func<String, String, String, Boolean, Task<String>> TestDatabaseConnection;
     public Func<Task<String>> UpgradeAgent;
 #nullable restore
 

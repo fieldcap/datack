@@ -82,13 +82,13 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.settings!.backupExcludeManual,
         props.agentId,
         props.jobTaskId,
+        props.settings!.databaseType,
         props.settings!.connectionString,
         props.settings!.connectionStringPassword,
         cancelToken
       );
       setTestResult(result);
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     props.settings?.backupDefaultExclude,
     props.settings?.backupExcludeSystemDatabases,
@@ -120,6 +120,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
       const testResult = await JobTasks.testDatabaseConnection(
         props.agentId,
         props.jobTaskId,
+        props.settings!.databaseType,
         props.settings!.connectionString,
         props.settings!.connectionStringPassword,
         cancelToken
@@ -302,9 +303,14 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
           The connection string to connect to the database. When adding the token &#123;Password&#125; it will be
           replaced with the password below.
           <br />
-          Example: <br />
+          Example for SQL Server:
+          <br />
           Data Source=127.0.0.1;Persist Security Info=True;User Id=Backup;Password=&#123;Password&#125;;Connect
           Timeout=30;Encrypt=False
+          <br />
+          Example for PostreSQL:
+          <br />
+          Server=127.0.0.1;Database=databasename;Username=backup;Password=&#123;Password&#125;
         </FormHelperText>
       </FormControl>
       <FormControl id="databaseConnectionStringPassword" marginBottom={4}>
@@ -332,6 +338,10 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
           For SQL Server the default parameters are:
           <br />
           NAME = &#123;ItemName&#125; &#123;BackupType&#125; Backup, SKIP, STATS = 10
+          <br />
+          For PostgreSQL the default parameters are:
+          <br />
+          --format c -Z 5
         </FormHelperText>
       </FormControl>
       <Box marginBottom={4}>

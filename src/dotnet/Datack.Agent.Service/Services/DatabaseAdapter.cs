@@ -9,10 +9,12 @@ public class DatabaseAdapter
 {
     private readonly DataProtector _dataProtector;
     private readonly SqlServerConnection _sqlServerConnection;
+    private readonly PostgresConnection _postgresConnection;
 
-    public DatabaseAdapter(SqlServerConnection sqlServerConnection, DataProtector dataProtector)
+    public DatabaseAdapter(SqlServerConnection sqlServerConnection, PostgresConnection postgresConnection, DataProtector dataProtector)
     {
         _sqlServerConnection = sqlServerConnection;
+        _postgresConnection = postgresConnection;
         _dataProtector = dataProtector;
     }
 
@@ -26,11 +28,11 @@ public class DatabaseAdapter
         return connectionString.FormatToken("password", password ?? "");
     }
 
-    public async Task<String> TestConnection(String connectionString, CancellationToken cancellationToken)
+    public async Task<String> TestConnection(String databaseType, String connectionString, CancellationToken cancellationToken)
     {
         try
         {
-            await _sqlServerConnection.Test(connectionString, cancellationToken);
+            await GetConnection(databaseType).Test(connectionString, cancellationToken);
 
             return "Success";
         }
@@ -40,19 +42,41 @@ public class DatabaseAdapter
         }
     }
 
-    public async Task<IList<Database>> GetDatabaseList(String connectionString, CancellationToken cancellationToken)
+    public async Task<IList<Database>> GetDatabaseList(String databaseType, String connectionString, CancellationToken cancellationToken)
     {
-        return await _sqlServerConnection.GetDatabaseList(connectionString, cancellationToken);
+        return await GetConnection(databaseType).GetDatabaseList(connectionString, cancellationToken);
     }
 
-    public async Task CreateBackup(String connectionString,
+    public async Task CreateBackup(String databaseType,
+                                   String connectionString,
                                    String databaseName,
                                    String? backupType,
+                                   String? password,
                                    String? options,
                                    String destinationFilePath,
                                    Action<DatabaseProgressEvent> progressCallback,
                                    CancellationToken cancellationToken)
     {
-        await _sqlServerConnection.CreateBackup(connectionString, databaseName, backupType, options, destinationFilePath, progressCallback, cancellationToken);
+        await GetConnection(databaseType).CreateBackup(connectionString, databaseName, backupType, password, options, destinationFilePath, progressCallback, cancellationToken);
+    }
+
+    private IDatabaseConnection GetConnection(String? databaseType)
+    {
+        if (String.IsNullOrWhiteSpace(databaseType))
+        {
+            throw new Exception("Invalid Database Type");
+        }
+
+        if (databaseType == "sqlServer")
+        {
+            return _sqlServerConnection;
+        }
+
+        if (databaseType == "postgreSql")
+        {
+            return _postgresConnection;
+        }
+
+        throw new Exception($"Invalid database type {databaseType}");
     }
 }
