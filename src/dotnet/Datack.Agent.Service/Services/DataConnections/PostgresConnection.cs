@@ -61,12 +61,11 @@ public class PostgresConnection : IDatabaseConnection
 
         var server = Get(connectionString, "Server");
         var userName = Get(connectionString, "Username");
-        var database = Get(connectionString, "Database");
 
         var args = new List<String>
         {
             "--verbose",
-            $"--dbname=postgresql://{userName}:{password}@{server}/{database}",
+            $"--dbname=postgresql://{userName}:{password}@{server}/{databaseName}",
             $@"--file ""{destinationFilePath}"""
         };
 
