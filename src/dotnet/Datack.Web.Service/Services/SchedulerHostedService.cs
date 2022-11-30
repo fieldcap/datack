@@ -140,6 +140,11 @@ public class SchedulerHostedService : IHostedService
                     {
                         var timeout = jobRunTask.JobTask.Timeout ?? 3600;
 
+                        if (jobRunTask.JobTask.Timeout <= 0)
+                        {
+                            timeout = 3600;
+                        }
+
                         var timespan = DateTimeOffset.UtcNow - jobRunTask.Started;
 
                         if (timespan != null && timespan.Value.TotalSeconds > timeout)
@@ -151,7 +156,7 @@ public class SchedulerHostedService : IHostedService
 
                                 _ = Task.Run(async () =>
                                              {
-                                                 await remoteService.Stop(jobRunTask, cancellationToken);
+                                                 await remoteService.Stop(jobRunTask.JobTask.Agent, jobRunTask.JobTaskId, cancellationToken);
                                              },
                                              cancellationToken);
                             }

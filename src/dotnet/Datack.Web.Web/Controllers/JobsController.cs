@@ -191,7 +191,7 @@ public class JobsController : Controller
             throw new Exception($"Agent with ID {jobTask.AgentId} not found");
         }
 
-        if (String.IsNullOrWhiteSpace(jobTask.Settings.CreateBackup.ConnectionString))
+        if (String.IsNullOrWhiteSpace(jobTask.Settings.CreateBackup?.ConnectionString))
         {
             throw new Exception("Job task has no database connection string configured");
         }
@@ -217,7 +217,7 @@ public class JobsParseCronRequest
 public class JobRunRequest
 {
     public Guid JobId { get; set; }
-    public required String ItemList { get; set; }
+    public String? ItemList { get; set; }
 }
 
 public class JobStopRequest

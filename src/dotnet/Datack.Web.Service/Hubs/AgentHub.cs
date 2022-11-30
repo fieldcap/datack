@@ -24,7 +24,6 @@ public class AgentHub : Hub
     }
 
     public static readonly ConcurrentDictionary<String, AgentConnection> Agents = new();
-    public static readonly ConcurrentDictionary<Guid, RpcResult> Transactions = new();
 
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
@@ -72,12 +71,7 @@ public class AgentHub : Hub
 
         OnClientConnect?.Invoke(this, new ClientConnectEvent{ AgentKey = key });
     }
-
-    public void Response(RpcResult rpcResult)
-    {
-        Transactions.TryAdd(rpcResult.TransactionId, rpcResult);
-    }
-
+    
     public void UpdateProgress(List<RpcProgressEvent> progressEvents)
     {
         OnProgressTasks?.Invoke(null, progressEvents);

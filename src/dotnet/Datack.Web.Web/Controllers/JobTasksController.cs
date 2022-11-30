@@ -121,7 +121,7 @@ public class JobTasksController : Controller
                 throw new Exception($"Cannot find job task with ID {request.JobTaskId}");
             }
 
-            password = jobTask.Settings.CreateBackup.ConnectionStringPassword;
+            password = jobTask.Settings.CreateBackup?.ConnectionStringPassword;
             decryptPassword = true;
         }
 
@@ -157,7 +157,7 @@ public class JobTasksController : Controller
                 throw new Exception($"Cannot find job task with ID {request.JobTaskId}");
             }
 
-            password = jobTask.Settings.CreateBackup.ConnectionStringPassword;
+            password = jobTask.Settings.CreateBackup?.ConnectionStringPassword;
             decryptPassword = true;
         }
 

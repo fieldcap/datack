@@ -141,6 +141,7 @@ try
     {
         hubOptions.EnableDetailedErrors = true;
         hubOptions.MaximumReceiveMessageSize = null;
+        hubOptions.MaximumParallelInvocationsPerClient = 2;
     });
 
     // ReSharper disable RedundantNameQualifier

@@ -23,6 +23,11 @@ public class DeleteFileTask : BaseTask
                 throw new Exception("No settings set");
             }
 
+            if (jobRunTask.JobTask.Settings.DeleteFile == null)
+            {
+                throw new Exception("No settings set");
+            }
+
             var sourceFileName = previousTask.ResultArtifact;
 
             OnProgress(jobRunTask.JobRunTaskId, $"Starting delete task for file {sourceFileName}");

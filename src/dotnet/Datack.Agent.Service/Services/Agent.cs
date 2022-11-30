@@ -39,6 +39,15 @@ public class AgentHostedService : IHostedService
 
         _version = VersionHelper.GetVersion();
 
+        _rpcService.Encrypt = Encrypt;
+        _rpcService.GetDatabaseList = GetDatabaseList;
+        _rpcService.GetLogs = GetLogs;
+        _rpcService.GetRunningTasks = GetRunningTasks;
+        _rpcService.Run = Run;
+        _rpcService.Stop = Stop;
+        _rpcService.TestDatabaseConnection = TestDatabaseConnection;
+        _rpcService.UpgradeAgent = UpgradeAgent;
+
         _logger.LogTrace("Agent Constructor");
     }
 
@@ -62,15 +71,6 @@ public class AgentHostedService : IHostedService
                 
             await File.WriteAllTextAsync(filePath, appSettingsSerialized, cancellationToken);
         }
-
-        _rpcService.Subscribe<String>("Encrypt", value => Encrypt(value));
-        _rpcService.Subscribe<String, String, Boolean>("GetDatabaseList", (connectionString, password, decryptPassword) => GetDatabaseList(connectionString, password, decryptPassword));
-        _rpcService.Subscribe("GetLogs", () => GetLogs());
-        _rpcService.Subscribe("GetRunningTasks", () => GetRunningTasks());
-        _rpcService.Subscribe<JobRunTask, JobRunTask>("Run", (jobRunTask, previousTask) => Run(jobRunTask, previousTask));
-        _rpcService.Subscribe<Guid>("Stop", jobRunTaskId => Stop(jobRunTaskId));
-        _rpcService.Subscribe<String, String, Boolean>("TestDatabaseConnection", (connectionString, password, decryptPassword) => TestDatabaseConnection(connectionString, password, decryptPassword));
-        _rpcService.Subscribe("UpgradeAgent", () => UpgradeAgent());
 
         _rpcService.StartAsync(cancellationToken);
     }

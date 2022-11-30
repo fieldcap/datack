@@ -6,22 +6,22 @@ namespace Datack.Common.Models.Internal;
 public class JobTaskSettings
 {
     [JsonPropertyName("createBackup")]
-    public JobTaskCreateDatabaseSettings CreateBackup { get; set; } = new();
+    public JobTaskCreateDatabaseSettings? CreateBackup { get; set; }
 
     [JsonPropertyName("compress")]
-    public JobTaskCompressSettings Compress { get; set; } = new();
+    public JobTaskCompressSettings? Compress { get; set; }
 
     [JsonPropertyName("deleteFile")]
-    public JobTaskDeleteFileSettings DeleteFile { get; set; } = new();
+    public JobTaskDeleteFileSettings? DeleteFile { get; set; }
 
     [JsonPropertyName("deleteS3")]
-    public JobTaskDeleteS3Settings DeleteS3 { get; set; } = new();
+    public JobTaskDeleteS3Settings? DeleteS3 { get; set; }
 
     [JsonPropertyName("uploadS3")]
-    public JobTaskUploadS3Settings UploadS3 { get; set; } = new();
+    public JobTaskUploadS3Settings? UploadS3 { get; set; }
 
     [JsonPropertyName("uploadAzure")]
-    public JobTaskUploadAzureSettings UploadAzure { get; set; } = new();
+    public JobTaskUploadAzureSettings? UploadAzure { get; set; }
 }
 
 public class JobTaskDeleteS3Settings
@@ -54,6 +54,9 @@ public class JobTaskDeleteS3Settings
 
 public class JobTaskCreateDatabaseSettings
 {
+    [JsonPropertyName("databaseType")]
+    public String? DatabaseType { get; set; }
+
     [JsonPropertyName("connectionString")]
     public String? ConnectionString { get; set; }
 

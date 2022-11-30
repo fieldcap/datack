@@ -59,7 +59,7 @@ public class JobRunner
 
             try
             {
-                await _remoteService.Stop(jobRunTask, cancellationToken);
+                await _remoteService.Stop(jobRunTask.JobTask.Agent, jobRunTask.JobRunTaskId, cancellationToken);
             }
             catch
             {
@@ -380,7 +380,7 @@ public class JobRunner
 
                 _ = Task.Run(async () =>
                              {
-                                 await _remoteService.Run(jobRunTask, previousArtifactTask, cancellationToken);
+                                 await _remoteService.Run(jobRunTask.JobTask.Agent, jobRunTask, previousArtifactTask, cancellationToken);
                              },
                              cancellationToken);
 

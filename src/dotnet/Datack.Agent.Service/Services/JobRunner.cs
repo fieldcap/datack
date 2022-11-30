@@ -132,6 +132,11 @@ public class JobRunner
                 {
                     var timeout = jobRunTask.JobTask.Timeout ?? 3600;
 
+                    if (jobRunTask.JobTask.Timeout <= 0)
+                    {
+                        timeout = 3600;
+                    }
+
                     var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(timeout));
 
                     var runningTasks = String.Join(", ", RunningTasks.Select(m => m.Key));

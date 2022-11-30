@@ -1,7 +1,5 @@
-﻿using System.Text.Json;
-using Datack.Common.Models.Data;
+﻿using Datack.Common.Models.Data;
 using Datack.Common.Models.Internal;
-using Datack.Common.Models.RPC;
 using Datack.Web.Service.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Logging;
@@ -25,109 +23,56 @@ public class RemoteService
     {
         _logger.LogDebug("TestDatabaseConnection {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await Send<String>(agent.Key, "TestDatabaseConnection", cancellationToken, connectionString, password, decryptPassword);
+        return await GetConnection(agent).InvokeAsync<String>("TestDatabaseConnection", connectionString, password, decryptPassword, cancellationToken);
     }
         
     public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
     {
         _logger.LogDebug("GetDatabaseList {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await Send<List<Database>>(agent.Key, "GetDatabaseList", cancellationToken, connectionString, password, decryptPassword);
+        return await GetConnection(agent).InvokeAsync<IList<Database>>("GetDatabaseList", connectionString, password, decryptPassword, cancellationToken);
     }
         
-    public async Task<String> Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
+    public async Task<String> Run(Agent agent, JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Run {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
 
-        return await Send<String>(jobRunTask.JobTask.Agent.Key, "Run", cancellationToken, jobRunTask, previousTask);
+        return await GetConnection(agent).InvokeAsync<String>("Run", jobRunTask, previousTask, cancellationToken);
     }
 
-    public async Task<String> Stop(JobRunTask jobRunTask, CancellationToken cancellationToken)
+    public async Task<String> Stop(Agent agent, Guid jobRunTaskId, CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Stop {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
+        _logger.LogDebug("Stop {name} {agentId} {jobRunTaskId}", agent.Name, agent.AgentId, jobRunTaskId);
 
-        return await Send<String>(jobRunTask.JobTask.Agent.Key, "Stop", cancellationToken, jobRunTask.JobRunTaskId);
+        return await GetConnection(agent).InvokeAsync<String>("Stop", jobRunTaskId, cancellationToken);
     }
 
     public async Task<String> Encrypt(Agent agent, String input, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Encrypt {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await Send<String>(agent.Key, "Encrypt", cancellationToken, input);
+        return await GetConnection(agent).InvokeAsync<String>("Encrypt", input, cancellationToken);
     }
 
     public async Task<String> GetLogs(Agent agent, CancellationToken cancellationToken)
     {
         _logger.LogDebug("GetLogs {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await Send<String>(agent.Key, "GetLogs", cancellationToken);
+        return await GetConnection(agent).InvokeAsync<String>("GetLogs", cancellationToken);
     }
 
     public async Task<IList<Guid>> GetRunningTasks(Agent agent, CancellationToken cancellationToken)
     {
         _logger.LogDebug("GetRunningTasks {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await Send<IList<Guid>>(agent.Key, "GetRunningTasks", cancellationToken);
+        return await GetConnection(agent).InvokeAsync<List<Guid>>("GetRunningTasks", cancellationToken);
     }
 
     public async Task<String> UpgradeAgent(Agent agent, CancellationToken cancellationToken)
     {
-        return await Send<String>(agent.Key, "UpgradeAgent", cancellationToken);
-    }
+        _logger.LogDebug("UpgradeAgent {name} {agentId}", agent.Name, agent.AgentId);
 
-    private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object?[] payload)
-    {
-        var hasConnection = AgentHub.Agents.TryGetValue(key, out var connection);
-
-        if (!hasConnection || connection == null)
-        {
-            throw new Exception($"No connection found for agent with key {key}");
-        }
-
-        return await SendWithConnection<T>(connection.ConnectionId, method, cancellationToken, payload);
-    }
-
-    private async Task<T> SendWithConnection<T>(String connectionId, String method, CancellationToken cancellationToken, params Object?[] payload)
-    {
-        var request = new RpcRequest
-        {
-            TransactionId = Guid.NewGuid(),
-            Request = method,
-            Payload = JsonSerializer.Serialize(payload)
-        };
-            
-        await _agentHub.Clients.Client(connectionId).SendAsync("request", request, cancellationToken);
-
-        var timeout = DateTime.UtcNow.AddSeconds(30);
-
-        while (true)
-        {
-            if (DateTime.UtcNow > timeout)
-            {
-                throw new Exception($"No response received within timeout");
-            }
-
-            if (AgentHub.Transactions.TryGetValue(request.TransactionId, out var rpcResult))
-            {
-                if (rpcResult.Error != null)
-                {
-                    var agentException = JsonSerializer.Deserialize<RpcException>(rpcResult.Error);
-
-                    throw new Exception($"Agent threw an exception: {agentException}");
-                }
-
-                var result = JsonSerializer.Deserialize<T>(rpcResult.Result!);
-
-                if (result == null)
-                {
-                    throw new Exception($"Unable to deserialize response {result} to {typeof(T).Name}");
-                }
-
-                return result;
-            }
-
-            await Task.Delay(100, cancellationToken);
-        }
+        return await GetConnection(agent).InvokeAsync<String>("UpgradeAgent", cancellationToken);
     }
 
     public async Task WebJobRun(JobRun jobRun)
@@ -143,5 +88,17 @@ public class RemoteService
     public async Task WebJobRunTaskLog(JobRunTaskLog jobRunTaskLog)
     {
         await _webHub.Clients.All.SendAsync("JobRunTaskLog", jobRunTaskLog);
+    }
+
+    private ISingleClientProxy GetConnection(Agent agent)
+    {
+        var hasConnection = AgentHub.Agents.TryGetValue(agent.Key, out var connection);
+
+        if (!hasConnection || connection == null)
+        {
+            throw new Exception($"No connection found for agent with key {agent.Key}");
+        }
+
+        return _agentHub.Clients.Client(connection.ConnectionId);
     }
 }

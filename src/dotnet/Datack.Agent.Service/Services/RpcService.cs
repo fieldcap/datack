@@ -1,7 +1,7 @@
-﻿using System.Linq.Expressions;
-using System.Text.Json;
-using Datack.Agent.Models;
+﻿using Datack.Agent.Models;
 using Datack.Common.Helpers;
+using Datack.Common.Models.Data;
+using Datack.Common.Models.Internal;
 using Datack.Common.Models.RPC;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
@@ -12,15 +12,25 @@ namespace Datack.Agent.Services;
 
 public class RpcService
 {
+#nullable disable
+    public Func<String, Task<String>> Encrypt;
+    public Func<String, String, Boolean, Task<IList<Database>>> GetDatabaseList;
+    public Func<Task<String>> GetLogs;
+    public Func<Task<List<Guid>>> GetRunningTasks;
+    public Func<JobRunTask, JobRunTask, Task<String>> Run;
+    public Func<Guid, Task<String>> Stop;
+    public Func<String, String, Boolean, Task<String>> TestDatabaseConnection;
+    public Func<Task<String>> UpgradeAgent;
+#nullable restore
+
     private static readonly SemaphoreSlim TimerLock = new(1, 1);
     private static readonly SemaphoreSlim SendLock = new(1, 1);
 
     private readonly ILogger<RpcService> _logger;
     private readonly AppSettings _appSettings;
 
-    private HubConnection? _connection;
+    public HubConnection? _connection;
 
-    private readonly Dictionary<String, Expression> _requestMethods = new();
     private readonly String _version;
 
     private readonly Dictionary<Guid, RpcProgressEvent> _progressEvents = new();
@@ -76,8 +86,15 @@ public class RpcService
             return Task.CompletedTask;
         };
 
-        _connection.On<RpcRequest>("request", HandleRequest);
-
+        _connection.On("Encrypt",Encrypt);
+        _connection.On("GetDatabaseList", GetDatabaseList);
+        _connection.On("GetLogs", GetLogs);
+        _connection.On("GetRunningTasks", GetRunningTasks);
+        _connection.On("Run", Run);
+        _connection.On("Stop", Stop);
+        _connection.On("TestDatabaseConnection", TestDatabaseConnection);
+        _connection.On("UpgradeAgent", UpgradeAgent);
+        
         _sendTimer.Elapsed += async (_, _) => await TimerTick();
         _sendTimer.Start();
 
@@ -94,26 +111,6 @@ public class RpcService
         {
             await _connection.StopAsync(cancellationToken);
         }
-    }
-        
-    public void Subscribe(String methodName, Expression<Func<Task>> method)
-    {
-        _requestMethods.Add(methodName, method);
-    }
-
-    public void Subscribe<T>(String methodName, Expression<Func<T, Task>> method)
-    {
-        _requestMethods.Add(methodName, method);
-    }
-
-    public void Subscribe<T1, T2>(String methodName, Expression<Func<T1, T2, Task>> method)
-    {
-        _requestMethods.Add(methodName, method);
-    }
-
-    public void Subscribe<T1, T2, T3>(String methodName, Expression<Func<T1, T2, T3, Task>> method)
-    {
-        _requestMethods.Add(methodName, method);
     }
 
     private void Connect(CancellationToken cancellationToken)
@@ -159,85 +156,7 @@ public class RpcService
             await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
         }, cancellationToken);
     }
-
-    private async Task HandleRequest(RpcRequest rpcRequest)
-    {
-        var result = new RpcResult(rpcRequest.TransactionId);
-
-        try
-        {
-            if (!_requestMethods.ContainsKey(rpcRequest.Request))
-            {
-                return;
-            }
-
-            var methodInfo = _requestMethods[rpcRequest.Request];
-
-            Task? methodResult = null;
-
-            if (methodInfo is Expression<Func<Task>> methodInfo2)
-            {
-                methodResult = methodInfo2.Compile().Invoke();
-            }
-            else if (methodInfo is LambdaExpression lambdaExpression)
-            {
-                var payloadParameters = JsonSerializer.Deserialize<JsonElement[]>(rpcRequest.Payload);
-
-                var parameters = lambdaExpression.Parameters.ToList();
-
-                if (payloadParameters == null || payloadParameters.Length != parameters.Count)
-                {
-                    throw new Exception($"Parameter count mismatch for {rpcRequest.Request}. Received {payloadParameters?.Length}, expected {parameters.Count}");
-                }
-
-                var invokationParameters = new Object[parameters.Count];
-
-                for (var i = 0; i < parameters.Count; i++)
-                {
-                    var payloadParameterRaw = payloadParameters[i].GetRawText();
-                    var payloadParameterObject = JsonSerializer.Deserialize(payloadParameterRaw, parameters[i].Type);
-
-                    if (payloadParameterObject == null)
-                    {
-                        throw new Exception($"Unable to deserialize {payloadParameterRaw} to {parameters[i].Type}");
-                    }
-
-                    invokationParameters[i] = payloadParameterObject;
-                }
-
-                methodResult = lambdaExpression.Compile().DynamicInvoke(invokationParameters) as Task;
-            }
-
-            if (methodResult == null)
-            {
-                throw new Exception($"Unable to invoke request {rpcRequest.Request}");
-            }
-
-            var taskResult = methodResult.GetType().GetProperty("Result");
-
-            if (taskResult == null)
-            {
-                throw new Exception($"Task returned NULL value and cannot be awaited");
-            }
-
-            var invokationResult = taskResult.GetValue(methodResult);
-
-            result.Result = JsonSerializer.Serialize(invokationResult);
-        }
-        catch (Exception ex)
-        {
-            var rpcException = ex.ToRpcException();
-            result.Error = JsonSerializer.Serialize(rpcException);
-        }
-        finally
-        {
-            if (_connection?.State == HubConnectionState.Connected)
-            {
-                await _connection.SendAsync("response", result);
-            }
-        }
-    }
-
+    
     private async Task TimerTick()
     {
         var hasLock = await TimerLock.WaitAsync(100);
