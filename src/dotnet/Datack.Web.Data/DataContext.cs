@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Datack.Web.Data;
 
+#nullable disable
+
 public class DataContext : IdentityDbContext
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()
@@ -59,7 +61,7 @@ public class DataContext : IdentityDbContext
             }
         }
 
-        modelBuilder.HasDbFunction(typeof(DataContext).GetMethod(nameof(JsonValue)))
+        modelBuilder.HasDbFunction(typeof(DataContext).GetMethod(nameof(JsonValue))!)
                     .HasTranslation(e => new SqlFunctionExpression("JSON_VALUE",
                                                                    e,
                                                                    true,

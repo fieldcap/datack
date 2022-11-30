@@ -21,12 +21,16 @@ public class SettingRepository
     {
         var dbSetting = await _dataContext.Settings.FirstOrDefaultAsync(m => m.SettingId == setting.SettingId, cancellationToken);
 
-        dbSetting.Value = setting.Value;
+        if (dbSetting != null)
+        {
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+            dbSetting.Value = setting.Value;
+
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
     }
 
-    public async Task<Setting> Get(String key, CancellationToken cancellationToken)
+    public async Task<Setting?> Get(String key, CancellationToken cancellationToken)
     {
         return await _dataContext.Settings.AsNoTracking().FirstOrDefaultAsync(m => m.SettingId == key, cancellationToken);
     }

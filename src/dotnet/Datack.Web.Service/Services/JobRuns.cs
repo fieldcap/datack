@@ -28,7 +28,7 @@ public class JobRuns
         return await _jobRunRepository.GetRunning(cancellationToken);
     }
         
-    public async Task<JobRun> GetById(Guid jobRunId, CancellationToken cancellationToken)
+    public async Task<JobRun?> GetById(Guid jobRunId, CancellationToken cancellationToken)
     {
         return await _jobRunRepository.GetById(jobRunId, cancellationToken);
     }
@@ -48,6 +48,11 @@ public class JobRuns
         await _jobRunRepository.UpdateComplete(jobRunId, cancellationToken);
 
         var jobRun = await GetById(jobRunId, cancellationToken);
+
+        if (jobRun == null)
+        {
+            return;
+        }
 
         try
         {
@@ -69,6 +74,11 @@ public class JobRuns
         await _jobRunRepository.UpdateStop(jobRunId, cancellationToken);
 
         var jobRun = await GetById(jobRunId, CancellationToken.None);
+        
+        if (jobRun == null)
+        {
+            return;
+        }
 
         _ = Task.Run(async () =>
         {

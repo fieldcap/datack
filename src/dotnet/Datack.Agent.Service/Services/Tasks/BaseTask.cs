@@ -5,13 +5,13 @@ namespace Datack.Agent.Services.Tasks;
 
 public abstract class BaseTask
 {
-    public event EventHandler<ProgressEvent> OnProgressEvent;
-    public event EventHandler<CompleteEvent> OnCompleteEvent;
+    public event EventHandler<ProgressEvent>? OnProgressEvent;
+    public event EventHandler<CompleteEvent>? OnCompleteEvent;
         
     public abstract Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken);
         
     private DateTime _lastProgressUpdate = DateTime.UtcNow;
-    private String _lastProgressMessage;
+    private String? _lastProgressMessage;
 
     protected void OnProgress(Guid jobRunTaskId, String message, Boolean verbose = false)
     {
@@ -36,7 +36,7 @@ public abstract class BaseTask
         });
     }
         
-    protected void OnComplete(Guid jobRunTaskId, String message, String resultArtifact, Boolean isError)
+    protected void OnComplete(Guid jobRunTaskId, String message, String? resultArtifact, Boolean isError)
     {
         OnCompleteEvent?.Invoke(this, new CompleteEvent
         {

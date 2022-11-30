@@ -2,6 +2,6 @@
 
 public class DatabaseProgressEvent
 {
-    public String Message { get; set; }
-    public String Source { get; set; }
+    public required String Message { get; set; }
+    public required String Source { get; set; }
 }

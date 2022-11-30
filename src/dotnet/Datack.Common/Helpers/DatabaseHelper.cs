@@ -10,13 +10,13 @@ public static class DatabaseHelper
         "master", "tempdb", "model", "msdb"
     };
 
-    public static List<DatabaseTestResult> FilterDatabases(IList<Database> databases,
+    public static List<DatabaseTestResult> FilterDatabases(IList<Database>? databases,
                                                            Boolean backupDefaultExclude,
                                                            Boolean backupExcludeSystemDatabases,
-                                                           String backupIncludeRegex,
-                                                           String backupExcludeRegex,
-                                                           String backupIncludeManual,
-                                                           String backupExcludeManual)
+                                                           String? backupIncludeRegex,
+                                                           String? backupExcludeRegex,
+                                                           String? backupIncludeManual,
+                                                           String? backupExcludeManual)
     {
         databases ??= new List<Database>();
 

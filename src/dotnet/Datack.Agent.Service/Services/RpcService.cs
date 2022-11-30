@@ -18,7 +18,7 @@ public class RpcService
     private readonly ILogger<RpcService> _logger;
     private readonly AppSettings _appSettings;
 
-    private HubConnection _connection;
+    private HubConnection? _connection;
 
     private readonly Dictionary<String, Expression> _requestMethods = new();
     private readonly String _version;
@@ -120,6 +120,11 @@ public class RpcService
     {
         _logger.LogDebug("Connecting...");
 
+        if (_connection == null)
+        {
+            throw new Exception("Cannot connect, connection is not initialized yet");
+        }
+
         _ = Task.Run(async () =>
         {
             while (true)
@@ -168,7 +173,7 @@ public class RpcService
 
             var methodInfo = _requestMethods[rpcRequest.Request];
 
-            Task methodResult = null;
+            Task? methodResult = null;
 
             if (methodInfo is Expression<Func<Task>> methodInfo2)
             {
@@ -191,6 +196,12 @@ public class RpcService
                 {
                     var payloadParameterRaw = payloadParameters[i].GetRawText();
                     var payloadParameterObject = JsonSerializer.Deserialize(payloadParameterRaw, parameters[i].Type);
+
+                    if (payloadParameterObject == null)
+                    {
+                        throw new Exception($"Unable to deserialize {payloadParameterRaw} to {parameters[i].Type}");
+                    }
+
                     invokationParameters[i] = payloadParameterObject;
                 }
 
@@ -220,7 +231,7 @@ public class RpcService
         }
         finally
         {
-            if (_connection.State == HubConnectionState.Connected)
+            if (_connection?.State == HubConnectionState.Connected)
             {
                 await _connection.SendAsync("response", result);
             }
@@ -239,7 +250,7 @@ public class RpcService
 
         try
         {
-            if (_connection.State != HubConnectionState.Connected)
+            if (_connection?.State != HubConnectionState.Connected)
             {
                 return;
             }

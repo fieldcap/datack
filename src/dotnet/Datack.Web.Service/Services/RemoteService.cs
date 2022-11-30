@@ -21,21 +21,21 @@ public class RemoteService
         _webHub = webHub;
     }
 
-    public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
+    public async Task<String> TestDatabaseConnection(Agent agent, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
     {
         _logger.LogDebug("TestDatabaseConnection {name} {agentId}", agent.Name, agent.AgentId);
 
         return await Send<String>(agent.Key, "TestDatabaseConnection", cancellationToken, connectionString, password, decryptPassword);
     }
         
-    public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String password, Boolean decryptPassword, CancellationToken cancellationToken)
+    public async Task<IList<Database>> GetDatabaseList(Agent agent, String connectionString, String? password, Boolean decryptPassword, CancellationToken cancellationToken)
     {
         _logger.LogDebug("GetDatabaseList {name} {agentId}", agent.Name, agent.AgentId);
 
         return await Send<List<Database>>(agent.Key, "GetDatabaseList", cancellationToken, connectionString, password, decryptPassword);
     }
         
-    public async Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public async Task<String> Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Run {name} {agentId} {jobRunTaskId}", jobRunTask.JobTask.Agent.Name, jobRunTask.JobTask.Agent.AgentId, jobRunTask.JobRunTaskId);
 
@@ -75,11 +75,11 @@ public class RemoteService
         return await Send<String>(agent.Key, "UpgradeAgent", cancellationToken);
     }
 
-    private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object[] payload)
+    private async Task<T> Send<T>(String key, String method, CancellationToken cancellationToken, params Object?[] payload)
     {
         var hasConnection = AgentHub.Agents.TryGetValue(key, out var connection);
 
-        if (!hasConnection)
+        if (!hasConnection || connection == null)
         {
             throw new Exception($"No connection found for agent with key {key}");
         }
@@ -87,7 +87,7 @@ public class RemoteService
         return await SendWithConnection<T>(connection.ConnectionId, method, cancellationToken, payload);
     }
 
-    private async Task<T> SendWithConnection<T>(String connectionId, String method, CancellationToken cancellationToken, params Object[] payload)
+    private async Task<T> SendWithConnection<T>(String connectionId, String method, CancellationToken cancellationToken, params Object?[] payload)
     {
         var request = new RpcRequest
         {
@@ -115,7 +115,15 @@ public class RemoteService
 
                     throw new Exception($"Agent threw an exception: {agentException}");
                 }
-                return JsonSerializer.Deserialize<T>(rpcResult.Result);
+
+                var result = JsonSerializer.Deserialize<T>(rpcResult.Result!);
+
+                if (result == null)
+                {
+                    throw new Exception($"Unable to deserialize response {result} to {typeof(T).Name}");
+                }
+
+                return result;
             }
 
             await Task.Delay(100, cancellationToken);

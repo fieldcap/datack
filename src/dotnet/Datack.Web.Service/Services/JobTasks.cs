@@ -32,7 +32,7 @@ public class JobTasks
         return await _jobTaskRepository.GetForJob(jobId, cancellationToken);
     }
 
-    public async Task<JobTask> GetById(Guid jobTaskId, CancellationToken cancellationToken)
+    public async Task<JobTask?> GetById(Guid jobTaskId, CancellationToken cancellationToken)
     {
         return await _jobTaskRepository.GetById(jobTaskId, cancellationToken);
     }
@@ -77,6 +77,19 @@ public class JobTasks
             throw new Exception("Name cannot be empty");
         }
 
+        var dbJobTask = await GetById(jobTask.JobTaskId, cancellationToken);
+        var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
+
+        if (dbJobTask == null)
+        {
+            throw new Exception($"Cannot find job task with ID {jobTask.JobTaskId}");
+        }
+
+        if (agent == null)
+        {
+            throw new Exception($"Cannot find agent with ID {jobTask.JobTaskId}");
+        }
+
         var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
         var sameNameTasks = jobTasks.Any(m => m.JobTaskId != jobTask.JobTaskId && String.Equals(m.Name, jobTask.Name, StringComparison.CurrentCultureIgnoreCase));
 
@@ -99,11 +112,9 @@ public class JobTasks
         {
             throw new Exception($"Parallel cannot be smaller than 0");
         }
-
-        var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
-        var dbJobTask = await GetById(jobTask.JobTaskId, cancellationToken);
-
+        
         await EncryptSettings(agent, jobTask.Settings, dbJobTask.Settings, cancellationToken);
+        
 
         await _jobTaskRepository.Update(jobTask, cancellationToken);
     }
@@ -153,7 +164,7 @@ public class JobTasks
                     continue;
                 }
 
-                var newSettingValueString = newSettingValue.ToString();
+                var newSettingValueString = newSettingValue.ToString()!;
 
                 if (newSettingValueString == "******")
                 {

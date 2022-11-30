@@ -39,6 +39,11 @@ public class UploadS3Task : BaseTask
                 throw new Exception("No settings set");
             }
 
+            if (String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadS3.Secret))
+            {
+                throw new Exception("No S3 password set");
+            }
+
             var sourceFileName = previousTask.ResultArtifact;
 
             OnProgress(jobRunTask.JobRunTaskId, $"Starting upload to s3 task for file {sourceFileName}");

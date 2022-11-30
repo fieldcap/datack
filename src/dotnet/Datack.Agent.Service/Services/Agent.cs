@@ -106,6 +106,11 @@ public class AgentHostedService : IHostedService
     {
         _logger.LogTrace("GetLogs");
 
+        if (String.IsNullOrWhiteSpace(_appSettings.Logging?.File?.Path))
+        {
+            return "Logging is disabled";
+        }
+
         var logFilePath = _appSettings.Logging.File.Path;
 
         if (!File.Exists(logFilePath))
@@ -121,14 +126,14 @@ public class AgentHostedService : IHostedService
 
         while (!reader.EndOfStream)
         {
-            var line = await reader.ReadLineAsync();
+            var line = await reader.ReadLineAsync(_cancellationToken);
 
             if (queue.Count >= 100)
             {
                 queue.Dequeue();
             }
 
-            queue.Enqueue(line);
+            queue.Enqueue(line ?? "");
         }
 
         return String.Join(Environment.NewLine, queue.ToList());

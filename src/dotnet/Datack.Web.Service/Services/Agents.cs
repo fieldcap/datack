@@ -44,9 +44,14 @@ public class Agents
         return agents;
     }
 
-    public async Task<Agent> GetById(Guid agentId, CancellationToken cancellationToken)
+    public async Task<Agent?> GetById(Guid agentId, CancellationToken cancellationToken)
     {
         var agent = await _agentRepository.GetById(agentId, cancellationToken);
+
+        if (agent == null)
+        {
+            return null;
+        }
 
         if (AgentHub.Agents.TryGetValue(agent.Key, out var agentConnection))
         {
@@ -67,7 +72,7 @@ public class Agents
         return agent;
     }
 
-    public async Task<Agent> GetByKey(String key, CancellationToken cancellationToken)
+    public async Task<Agent?> GetByKey(String key, CancellationToken cancellationToken)
     {
         return await _agentRepository.GetByKey(key, cancellationToken);
     }

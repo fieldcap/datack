@@ -20,14 +20,14 @@ public class AgentRepository
                                  .ToListAsync(cancellationToken);
     }
 
-    public async Task<Agent> GetById(Guid agentId, CancellationToken cancellationToken)
+    public async Task<Agent?> GetById(Guid agentId, CancellationToken cancellationToken)
     {
         return await _dataContext.Agents
                                  .AsNoTracking()
                                  .FirstOrDefaultAsync(m => m.AgentId == agentId, cancellationToken);
     }
 
-    public async Task<Agent> GetByKey(String key, CancellationToken cancellationToken)
+    public async Task<Agent?> GetByKey(String key, CancellationToken cancellationToken)
     {
         return await _dataContext.Agents
                                  .AsNoTracking()

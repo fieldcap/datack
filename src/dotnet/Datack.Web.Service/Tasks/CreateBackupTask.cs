@@ -20,7 +20,12 @@ public class CreateBackupTask : IBaseTask
     {
         if (jobTask.Settings?.CreateBackup == null)
         {
-            throw new Exception("No CreateBackupTask settings found");
+            throw new Exception($"Job task {jobTask.Name} does not have a database connection string or password set");
+        }
+
+        if (String.IsNullOrWhiteSpace(jobTask.Settings.CreateBackup.ConnectionString))
+        {
+            throw new Exception($"Job task {jobTask.Name} does not have a valid database connection string or password set");
         }
 
         var allDatabases = await _remoteService.GetDatabaseList(jobTask.Agent,

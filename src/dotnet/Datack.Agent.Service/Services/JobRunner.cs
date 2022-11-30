@@ -182,6 +182,8 @@ public class JobRunner
 
     public void StopAllTasks()
     {
+        _logger.LogDebug("Stopping all tasks");
+
         foreach (var runningTask in RunningTasks)
         {
             runningTask.Value.Cancel();

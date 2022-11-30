@@ -35,9 +35,19 @@ FROM
         return databaseList;
     }
 
-    public async Task CreateBackup(String connectionString, String databaseName, String backupType, String options, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
+    public async Task CreateBackup(String connectionString, String databaseName, String? backupType, String? options, String destinationFilePath, Action<DatabaseProgressEvent> progressCallback, CancellationToken cancellationToken)
     {
         await using var sqlConnection = new SqlConnection(connectionString);
+
+        if (backupType == null)
+        {
+            throw new Exception("Backup type cannot be null");
+        }
+
+        if (backupType != "Full" && backupType != "Differential" && backupType != "TransactionLog")
+        {
+            throw new Exception($"Invalid backup type {backupType}, has to be one of Full, Differential or TransactionLog");
+        }
 
         if (String.IsNullOrWhiteSpace(options))
         {
@@ -57,7 +67,7 @@ FROM
                 return;
             }
 
-            progressCallback?.Invoke(new DatabaseProgressEvent
+            progressCallback.Invoke(new DatabaseProgressEvent
             {
                 Message = args.Message,
                 Source = args.Source
@@ -74,7 +84,7 @@ FROM
 
         var query = $"{queryHeader} {options}";
 
-        progressCallback?.Invoke(new DatabaseProgressEvent
+        progressCallback.Invoke(new DatabaseProgressEvent
         {
             Message = $"Starting backup script{Environment.NewLine}{query}",
             Source = "Datack"

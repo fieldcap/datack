@@ -43,6 +43,11 @@ public class DeleteS3Task : BaseTask
                 throw new Exception($"Tag cannot be null");
             }
 
+            if (String.IsNullOrWhiteSpace(jobRunTask.Settings.DeleteS3.Secret))
+            {
+                throw new Exception($"Secret cannot be null");
+            }
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -62,7 +67,7 @@ public class DeleteS3Task : BaseTask
 
             var s3Client = new AmazonS3Client(new BasicAWSCredentials(jobRunTask.Settings.DeleteS3.AccessKey, secret), region);
 
-            String nextToken = null;
+            String? nextToken = null;
 
             var deleteDate = DateTimeOffset.UtcNow;
 

@@ -12,7 +12,7 @@ public class JobRunTaskRepository
         _dataContext = dataContext;
     }
 
-    public async Task<JobRunTask> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
+    public async Task<JobRunTask?> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
     {
         return await _dataContext.JobRunTasks
                                  .AsNoTracking()
@@ -68,7 +68,7 @@ public class JobRunTaskRepository
         await _dataContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task UpdateCompleted(Guid jobRunTaskId, String result, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
+    public async Task UpdateCompleted(Guid jobRunTaskId, String result, String? resultArtifact, Boolean isError, CancellationToken cancellationToken)
     {
         var jobRunTask = await _dataContext.JobRunTasks.FirstOrDefaultAsync(m => m.JobRunTaskId == jobRunTaskId, cancellationToken);
 

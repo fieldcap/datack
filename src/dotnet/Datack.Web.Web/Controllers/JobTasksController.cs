@@ -51,8 +51,8 @@ public class JobTasksController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Select(x => x.Value.Errors)
-                                   .Where(y => y.Count > 0)
+            var errors = ModelState.Select(x => x.Value?.Errors)
+                                   .Where(x => x != null && x.Count > 0)
                                    .ToList();
 
             return BadRequest(errors);
@@ -69,8 +69,8 @@ public class JobTasksController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Select(x => x.Value.Errors)
-                                   .Where(y => y.Count > 0)
+            var errors = ModelState.Select(x => x.Value?.Errors)
+                                   .Where(x => x != null && x.Count > 0)
                                    .ToList();
 
             return BadRequest(errors);
@@ -116,6 +116,11 @@ public class JobTasksController : Controller
         {
             var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
 
+            if (jobTask == null)
+            {
+                throw new Exception($"Cannot find job task with ID {request.JobTaskId}");
+            }
+
             password = jobTask.Settings.CreateBackup.ConnectionStringPassword;
             decryptPassword = true;
         }
@@ -147,6 +152,11 @@ public class JobTasksController : Controller
         {
             var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
 
+            if (jobTask == null)
+            {
+                throw new Exception($"Cannot find job task with ID {request.JobTaskId}");
+            }
+
             password = jobTask.Settings.CreateBackup.ConnectionStringPassword;
             decryptPassword = true;
         }
@@ -169,26 +179,26 @@ public class AgentsTestDatabaseConnectionRequest
 {
     public Guid AgentId { get; set; }
     public Guid JobTaskId { get; set; }
-    public String ConnectionString { get; set; }
-    public String ConnectionStringPassword { get; set; }
+    public required String ConnectionString { get; set; }
+    public required String ConnectionStringPassword { get; set; }
 }
 
 public class JobTasksTestDatabaseRegexRequest
 {
     public Boolean BackupDefaultExclude { get; set; }
     public Boolean BackupExcludeSystemDatabases { get; set; }
-    public String BackupIncludeRegex { get; set; }
-    public String BackupExcludeRegex { get; set; }
-    public String BackupIncludeManual { get; set; }
-    public String BackupExcludeManual { get; set; }
+    public required String BackupIncludeRegex { get; set; }
+    public required String BackupExcludeRegex { get; set; }
+    public required String BackupIncludeManual { get; set; }
+    public required String BackupExcludeManual { get; set; }
     public Guid AgentId { get; set; }
     public Guid JobTaskId { get; set; }
-    public String ConnectionString { get; set; }
-    public String ConnectionStringPassword { get; set; }
+    public required String ConnectionString { get; set; }
+    public required String ConnectionStringPassword { get; set; }
 }
 
 public class JobTaskReOrderRequest
 {
     public Guid JobId { get; set; }
-    public IList<Guid> JobTaskIds { get; set; }
+    public required IList<Guid> JobTaskIds { get; set; }
 }

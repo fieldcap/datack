@@ -2,6 +2,8 @@
 
 namespace Datack.Common.Models.Data;
 
+#nullable disable
+
 public class Setting
 {
     [Key]

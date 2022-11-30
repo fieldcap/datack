@@ -15,6 +15,11 @@ public class Emails
 
     public async Task SendComplete(JobRun jobRun, CancellationToken cancellationToken)
     {
+        if (String.IsNullOrWhiteSpace(jobRun.Job.Settings.EmailTo))
+        {
+            return;
+        }
+
         if ((!jobRun.Job.Settings.EmailOnError || !jobRun.IsError) && !jobRun.Job.Settings.EmailOnSuccess)
         {
             return;
@@ -23,7 +28,7 @@ public class Emails
         var subject = jobRun.IsError ? $"Job {jobRun.Job.Name} failed with errors" : $"Job {jobRun.Job.Name} succesfully completed";
 
         var body = $"Started: {jobRun.Started.ToLocalTime():f}<br/>" +
-                   $"Completed: {jobRun.Completed.Value.ToLocalTime():f}<br/>" +
+                   $"Completed: {jobRun.Completed?.ToLocalTime():f}<br/>" +
                    $"Result: {jobRun.Result}";
 
         await Send(jobRun.Job.Settings.EmailTo, subject, body, cancellationToken);

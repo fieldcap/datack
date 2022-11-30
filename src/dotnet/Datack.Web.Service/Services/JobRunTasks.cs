@@ -14,7 +14,7 @@ public class JobRunTasks
         _remoteService = remoteService;
     }
 
-    public async Task<JobRunTask> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
+    public async Task<JobRunTask?> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
     {
         return await _jobRunTaskRepository.GetById(jobRunTaskId, cancellationToken);
     }
@@ -34,17 +34,29 @@ public class JobRunTasks
         await _jobRunTaskRepository.UpdateStarted(jobRunTaskId, date, cancellationToken);
 
         var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
+
+        if (jobRunTask == null)
+        {
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             await _remoteService.WebJobRunTask(jobRunTask);
         }, cancellationToken);
     }
 
-    public async Task UpdateCompleted(Guid jobRunTaskId, String result, String resultArtifact, Boolean isError, CancellationToken cancellationToken)
+    public async Task UpdateCompleted(Guid jobRunTaskId, String result, String? resultArtifact, Boolean isError, CancellationToken cancellationToken)
     {
         await _jobRunTaskRepository.UpdateCompleted(jobRunTaskId, result, resultArtifact, isError, cancellationToken);
 
         var jobRunTask = await GetById(jobRunTaskId, CancellationToken.None);
+
+        if (jobRunTask == null)
+        {
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             await _remoteService.WebJobRunTask(jobRunTask);

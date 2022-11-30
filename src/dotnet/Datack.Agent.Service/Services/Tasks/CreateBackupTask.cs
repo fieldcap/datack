@@ -88,6 +88,11 @@ public class CreateBackupTask : BaseTask
 
             OnProgress(jobRunTask.JobRunTaskId, $"Creating backup of database {jobRunTask.ItemName}");
 
+            if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.ConnectionString))
+            {
+                throw new Exception($"Job Task does not have a connection string configured");
+            }
+
             var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.CreateBackup.ConnectionString, jobRunTask.Settings.CreateBackup.ConnectionStringPassword, true);
 
             await _databaseAdapter.CreateBackup(connectionString,

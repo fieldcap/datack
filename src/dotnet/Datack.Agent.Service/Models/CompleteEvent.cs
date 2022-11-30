@@ -3,7 +3,7 @@
 public class CompleteEvent
 {
     public Guid JobRunTaskId { get; set; }
-    public String Message { get; set; }
-    public String ResultArtifact { get; set; }
+    public required String Message { get; set; }
+    public String? ResultArtifact { get; set; }
     public Boolean IsError { get; set; }
 }

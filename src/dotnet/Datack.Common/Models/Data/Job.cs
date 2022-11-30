@@ -3,6 +3,8 @@ using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Models.Data;
 
+#nullable disable
+
 public class Job
 {
     [Key]

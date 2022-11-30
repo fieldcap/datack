@@ -16,7 +16,7 @@ public class DatabaseAdapter
         _dataProtector = dataProtector;
     }
 
-    public String CreateConnectionString(String connectionString, String password, Boolean decryptPassword)
+    public String CreateConnectionString(String connectionString, String? password, Boolean decryptPassword)
     {
         if (decryptPassword && !String.IsNullOrWhiteSpace(password))
         {
@@ -47,8 +47,8 @@ public class DatabaseAdapter
 
     public async Task CreateBackup(String connectionString,
                                    String databaseName,
-                                   String backupType,
-                                   String options,
+                                   String? backupType,
+                                   String? options,
                                    String destinationFilePath,
                                    Action<DatabaseProgressEvent> progressCallback,
                                    CancellationToken cancellationToken)

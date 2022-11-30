@@ -44,8 +44,8 @@ public class AgentsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Select(x => x.Value.Errors)
-                                   .Where(y => y.Count > 0)
+            var errors = ModelState.Select(x => x.Value?.Errors)
+                                   .Where(x => x != null && x.Count > 0)
                                    .ToList();
 
             return BadRequest(errors);
@@ -62,8 +62,8 @@ public class AgentsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Select(x => x.Value.Errors)
-                                   .Where(y => y.Count > 0)
+            var errors = ModelState.Select(x => x.Value?.Errors)
+                                   .Where(x => x != null && x.Count > 0)
                                    .ToList();
 
             return BadRequest(errors);

@@ -19,7 +19,7 @@ namespace Datack.Agent;
 
 public static class Program
 {
-    public static LoggingLevelSwitch LoggingLevelSwitch { get; set; }
+    private static readonly LoggingLevelSwitch LoggingLevelSwitch = new();
 
     public static async Task Main(String[] args)
     {
@@ -45,7 +45,7 @@ public static class Program
         }
         finally
         {
-            Log.CloseAndFlush();
+            await Log.CloseAndFlushAsync();
         }
     }
 
@@ -62,23 +62,26 @@ public static class Program
         var appSettings = new AppSettings();
         configuration.Bind(appSettings);
 
-        if (!String.IsNullOrWhiteSpace(appSettings.Logging.LogLevel.Default))
+        if (!String.IsNullOrWhiteSpace(appSettings.Logging?.LogLevel?.Default))
         {
-            LoggingLevelSwitch = new LoggingLevelSwitch(Enum.Parse<LogEventLevel>(appSettings.Logging.LogLevel.Default));
+            LoggingLevelSwitch.MinimumLevel = Enum.Parse<LogEventLevel>(appSettings.Logging.LogLevel.Default);
         }
 
-        Log.Logger = new LoggerConfiguration()
+        if (!String.IsNullOrWhiteSpace(appSettings.Logging?.File?.Path))
+        {
+            Log.Logger = new LoggerConfiguration()
                      .Enrich.FromLogContext()
                      .Enrich.WithExceptionDetails()
-                     .WriteTo.File(appSettings.Logging.File.Path, 
-                                   rollOnFileSizeLimit: true, 
-                                   fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes, 
+                     .WriteTo.File(appSettings.Logging.File.Path,
+                                   rollOnFileSizeLimit: true,
+                                   fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes,
                                    retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles)
                      .WriteTo.Console()
                      .MinimumLevel.ControlledBy(LoggingLevelSwitch)
                      .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                      .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning)
                      .CreateLogger();
+        }
 
         Serilog.Debugging.SelfLog.Enable(msg =>
         {
@@ -94,11 +97,7 @@ public static class Program
                    {
                        config.SetBasePath(Directory.GetCurrentDirectory());
                        config.AddJsonFile("appsettings.json", true);
-
-                       if (args != null)
-                       {
-                           config.AddCommandLine(args);
-                       }
+                       config.AddCommandLine(args);
                    })
                    .ConfigureLogging((_, logging) =>
                    {

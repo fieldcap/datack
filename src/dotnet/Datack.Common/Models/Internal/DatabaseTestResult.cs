@@ -2,7 +2,7 @@
 
 public class DatabaseTestResult
 {
-    public String DatabaseName { get; set; }
+    public required String DatabaseName { get; set; }
     public Boolean HasNoAccess { get; set; }
     public Boolean IsManualIncluded { get; set; }
     public Boolean IsManualExcluded { get; set; }

@@ -11,5 +11,5 @@ public class JobSettings
     public Boolean EmailOnSuccess { get; set; }
 
     [JsonPropertyName("emailTo")]
-    public String EmailTo { get; set; }
+    public String? EmailTo { get; set; }
 }

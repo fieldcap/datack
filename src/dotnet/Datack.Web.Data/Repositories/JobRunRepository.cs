@@ -37,7 +37,7 @@ public class JobRunRepository
                      .ToListAsync(cancellationToken);
     }
 
-    public async Task<JobRun> GetById(Guid jobRunId, CancellationToken cancellationToken)
+    public async Task<JobRun?> GetById(Guid jobRunId, CancellationToken cancellationToken)
     {
         return await _dataContext.JobRuns
                                  .AsNoTracking()

@@ -22,7 +22,7 @@ public class Jobs
         return await _jobRepository.GetForAgent(agentId, cancellationToken);
     }
 
-    public async Task<Job> GetById(Guid jobId, CancellationToken cancellationToken)
+    public async Task<Job?> GetById(Guid jobId, CancellationToken cancellationToken)
     {
         return await _jobRepository.GetById(jobId, cancellationToken);
     }

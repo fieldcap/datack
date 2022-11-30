@@ -33,7 +33,7 @@ public class JobTaskRepository
                                  .ToListAsync(cancellationToken);
     }
 
-    public async Task<JobTask> GetById(Guid jobTaskId, CancellationToken cancellationToken)
+    public async Task<JobTask?> GetById(Guid jobTaskId, CancellationToken cancellationToken)
     {
         return await _dataContext.JobTasks
                                  .AsNoTracking()
@@ -114,8 +114,11 @@ public class JobTaskRepository
     {
         var jobTask = await _dataContext.JobTasks.FirstOrDefaultAsync(m => m.JobTaskId == jobTaskId, cancellationToken);
 
-        _dataContext.JobTasks.Remove(jobTask);
+        if (jobTask != null)
+        {
+            _dataContext.JobTasks.Remove(jobTask);
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+            await _dataContext.SaveChangesAsync(cancellationToken);
+        }
     }
 }

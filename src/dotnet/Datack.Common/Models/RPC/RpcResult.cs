@@ -8,6 +8,6 @@ public class RpcResult
     }
 
     public Guid TransactionId { get; set; }
-    public String Error { get; set; }
-    public String Result { get; set; }
+    public String? Error { get; set; }
+    public String? Result { get; set; }
 }

@@ -63,7 +63,7 @@ public class Settings
         }
     }
 
-    public async Task<T> Get<T>(String key, CancellationToken cancellationToken)
+    public async Task<T?> Get<T>(String key, CancellationToken cancellationToken)
     {
         var setting = await _settingRepository.Get(key, cancellationToken);
 
@@ -84,6 +84,6 @@ public class Settings
             value = _protector.Unprotect(value);
         }
 
-        return (T)Convert.ChangeType(value, typeof(T));
+        return (T?)Convert.ChangeType(value, typeof(T?));
     }
 }

@@ -8,12 +8,12 @@ namespace Datack.Web.Service.Middleware;
 
 public class JsonProtectedConverter : JsonConverter<JobTaskSettings>
 {
-    public override JobTaskSettings Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override JobTaskSettings? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return JsonSerializer.Deserialize<JobTaskSettings>(ref reader);
     }
 
-    public override void Write(Utf8JsonWriter writer, JobTaskSettings jobTaskSettings, JsonSerializerOptions options)
+    public override void Write(Utf8JsonWriter writer, JobTaskSettings? jobTaskSettings, JsonSerializerOptions options)
     {
         if (jobTaskSettings == null)
         {

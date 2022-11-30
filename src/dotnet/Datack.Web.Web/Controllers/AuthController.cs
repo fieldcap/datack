@@ -34,6 +34,11 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<ActionResult> Login([FromBody] AuthControllerLoginRequest request)
     {
+        if (String.IsNullOrWhiteSpace(request.UserName) || String.IsNullOrWhiteSpace(request.Password))
+        {
+            return BadRequest("Invalid credentials");
+        }
+
         var user = await _authentication.GetUser();
 
         if (user == null)
@@ -55,6 +60,11 @@ public class AuthController : Controller
 
         user = await _authentication.GetUser();
 
+        if (user == null)
+        {
+            return BadRequest("User not found");
+        }
+
         return Ok(user.UserName);
     }
         
@@ -70,7 +80,7 @@ public class AuthController : Controller
 
 public class AuthControllerLoginRequest
 {
-    public String UserName { get; set; }
-    public String Password { get; set; }
+    public String? UserName { get; set; }
+    public String? Password { get; set; }
     public Boolean RememberMe { get; set; }
 }

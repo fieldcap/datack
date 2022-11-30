@@ -67,8 +67,8 @@ public class JobsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Select(x => x.Value.Errors)
-                                   .Where(y => y.Count > 0)
+            var errors = ModelState.Select(x => x.Value?.Errors)
+                                   .Where(x => x != null && x.Count > 0)
                                    .ToList();
 
             return BadRequest(errors);
@@ -85,8 +85,8 @@ public class JobsController : Controller
     {
         if (!ModelState.IsValid)
         {
-            var errors = ModelState.Select(x => x.Value.Errors)
-                                   .Where(y => y.Count > 0)
+            var errors = ModelState.Select(x => x.Value?.Errors)
+                                   .Where(x => x != null && x.Count > 0)
                                    .ToList();
 
             return BadRequest(errors);
@@ -186,6 +186,16 @@ public class JobsController : Controller
 
         var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
 
+        if (agent == null)
+        {
+            throw new Exception($"Agent with ID {jobTask.AgentId} not found");
+        }
+
+        if (String.IsNullOrWhiteSpace(jobTask.Settings.CreateBackup.ConnectionString))
+        {
+            throw new Exception("Job task has no database connection string configured");
+        }
+
         var databases = await _remoteService.GetDatabaseList(agent, jobTask.Settings.CreateBackup.ConnectionString, jobTask.Settings.CreateBackup.ConnectionStringPassword, true, cancellationToken);
 
         var databaseList = databases.Where(m => m.HasAccess).Select(m => m.DatabaseName).ToList();
@@ -201,13 +211,13 @@ public class JobDuplicateRequest
 
 public class JobsParseCronRequest
 {
-    public String Cron { get; set; }
+    public required String Cron { get; set; }
 }
 
 public class JobRunRequest
 {
     public Guid JobId { get; set; }
-    public String ItemList { get; set; }
+    public required String ItemList { get; set; }
 }
 
 public class JobStopRequest

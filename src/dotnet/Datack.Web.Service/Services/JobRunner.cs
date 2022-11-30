@@ -71,7 +71,7 @@ public class JobRunner
     /// <summary>
     ///     Setup a new job.
     /// </summary>
-    public async Task<Guid> SetupJobRun(Job job, IList<String> overrideItemList, CancellationToken cancellationToken)
+    public async Task<Guid> SetupJobRun(Job job, IList<String>? overrideItemList, CancellationToken cancellationToken)
     {
         _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
@@ -324,7 +324,7 @@ public class JobRunner
                                              .Where(m => m.JobTaskId == jobRunTask.JobTaskId & m.Completed != null)
                                              .Select(t => jobRunTasks.FirstOrDefault(m => m.ItemName == t.ItemName && m.TaskOrder == jobRunTask.TaskOrder + 1))
                                              .Where(t => t != null)
-                                             .Count(nextTask => nextTask.Completed == null);
+                                             .Count(nextTask => nextTask!.Completed == null);
 
                     if (pendingForNextTask > jobRunTask.JobTask.MaxItemsToKeep)
                     {
@@ -366,7 +366,7 @@ public class JobRunner
                                  jobRun.Job.Name);
 
                 // Find the previous task for this item and pass it down
-                JobRunTask previousArtifactTask = null;
+                JobRunTask? previousArtifactTask = null;
 
                 if (jobRunTask.JobTask.UsePreviousTaskArtifactsFromJobTaskId != null)
                 {

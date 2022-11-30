@@ -36,6 +36,11 @@ public class UploadAzureTask : BaseTask
                 throw new Exception("No settings set");
             }
 
+            if (String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadAzure.ConnectionString))
+            {
+                throw new Exception("No connection string set");
+            }
+
             var sourceFileName = previousTask.ResultArtifact;
 
             OnProgress(jobRunTask.JobRunTaskId, $"Starting upload to azure task for file {sourceFileName}");

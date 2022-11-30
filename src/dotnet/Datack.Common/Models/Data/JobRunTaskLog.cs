@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Datack.Common.Models.Data;
 
+#nullable disable
+
 public class JobRunTaskLog
 {
     [Key]

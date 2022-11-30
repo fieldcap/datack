@@ -57,5 +57,5 @@ public class SettingsController : Controller
 
 public class SettingsTestEmailRequest
 {
-    public String To { get; set; }
+    public required String To { get; set; }
 }

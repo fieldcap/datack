@@ -3,6 +3,6 @@
 public class Database
 {
     public Int32 DatabaseId { get; set; }
-    public String DatabaseName { get;set; }
+    public required String DatabaseName { get;set; }
     public Boolean HasAccess { get; set; }
 }

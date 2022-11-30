@@ -9,10 +9,10 @@ namespace Datack.Web.Service.Hubs;
 
 public class AgentHub : Hub
 {
-    public static event EventHandler<ClientConnectEvent> OnClientConnect;
-    public static event EventHandler<ClientDisconnectEvent> OnClientDisconnect;
-    public static event EventHandler<IList<RpcProgressEvent>> OnProgressTasks;
-    public static event EventHandler<IList<RpcCompleteEvent>> OnCompleteTasks;
+    public static event EventHandler<ClientConnectEvent>? OnClientConnect;
+    public static event EventHandler<ClientDisconnectEvent>? OnClientDisconnect;
+    public static event EventHandler<IList<RpcProgressEvent>>? OnProgressTasks;
+    public static event EventHandler<IList<RpcCompleteEvent>>? OnCompleteTasks;
 
     private readonly ILogger<AgentHub> _logger;
     private readonly Agents _agents;
@@ -26,7 +26,7 @@ public class AgentHub : Hub
     public static readonly ConcurrentDictionary<String, AgentConnection> Agents = new();
     public static readonly ConcurrentDictionary<Guid, RpcResult> Transactions = new();
 
-    public override async Task OnDisconnectedAsync(Exception exception)
+    public override async Task OnDisconnectedAsync(Exception? exception)
     {
         if (exception != null)
         {
@@ -91,6 +91,6 @@ public class AgentHub : Hub
 
 public class AgentConnection
 {
-    public String ConnectionId { get; set; }
-    public String Version { get; set; }
+    public required String ConnectionId { get; set; }
+    public required String Version { get; set; }
 }

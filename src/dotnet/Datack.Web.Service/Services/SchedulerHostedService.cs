@@ -142,7 +142,7 @@ public class SchedulerHostedService : IHostedService
 
                         var timespan = DateTimeOffset.UtcNow - jobRunTask.Started;
 
-                        if (timespan.Value.TotalSeconds > timeout)
+                        if (timespan != null && timespan.Value.TotalSeconds > timeout)
                         {
                             // Try sending a signal to the client to force it to stop it's task.
                             try
@@ -443,6 +443,11 @@ public class SchedulerHostedService : IHostedService
                 _logger.LogDebug("Received Complete Event for jobRunTaskId {jobRunTaskId}", completeEvent.JobRunTaskId);
 
                 var jobRunTask = await jobRunTasksService.GetById(completeEvent.JobRunTaskId, cancellationToken);
+
+                if (jobRunTask == null)
+                {
+                    continue;
+                }
 
                 distinctJobRunIds.Add(jobRunTask.JobRunId);
 

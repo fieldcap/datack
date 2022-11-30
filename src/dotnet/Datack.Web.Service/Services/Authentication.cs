@@ -28,7 +28,7 @@ public class Authentication
         return await _signInManager.PasswordSignInAsync(userName, password, isPersistent, false);
     }
 
-    public async Task<IdentityUser> GetUser()
+    public async Task<IdentityUser?> GetUser()
     {
         return await _userRepository.GetUser();
     }

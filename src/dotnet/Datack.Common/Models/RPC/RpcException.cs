@@ -2,10 +2,10 @@
 
 public class RpcException
 {
-    public String Message { get; set; }
-    public String StackTrace { get; set; }
+    public required String Message { get; set; }
+    public String? StackTrace { get; set; }
 
-    public RpcException InnerException { get; set; }
+    public RpcException? InnerException { get; set; }
 
     public override String ToString()
     {

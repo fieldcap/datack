@@ -15,139 +15,143 @@ using Serilog.Debugging;
 using Serilog.Events;
 using Serilog.Exceptions;
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    ContentRootPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : default
-});
-
-// Bind the AppSettings from the appsettings.json files.
-builder.Configuration.AddJsonFile("appsettings.json", false, false);
-builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, false);
-
-// Bind AppSettings
-var appSettings = new AppSettings();
-builder.Configuration.Bind(appSettings);
-builder.Services.AddSingleton(appSettings);
-
-// Configure URLs
-if (appSettings.Port <= 0)
-{
-    appSettings.Port = 6500;
-}
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(appSettings.Port);
-});
-
-if (appSettings.Logging?.File?.Path != null)
-{
-    builder.Host.UseSerilog((_, lc) => lc.Enrich.FromLogContext()
-                                         .Enrich.WithExceptionDetails()
-                                         .WriteTo.File(appSettings.Logging.File.Path,
-                                                       rollOnFileSizeLimit: true,
-                                                       fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes,
-                                                       retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles,
-                                                       outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
-                                         .WriteTo.Console()
-                                         .MinimumLevel.ControlledBy(Settings.LoggingLevelSwitch)
-                                         .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                                         .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning));
-}
-
-builder.Host.UseWindowsService();
-
-SelfLog.Enable(msg =>
-{
-    Debug.Print(msg);
-    Debugger.Break();
-    Console.WriteLine(msg);
-    File.WriteAllText(@"C:\Temp\Datack.txt", msg);
-});
-
-Log.Information($"Starting host version {VersionHelper.GetVersion()}");
-
-builder.Services.AddControllers()
-       .AddJsonOptions(opts =>
-        {
-            opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-            opts.JsonSerializerOptions.Converters.Add(new JsonProtectedConverter());
-        });
-
-builder.Services
-       .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-       .AddCookie(options =>
-       {
-           options.SlidingExpiration = true;
-       });
-
-builder.Services.AddAuthorization();
-
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
-       {
-           options.User.RequireUniqueEmail = false;
-           options.Password.RequiredLength = 10;
-           options.Password.RequireUppercase = false;
-           options.Password.RequireLowercase = false;
-           options.Password.RequireNonAlphanumeric = false;
-           options.Password.RequiredUniqueChars = 5;
-       })
-       .AddEntityFrameworkStores<DataContext>()
-       .AddDefaultTokenProviders();
-
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.Events.OnRedirectToLogin = context =>
-    {
-        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-        return Task.CompletedTask;
-    };
-    options.Cookie.Name = "Datack";
-});
-
-builder.Services.Configure<HostOptions>(hostOptions =>
-{
-    hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
-});
-
-// Configure development cors.
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("Dev",
-                      corsBuilder => corsBuilder.AllowAnyMethod()
-                                                .AllowAnyHeader()
-                                                .AllowCredentials());
-});
-
-// Configure misc services.
-builder.Services.AddResponseCaching();
-builder.Services.AddMemoryCache();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddHttpClient();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddSession();
-
-builder.Services.AddSpaStaticFiles(spaBuilder =>
-{
-    spaBuilder.RootPath = "wwwroot";
-});
-
-builder.Services.AddSignalR(hubOptions =>
-{
-    hubOptions.EnableDetailedErrors = true;
-    hubOptions.MaximumReceiveMessageSize = null;
-});
-
-// ReSharper disable RedundantNameQualifier
-Datack.Web.Data.DiConfig.Config(builder.Services, appSettings);
-Datack.Web.Service.DiConfig.Config(builder.Services);
-// ReSharper restore RedundantNameQualifier
-
-ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
 try
 {
+    var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+    {
+        Args = args,
+        ContentRootPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : default
+    });
+
+    // Bind the AppSettings from the appsettings.json files.
+    builder.Configuration.AddJsonFile("appsettings.json", false, false);
+    builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, false);
+
+    // Bind AppSettings
+    var appSettings = new AppSettings();
+    builder.Configuration.Bind(appSettings);
+    builder.Services.AddSingleton(appSettings);
+
+    // Configure URLs
+    if (appSettings.Port <= 0)
+    {
+        appSettings.Port = 6500;
+    }
+
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenAnyIP(appSettings.Port);
+    });
+
+    if (appSettings.Logging?.File?.Path != null)
+    {
+        builder.Host.UseSerilog((_, lc) => lc.Enrich.FromLogContext()
+                                             .Enrich.WithExceptionDetails()
+                                             .WriteTo.File(appSettings.Logging.File.Path,
+                                                           rollOnFileSizeLimit: true,
+                                                           fileSizeLimitBytes: appSettings.Logging.File.FileSizeLimitBytes,
+                                                           retainedFileCountLimit: appSettings.Logging.File.MaxRollingFiles,
+                                                           outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}")
+                                             .WriteTo.Console()
+                                             .MinimumLevel.ControlledBy(Settings.LoggingLevelSwitch)
+                                             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                                             .MinimumLevel.Override("System.Net.Http", LogEventLevel.Warning));
+    }
+
+    builder.Host.UseWindowsService();
+
+    SelfLog.Enable(msg =>
+    {
+        Debug.Print(msg);
+        Debugger.Break();
+        Console.WriteLine(msg);
+        File.WriteAllText(@"C:\Temp\Datack.txt", msg);
+    });
+
+    Log.Information($"Starting host version {VersionHelper.GetVersion()}");
+
+    builder.Services.AddControllers()
+           .AddJsonOptions(opts =>
+           {
+               opts.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+               opts.JsonSerializerOptions.Converters.Add(new JsonProtectedConverter());
+           });
+
+    builder.Services
+           .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+           .AddCookie(options =>
+           {
+               options.SlidingExpiration = true;
+           });
+
+    builder.Services.AddAuthorization();
+
+    builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+           {
+               options.User.RequireUniqueEmail = false;
+               options.Password.RequiredLength = 10;
+               options.Password.RequireUppercase = false;
+               options.Password.RequireLowercase = false;
+               options.Password.RequireNonAlphanumeric = false;
+               options.Password.RequiredUniqueChars = 5;
+           })
+           .AddEntityFrameworkStores<DataContext>()
+           .AddDefaultTokenProviders();
+
+    builder.Services.ConfigureApplicationCookie(options =>
+    {
+        options.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+
+            return Task.CompletedTask;
+        };
+
+        options.Cookie.Name = "Datack";
+    });
+
+    builder.Services.Configure<HostOptions>(hostOptions =>
+    {
+        hostOptions.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+    });
+
+    // Configure development cors.
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("Dev",
+                          corsBuilder => corsBuilder.AllowAnyMethod()
+                                                    .AllowAnyHeader()
+                                                    .AllowCredentials());
+    });
+
+    // Configure misc services.
+    builder.Services.AddResponseCaching();
+    builder.Services.AddMemoryCache();
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddHttpClient();
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddSession();
+
+    builder.Services.AddSpaStaticFiles(spaBuilder =>
+    {
+        spaBuilder.RootPath = "wwwroot";
+    });
+
+    builder.Services.AddSignalR(hubOptions =>
+    {
+        hubOptions.EnableDetailedErrors = true;
+        hubOptions.MaximumReceiveMessageSize = null;
+    });
+
+    // ReSharper disable RedundantNameQualifier
+    Datack.Web.Data.DiConfig.Config(builder.Services, appSettings);
+    Datack.Web.Service.DiConfig.Config(builder.Services);
+
+    // ReSharper restore RedundantNameQualifier
+
+    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+
     // Build the app
     var app = builder.Build();
 
@@ -175,7 +179,7 @@ try
     });
 
     app.UseRouting();
-    
+
     app.UseAuthentication();
 
     app.UseAuthorization();
@@ -186,16 +190,18 @@ try
         endpoints.MapHub<WebHub>("/hubs/web");
         endpoints.MapControllers();
     });
-    
-    app.MapWhen(x => !x.Request.Path.StartsWithSegments("/api"), routeBuilder =>
-    {
-        routeBuilder.UseSpaStaticFiles();
-        routeBuilder.UseSpa(spa =>
-        {
-            spa.Options.SourcePath = "wwwroot";
-            spa.Options.DefaultPage = "/index.html";
-        });
-    });
+
+    app.MapWhen(x => !x.Request.Path.StartsWithSegments("/api"),
+                routeBuilder =>
+                {
+                    routeBuilder.UseSpaStaticFiles();
+
+                    routeBuilder.UseSpa(spa =>
+                    {
+                        spa.Options.SourcePath = "wwwroot";
+                        spa.Options.DefaultPage = "/index.html";
+                    });
+                });
 
     // Run the app
     app.Run();
