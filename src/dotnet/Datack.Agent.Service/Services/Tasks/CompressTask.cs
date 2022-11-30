@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using System.Text;
 using ByteSizeLib;
+using CliWrap;
+using CliWrap.EventStream;
 using Datack.Common.Models.Data;
 using StringTokenFormatter;
 
@@ -76,8 +78,6 @@ public class CompressTask : BaseTask
 
             var storePath = Path.Combine(filePath, fileName);
 
-            var resultArtifact = storePath;
-
             OnProgress(jobRunTask.JobRunTaskId, $"Testing path {storePath}");
 
             if (!Directory.Exists(filePath))
@@ -136,69 +136,55 @@ public class CompressTask : BaseTask
 
             var executable = $"{AppDomain.CurrentDomain.BaseDirectory}7zip{Path.DirectorySeparatorChar}7za.exe";
 
-            var cmd = @$"""{executable}"" {argumentsString}";
+            var logCmd = @$"""{executable}"" {argumentsString}";
                 
             if (!String.IsNullOrWhiteSpace(password))
             {
                 var decryptedPassword = _dataProtector.Decrypt(password);
 
-                cmd = cmd.Replace(decryptedPassword, "****");
+                logCmd = logCmd.Replace(decryptedPassword, "****");
             }
 
-            OnProgress(jobRunTask.JobRunTaskId, $"Starting compress cmd {jobRunTask.ItemName} with parameters {cmd}");
-                
-            var stdErr = new StringBuilder();
+            OnProgress(jobRunTask.JobRunTaskId, $"Starting compress cmd {jobRunTask.ItemName} with parameters {logCmd}");
 
-            using (var process = new Process())
+            var stdErrBuffer = new StringBuilder();
+
+            try
             {
-                process.StartInfo = new ProcessStartInfo
+                var cmd = Cli.Wrap(executable).WithArguments(arguments, false);
+
+                await foreach (var cmdEvent in cmd.ListenAsync(cancellationToken))
                 {
-                    FileName = executable,
-                    Arguments = argumentsString,
-                    UseShellExecute = false,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    RedirectStandardInput = false,
-                };
-
-                process.EnableRaisingEvents = true;
-
-                process.OutputDataReceived += (_, args) =>
-                {
-                    var line = args.Data?.Trim();
-
-                    if (String.IsNullOrWhiteSpace(line))
+                    switch (cmdEvent)
                     {
-                        return;
+                        case StandardOutputCommandEvent stdOut:
+                        {
+                            var line = stdOut.Text.Trim();
+
+                            if (!String.IsNullOrWhiteSpace(line))
+                            {
+                                OnProgress(jobRunTask.JobRunTaskId, line, line.Contains('%'));
+                            }
+
+                            break;
+                        }
+                        case StandardErrorCommandEvent stdErr:
+                        {
+                            var line = stdErr.Text.Trim();
+
+                            if (!String.IsNullOrWhiteSpace(line))
+                            {
+                                stdErrBuffer.AppendLine(line);
+                            }
+                            
+                            break;
+                        }
                     }
-
-                    OnProgress(jobRunTask.JobRunTaskId, line, line.Contains('%'));
-                };
-
-                process.ErrorDataReceived += (_, args) =>
-                {
-                    var line = args.Data?.Trim();
-
-                    if (String.IsNullOrWhiteSpace(line))
-                    {
-                        return;
-                    }
-
-                    stdErr.AppendLine(line);
-                };
-
-                process.Start();
-
-                process.BeginOutputReadLine();
-
-                process.BeginErrorReadLine();
-
-                await process.WaitForExitAsync(cancellationToken);
+                }
             }
-
-            if (stdErr.Length > 0)
+            catch
             {
-                throw new Exception(stdErr.ToString());
+                throw new Exception(stdErrBuffer.ToString());
             }
 
             sw.Stop();
@@ -208,7 +194,7 @@ public class CompressTask : BaseTask
                 
             var message = $"Completed compression of {jobRunTask.ItemName} from {ByteSize.FromBytes(fileSize):0.00} to {ByteSize.FromBytes(finalFileSize):0.00} ({(Int32) ((Double)finalFileSize / fileSize * 100.0) }%) in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
                 
-            OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
+            OnComplete(jobRunTask.JobRunTaskId, message, storePath, false);
         }
         catch (Exception ex)
         {
