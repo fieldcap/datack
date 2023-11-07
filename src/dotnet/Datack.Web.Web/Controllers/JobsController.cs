@@ -201,7 +201,12 @@ public class JobsController : Controller
             throw new Exception($"Job task {jobTask.Name} does not have a database type set");
         }
 
-        var databases = await _remoteService.GetDatabaseList(agent, jobTask.Settings.CreateBackup.DatabaseType, jobTask.Settings.CreateBackup.ConnectionString, jobTask.Settings.CreateBackup.ConnectionStringPassword, true, cancellationToken);
+        var databases = await _remoteService.GetDatabaseList(agent, 
+                                                             jobTask.Settings.CreateBackup.DatabaseType,
+                                                             jobTask.Settings.CreateBackup.ConnectionString, 
+                                                             jobTask.Settings.CreateBackup.ConnectionStringPassword, 
+                                                             true, 
+                                                             cancellationToken);
 
         var databaseList = databases.Where(m => m.HasAccess).Select(m => m.DatabaseName).ToList();
 

@@ -80,6 +80,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
         props.settings!.backupExcludeSystemDatabases,
         props.settings!.backupIncludeManual,
         props.settings!.backupExcludeManual,
+        props.settings!.backupType,
         props.agentId,
         props.jobTaskId,
         props.settings!.databaseType,
@@ -210,6 +211,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
   const getDatabaseTestResult = (database: DatabaseListTestResult) => {
     if (
       database.hasNoAccess ||
+      database.hasNoFullBackup ||
       database.isManualExcluded ||
       database.isRegexExcluded ||
       database.isSystemDatabase ||
@@ -224,6 +226,9 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
   const getDatabaseTestResult2 = (database: DatabaseListTestResult) => {
     if (database.hasNoAccess) {
       return 'Excluded because user has no access to database';
+    }
+    if (database.hasNoFullBackup) {
+      return 'Excluded because database has no FULL backup';
     }
     if (database.isManualExcluded) {
       return 'Excluded because database is manually excluded';

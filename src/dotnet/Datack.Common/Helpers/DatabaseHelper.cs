@@ -16,7 +16,8 @@ public static class DatabaseHelper
                                                            String? backupIncludeRegex,
                                                            String? backupExcludeRegex,
                                                            String? backupIncludeManual,
-                                                           String? backupExcludeManual)
+                                                           String? backupExcludeManual,
+                                                           String? backupType)
     {
         databases ??= new List<Database>();
 
@@ -45,6 +46,10 @@ public static class DatabaseHelper
             if (!database.HasAccess)
             {
                 result.HasNoAccess = true;
+            }
+            else if (!database.HasFullbackup && backupType != "Full")
+            {
+                result.HasNoFullBackup = true;
             }
             else if (includeManualList.Contains(database.DatabaseName))
             {

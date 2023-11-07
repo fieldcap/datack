@@ -158,12 +158,10 @@ public class DataContext : IdentityDbContext
         }
     }
 
-#pragma warning disable IDE0060 // Remove unused parameter
     public static String JsonValue(Object column, String path)
     {
         throw new NotSupportedException();
     }
-#pragma warning restore IDE0060 // Remove unused parameter
 
     public class AgentConfiguration : IEntityTypeConfiguration<Agent>
     {

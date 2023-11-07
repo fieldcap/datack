@@ -46,7 +46,8 @@ public class CreateBackupTask : IBaseTask
                                                                jobTask.Settings.CreateBackup.BackupIncludeRegex,
                                                                jobTask.Settings.CreateBackup.BackupExcludeRegex,
                                                                jobTask.Settings.CreateBackup.BackupIncludeManual,
-                                                               jobTask.Settings.CreateBackup.BackupExcludeManual);
+                                                               jobTask.Settings.CreateBackup.BackupExcludeManual,
+                                                               jobTask.Settings.CreateBackup.BackupType);
 
         var index = 0;
 

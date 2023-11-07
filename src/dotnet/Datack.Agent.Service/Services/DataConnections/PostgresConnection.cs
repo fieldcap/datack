@@ -34,7 +34,8 @@ public class PostgresConnection : IDatabaseConnection
             {
                 DatabaseId = reader.GetInt32(0),
                 DatabaseName = reader.GetString(1),
-                HasAccess = reader.GetBoolean(2)
+                HasAccess = reader.GetBoolean(2),
+                HasFullbackup = true
             });
         }
 

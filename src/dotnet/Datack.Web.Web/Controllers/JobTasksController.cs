@@ -169,7 +169,8 @@ public class JobTasksController : Controller
                                                     request.BackupIncludeRegex,
                                                     request.BackupExcludeRegex,
                                                     request.BackupIncludeManual,
-                                                    request.BackupExcludeManual);
+                                                    request.BackupExcludeManual,
+                                                    request.BackupType);
 
         return Ok(result);
     }
@@ -197,6 +198,7 @@ public class JobTasksTestDatabaseRegexRequest
     public required String DatabaseType { get; set; }
     public required String ConnectionString { get; set; }
     public required String ConnectionStringPassword { get; set; }
+    public required String BackupType { get; set; }
 }
 
 public class JobTaskReOrderRequest

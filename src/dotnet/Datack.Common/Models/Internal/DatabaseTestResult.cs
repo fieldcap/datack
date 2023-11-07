@@ -4,6 +4,7 @@ public class DatabaseTestResult
 {
     public required String DatabaseName { get; set; }
     public Boolean HasNoAccess { get; set; }
+    public Boolean HasNoFullBackup { get; set; }
     public Boolean IsManualIncluded { get; set; }
     public Boolean IsManualExcluded { get; set; }
     public Boolean IsSystemDatabase { get; set; }
@@ -11,5 +12,5 @@ public class DatabaseTestResult
     public Boolean IsRegexExcluded { get; set; }
     public Boolean IsBackupDefaultExcluded { get; set; }
 
-    public Boolean Include => !HasNoAccess && !IsManualExcluded && !IsRegexExcluded && !IsSystemDatabase && !IsBackupDefaultExcluded;
+    public Boolean Include => !HasNoAccess && !HasNoFullBackup && !IsManualExcluded && !IsRegexExcluded && !IsSystemDatabase && !IsBackupDefaultExcluded;
 }
