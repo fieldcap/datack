@@ -25,7 +25,7 @@ public class SqlServerConnection : IDatabaseConnection
     database_id AS 'DatabaseId',
 	name AS 'DatabaseName', 
 	HAS_PERMS_BY_NAME(name, 'DATABASE', 'BACKUP DATABASE') AS 'HasAccess',
-	(SELECT IIF(COUNT(*) = 0, 0, 1) FROM msdb.dbo.backupset WHERE type = 'D' AND database_name = sys.databases.name) AS 'HasFullbackup'
+	(SELECT IIF(COUNT(*) = 0, 0, 1) FROM msdb.dbo.backupset WHERE type = 'D' AND database_name = sys.databases.name AND is_copy_only = 0) AS 'HasFullbackup'
 FROM 
 	sys.databases");
 
