@@ -1,5 +1,4 @@
 ﻿using Datack.Common.Models.Data;
-using Datack.Web.Service.Exceptions;
 using Datack.Web.Service.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -107,16 +106,19 @@ public class JobRunner
             try
             {
                 // Figure out if this job is already running, if so, stop execution.
-                var runningTasks = await _jobRuns.GetRunning(cancellationToken);
+                var runningJobs = await _jobRuns.GetRunning(cancellationToken);
 
                 // Only check for tasks for this group, and filter itself out
-                runningTasks = runningTasks.Where(m => m.JobRunId != jobRun.JobRunId && m.Job.Group == job.Group).ToList();
+                runningJobs = runningJobs.Where(m => m.JobRunId != jobRun.JobRunId && m.Job.Group == job.Group).ToList();
 
-                _logger.LogDebug("Found {count} already running tasks for job group {group}", runningTasks.Count, job.Group);
+                _logger.LogDebug("Found {count} already running tasks for job group {group}", runningJobs.Count, job.Group);
 
-                if (runningTasks.Count > 0)
+                // Get all the tasks for the job.
+                var runningTasks = new List<JobRunTask>();
+                foreach (var runningJob in runningJobs)
                 {
-                    throw new AlreadyStartedException(job, runningTasks);
+                    var runningTasksForJob = await _jobRunTasks.GetByJobRunId(runningJob.JobRunId, cancellationToken);
+                    runningTasks.AddRange(runningTasksForJob);
                 }
 
                 // Get all the tasks for the job and run the through the task Setup procedure.
@@ -184,7 +186,19 @@ public class JobRunner
 
                     _logger.LogDebug("Received {count} new job run tasks for {type} for job {name}", jobRunTasks.Count, jobTask.Type, job.Name);
 
-                    allJobRunTasks.AddRange(jobRunTasks);
+                    // Check if the task is being executed or pending execution in a previous task,
+                    // If so, skip it in the run.
+                    foreach (var jobRunTask in jobRunTasks)
+                    {
+                        if (runningTasks.Count(m => m.JobTaskId == jobRunTask.JobTaskId && m.ItemName == jobRunTask.ItemName && m.Completed == null) > 0)
+                        {
+                            _logger.LogDebug("Skipping task {type} for job {name} as it's already running", jobTask.Type, job.Name);
+                        }
+                        else
+                        {
+                            allJobRunTasks.Add(jobRunTask);
+                        }
+                    }
                 }
 
                 _logger.LogDebug("Received  {count} new job run tasks in total for job {name}", allJobRunTasks.Count, job.Name);
@@ -216,10 +230,7 @@ public class JobRunner
 
                 await _jobRuns.Update(jobRun, cancellationToken);
 
-                if (ex is not AlreadyStartedException)
-                {
-                    await _emails.SendComplete(jobRun, cancellationToken);
-                }
+                await _emails.SendComplete(jobRun, cancellationToken);
             }
 
             return jobRun.JobRunId;
