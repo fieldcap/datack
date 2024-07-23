@@ -25,7 +25,10 @@ public class DatabaseAdapter
             password = _dataProtector.Decrypt(password);
         }
 
-        return connectionString.FormatToken("password", password ?? "");
+        return connectionString.FormatFromObject(new
+        {
+            password = password ?? ""
+        });
     }
 
     public async Task<String> TestConnection(String databaseType, String connectionString, CancellationToken cancellationToken)

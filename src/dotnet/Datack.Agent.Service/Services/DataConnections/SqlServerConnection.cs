@@ -62,7 +62,7 @@ FROM
             options = $"NAME = N'{{ItemName}} {{BackupType}} Backup', SKIP, STATS = 10";
         }
 
-        options = options.FormatToken(new
+        options = options.FormatFromObject(new
         {
             ItemName = databaseName,
             BackupType = backupType

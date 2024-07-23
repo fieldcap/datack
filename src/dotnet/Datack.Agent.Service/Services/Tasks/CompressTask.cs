@@ -63,7 +63,7 @@ public class CompressTask : BaseTask
                 throw new Exception($"Invalid filename '{jobRunTask.Settings.Compress.FileName}'");
             }
 
-            var fileName = rawFileName.FormatToken(tokenValues);
+            var fileName = rawFileName.FormatFromObject(tokenValues);
             fileName = String.Format(fileName, jobRunTask.JobRun.Started);
 
             var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.Compress.FileName);
@@ -73,7 +73,7 @@ public class CompressTask : BaseTask
                 throw new Exception($"Invalid file path '{jobRunTask.Settings.Compress.FileName}'");
             }
 
-            var filePath = rawFilePath.FormatToken(tokenValues);
+            var filePath = rawFilePath.FormatFromObject(tokenValues);
             filePath = String.Format(filePath, jobRunTask.JobRun.Started);
 
             var storePath = Path.Combine(filePath, fileName);

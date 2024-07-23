@@ -56,7 +56,7 @@ public class DeleteS3Task : BaseTask
                 jobRunTask.ItemName
             };
 
-            keyPath = keyPath.FormatToken(tokenValues);
+            keyPath = keyPath.FormatFromObject(tokenValues);
             keyPath = String.Format(keyPath, jobRunTask.JobRun.Started);
 
             keyPath = keyPath.Replace("\\", "/");

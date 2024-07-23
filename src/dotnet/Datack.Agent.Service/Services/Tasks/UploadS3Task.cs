@@ -70,7 +70,7 @@ public class UploadS3Task : BaseTask
                 throw new Exception($"Key cannot be null");
             }
 
-            keyFileName = keyFileName.FormatToken(tokenValues);
+            keyFileName = keyFileName.FormatFromObject(tokenValues);
             keyFileName = String.Format(keyFileName, jobRunTask.JobRun.Started);
 
             var key = keyFileName;
@@ -78,7 +78,7 @@ public class UploadS3Task : BaseTask
             var keyPath = Path.GetDirectoryName(jobRunTask.Settings.UploadS3.FileName);
             if (!String.IsNullOrWhiteSpace(keyPath))
             {
-                keyPath = keyPath.FormatToken(tokenValues);
+                keyPath = keyPath.FormatFromObject(tokenValues);
                 keyPath = String.Format(keyPath, jobRunTask.JobRun.Started);
 
                 key = Path.Combine(keyPath, keyFileName);

@@ -67,7 +67,7 @@ public class UploadAzureTask : BaseTask
                 throw new Exception("Blob name cannot be null");
             }
 
-            blobFileName = blobFileName.FormatToken(tokenValues);
+            blobFileName = blobFileName.FormatFromObject(tokenValues);
             blobFileName = String.Format(blobFileName, jobRunTask.JobRun.Started);
 
             var blob = blobFileName;
@@ -75,7 +75,7 @@ public class UploadAzureTask : BaseTask
             var blobPath = Path.GetDirectoryName(jobRunTask.Settings.UploadAzure.FileName);
             if (!String.IsNullOrWhiteSpace(blobPath))
             {
-                blobPath = blobPath.FormatToken(tokenValues);
+                blobPath = blobPath.FormatFromObject(tokenValues);
                 blobPath = String.Format(blobPath, jobRunTask.JobRun.Started);
 
                 blob = Path.Combine(blobPath, blobFileName);

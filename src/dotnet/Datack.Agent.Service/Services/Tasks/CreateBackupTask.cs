@@ -50,7 +50,7 @@ public class CreateBackupTask : BaseTask
                 throw new Exception($"Invalid filename '{jobRunTask.Settings.CreateBackup.FileName}'");
             }
 
-            var fileName = rawFileName.FormatToken(tokenValues);
+            var fileName = rawFileName.FormatFromObject(tokenValues);
             fileName = String.Format(fileName, jobRunTask.JobRun.Started);
 
             var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.CreateBackup.FileName);
@@ -60,7 +60,7 @@ public class CreateBackupTask : BaseTask
                 throw new Exception($"Invalid file path '{jobRunTask.Settings.CreateBackup.FileName}'");
             }
 
-            var filePath = rawFilePath.FormatToken(tokenValues);
+            var filePath = rawFilePath.FormatFromObject(tokenValues);
             filePath = String.Format(filePath, jobRunTask.JobRun.Started);
 
             var storePath = Path.Combine(filePath, fileName);
