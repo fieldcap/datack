@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.18] - 2023-11-07
+## [1.0.19] - 2024-07-24
+### Added
+- Add task to restore a SQL Server database.
+- Add task to download a S3 file.
+- Add task to extract a 7z.
+
+## [1.0.18] - 2024-07-23
 ### Changed
 - Allow jobs to overlap, but don't start tasks that are still pending in other running tasks.
 
