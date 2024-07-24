@@ -122,6 +122,9 @@ const JobTaskAdd: FC = () => {
             <option value="compress">{JobTasks.map('compress')}</option>
             <option value="deleteFile">{JobTasks.map('deleteFile')}</option>
             <option value="deleteS3">{JobTasks.map('deleteS3')}</option>
+            <option value="downloadS3">{JobTasks.map('downloadS3')}</option>
+            <option value="extract">{JobTasks.map('extract')}</option>
+            <option value="restoreBackup">{JobTasks.map('restoreBackup')}</option>
             <option value="uploadAzure">{JobTasks.map('uploadAzure')}</option>
             <option value="uploadS3">{JobTasks.map('uploadS3')}</option>
           </Select>

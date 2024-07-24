@@ -60,7 +60,8 @@ public class UploadS3Task : BaseTask
 
             var tokenValues = new
             {
-                jobRunTask.ItemName
+                jobRunTask.ItemName,
+                jobRunTask.JobRun.Started
             };
 
             var keyFileName = Path.GetFileName(jobRunTask.Settings.UploadS3.FileName);
@@ -71,7 +72,6 @@ public class UploadS3Task : BaseTask
             }
 
             keyFileName = keyFileName.FormatFromObject(tokenValues);
-            keyFileName = String.Format(keyFileName, jobRunTask.JobRun.Started);
 
             var key = keyFileName;
                 
@@ -79,7 +79,6 @@ public class UploadS3Task : BaseTask
             if (!String.IsNullOrWhiteSpace(keyPath))
             {
                 keyPath = keyPath.FormatFromObject(tokenValues);
-                keyPath = String.Format(keyPath, jobRunTask.JobRun.Started);
 
                 key = Path.Combine(keyPath, keyFileName);
 

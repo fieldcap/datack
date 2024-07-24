@@ -1,14 +1,14 @@
 import { FormControl, FormHelperText, FormLabel, Input, Select } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
-import { JobTaskCompressSettings } from '../../models/job-task';
+import { JobTaskExtractSettings } from '../../models/job-task';
 
 type Props = {
   agentId: string;
-  settings: JobTaskCompressSettings | undefined | null;
-  onSettingsChanged: (settings: JobTaskCompressSettings) => void;
+  settings: JobTaskExtractSettings | undefined | null;
+  onSettingsChanged: (settings: JobTaskExtractSettings) => void;
 };
 
-const JobTaskCompress: FC<Props> = (props) => {
+const JobTaskExtract: FC<Props> = (props) => {
   const { onSettingsChanged } = props;
 
   useEffect(() => {
@@ -16,14 +16,13 @@ const JobTaskCompress: FC<Props> = (props) => {
       onSettingsChanged({
         fileName: '',
         archiveType: '7z',
-        compressionLevel: '5',
         multithreadMode: 'on',
         password: null,
       });
     }
   }, [props.settings, onSettingsChanged]);
 
-  const set = (settingName: keyof JobTaskCompressSettings, newValue: string | number | boolean): void => {
+  const set = (settingName: keyof JobTaskExtractSettings, newValue: string | number | boolean): void => {
     if (props.settings == null) {
       return;
     }
@@ -43,7 +42,7 @@ const JobTaskCompress: FC<Props> = (props) => {
           onChange={(evt) => set('fileName', evt.target.value)}
         ></Input>
         <FormHelperText>
-          The full file path to write the compressed file to. The following tokens are supported:
+          The full file path to write the extracted file to. The following tokens are supported:
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
@@ -66,23 +65,6 @@ const JobTaskCompress: FC<Props> = (props) => {
           <option value="tar">tar</option>
         </Select>
         <FormHelperText>The archive type used by 7zip.</FormHelperText>
-      </FormControl>
-      <FormControl id="compressionLevel" marginBottom={4}>
-        <FormLabel>Compression Level</FormLabel>
-        <Select
-          value={props.settings?.compressionLevel || '5'}
-          onChange={(e) => set('compressionLevel', e.target.value)}
-        >
-          <option value="0">Copy mode (no compression)</option>
-          <option value="1">Fastest</option>
-          <option value="3">Fast</option>
-          <option value="5">Normal</option>
-          <option value="7">Maximum</option>
-          <option value="9">Ultra</option>
-        </Select>
-        <FormHelperText>
-          The the higher the compression level the longer it takes. Higher than 5 (normal) is not recommended.
-        </FormHelperText>
       </FormControl>
       <FormControl id="multithreadMode" marginBottom={4}>
         <FormLabel>Multithread Mode</FormLabel>
@@ -121,4 +103,4 @@ const JobTaskCompress: FC<Props> = (props) => {
   );
 };
 
-export default JobTaskCompress;
+export default JobTaskExtract;

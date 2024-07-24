@@ -57,7 +57,8 @@ public class UploadAzureTask : BaseTask
 
             var tokenValues = new
             {
-                jobRunTask.ItemName
+                jobRunTask.ItemName,
+                jobRunTask.JobRun.Started
             };
 
             var blobFileName = Path.GetFileName(jobRunTask.Settings.UploadAzure.FileName);
@@ -68,7 +69,6 @@ public class UploadAzureTask : BaseTask
             }
 
             blobFileName = blobFileName.FormatFromObject(tokenValues);
-            blobFileName = String.Format(blobFileName, jobRunTask.JobRun.Started);
 
             var blob = blobFileName;
                 
@@ -76,7 +76,6 @@ public class UploadAzureTask : BaseTask
             if (!String.IsNullOrWhiteSpace(blobPath))
             {
                 blobPath = blobPath.FormatFromObject(tokenValues);
-                blobPath = String.Format(blobPath, jobRunTask.JobRun.Started);
 
                 blob = Path.Combine(blobPath, blobFileName);
 

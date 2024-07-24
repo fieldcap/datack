@@ -136,6 +136,18 @@ public class PostgresConnection : IDatabaseConnection
         }
     }
 
+    public async Task RestoreBackup(String connectionString,
+                                    String databaseName,
+                                    String? password,
+                                    String? options,
+                                    String sourceFilePath,
+                                    Action<DatabaseProgressEvent> progressCallback,
+                                    CancellationToken cancellationToken)
+    {
+        await Task.Delay(1, cancellationToken);
+        throw new NotImplementedException();
+    }
+
     private static String Get(String connectionString, String key)
     {
         var match = Regex.Match(connectionString, $"{key}=(.*?)[;^]", RegexOptions.IgnoreCase);

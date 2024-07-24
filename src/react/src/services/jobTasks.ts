@@ -16,6 +16,12 @@ export namespace JobTasks {
         return 'Delete File from filesystem';
       case 'deleteS3':
         return 'Delete from AWS S3';
+      case 'downloadS3':
+        return 'Download File from AWS S3';
+      case 'extract':
+        return 'Extract File';
+      case 'restoreBackup':
+        return 'Restore Database Backup';
       case 'uploadAzure':
         return 'Upload File to Azure Blobs';
       case 'uploadS3':

@@ -274,11 +274,11 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
-          &#123;0:yyyyMMddHHmm&#125; The date and time of the start date of the job task
+          &#123;Started:yyyyMMddHHmm&#125; The date and time of the start date of the job task
           <br />
           Example:
           <br />
-          C:\Temp\Backups\&#123;ItemName&#125;\&#123;ItemName&#125;-&#123;0:yyyyMMddHHmm&#125;-Full.bak
+          C:\Temp\Backups\&#123;ItemName&#125;\&#123;ItemName&#125;-&#123;Started:yyyyMMddHHmm&#125;-Full.bak
         </FormHelperText>
       </FormControl>
 

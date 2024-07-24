@@ -33,8 +33,11 @@ import JobTaskCompress from './JobTaskCompress';
 import JobTaskCreateBackup from './JobTaskCreateBackup';
 import JobTaskDeleteFile from './JobTaskDeleteFile';
 import JobTaskDeleteS3 from './JobTaskDeleteS3';
+import JobTaskDownloadS3 from './JobTaskDownloadS3';
+import JobTaskRestoreBackup from './JobTaskRestoreBackup';
 import JobTaskUploadAzure from './JobTaskUploadAzure';
 import JobTaskUploadS3 from './JobTaskUploadS3';
+import JobTaskExtract from './JobTaskExtract';
 
 type JobTaskEditorParams = {
   id: string;
@@ -224,6 +227,43 @@ const JobTaskEditor: FC = () => {
             }}
           ></JobTaskDeleteS3>
         );
+      case 'downloadS3':
+        return (
+          <JobTaskDownloadS3
+            settings={settings.downloadS3}
+            agentId={agentId}
+            onSettingsChanged={(newSettings) => {
+              setSettings({
+                downloadS3: newSettings,
+              });
+            }}
+          ></JobTaskDownloadS3>
+        );
+      case 'extract':
+        return (
+          <JobTaskExtract
+            settings={settings.extract}
+            agentId={agentId}
+            onSettingsChanged={(newSettings) => {
+              setSettings({
+                extract: newSettings,
+              });
+            }}
+          ></JobTaskExtract>
+        );
+      case 'restoreBackup':
+        return (
+          <JobTaskRestoreBackup
+            settings={settings.restoreBackup}
+            agentId={agentId}
+            jobTaskId={jobTask!.jobTaskId}
+            onSettingsChanged={(newSettings) => {
+              setSettings({
+                restoreBackup: newSettings,
+              });
+            }}
+          ></JobTaskRestoreBackup>
+        );
       case 'uploadS3':
         return (
           <JobTaskUploadS3
@@ -293,6 +333,8 @@ const JobTaskEditor: FC = () => {
             <option value="compress">{JobTasks.map('compress')}</option>
             <option value="deleteFile">{JobTasks.map('deleteFile')}</option>
             <option value="deleteS3">{JobTasks.map('deleteS3')}</option>
+            <option value="downloadS3">{JobTasks.map('downloadS3')}</option>
+            <option value="restoreBackup">{JobTasks.map('restoreBackup')}</option>
             <option value="uploadAzure">{JobTasks.map('uploadAzure')}</option>
             <option value="uploadS3">{JobTasks.map('uploadS3')}</option>
           </Select>

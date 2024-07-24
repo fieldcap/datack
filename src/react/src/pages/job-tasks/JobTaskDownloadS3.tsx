@@ -1,14 +1,14 @@
 import { FormControl, FormHelperText, FormLabel, Input, Select } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
-import { JobTaskUploadS3Settings } from '../../models/job-task';
+import { JobTaskDownloadS3Settings } from '../../models/job-task';
 
 type Props = {
   agentId: string;
-  settings: JobTaskUploadS3Settings | undefined | null;
-  onSettingsChanged: (settings: JobTaskUploadS3Settings) => void;
+  settings: JobTaskDownloadS3Settings | undefined | null;
+  onSettingsChanged: (settings: JobTaskDownloadS3Settings) => void;
 };
 
-const JobTaskUploadS3: FC<Props> = (props) => {
+const JobTaskDownloadS3: FC<Props> = (props) => {
   const { onSettingsChanged } = props;
 
   useEffect(() => {
@@ -19,12 +19,11 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         bucket: '',
         accessKey: '',
         secret: '',
-        tag: '',
       });
     }
   }, [props.settings, onSettingsChanged]);
 
-  const set = (settingName: keyof JobTaskUploadS3Settings, newValue: string | number | boolean): void => {
+  const set = (settingName: keyof JobTaskDownloadS3Settings, newValue: string | number | boolean): void => {
     if (props.settings == null) {
       return;
     }
@@ -80,14 +79,14 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         <FormHelperText>The AWS S3 bucket name.</FormHelperText>
       </FormControl>
       <FormControl id="fileName" marginBottom={4}>
-        <FormLabel>Key</FormLabel>
+        <FormLabel>Destination Filename</FormLabel>
         <Input
           type="text"
           value={props.settings?.fileName || ''}
           onChange={(evt) => set('fileName', evt.target.value)}
         ></Input>
         <FormHelperText>
-          The S3 key to upload the file to. The following tokens are supported:
+          The filename to download the S3 file to. The following tokens are supported:
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
@@ -116,13 +115,8 @@ const JobTaskUploadS3: FC<Props> = (props) => {
         ></Input>
         <FormHelperText>The AWS S3 access key secret. This setting is stored encrypted.</FormHelperText>
       </FormControl>
-      <FormControl id="tag" marginBottom={4}>
-        <FormLabel>Tag</FormLabel>
-        <Input type="text" value={props.settings?.tag || ''} onChange={(evt) => set('tag', evt.target.value)}></Input>
-        <FormHelperText>An optional tag to write on the object.</FormHelperText>
-      </FormControl>
     </>
   );
 };
 
-export default JobTaskUploadS3;
+export default JobTaskDownloadS3;

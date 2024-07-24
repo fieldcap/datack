@@ -40,7 +40,8 @@ public class CreateBackupTask : BaseTask
 
             var tokenValues = new
             {
-                jobRunTask.ItemName
+                jobRunTask.ItemName,
+                jobRunTask.JobRun.Started
             };
 
             var rawFileName = Path.GetFileName(jobRunTask.Settings.CreateBackup.FileName);
@@ -51,7 +52,6 @@ public class CreateBackupTask : BaseTask
             }
 
             var fileName = rawFileName.FormatFromObject(tokenValues);
-            fileName = String.Format(fileName, jobRunTask.JobRun.Started);
 
             var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.CreateBackup.FileName);
 
@@ -61,7 +61,6 @@ public class CreateBackupTask : BaseTask
             }
 
             var filePath = rawFilePath.FormatFromObject(tokenValues);
-            filePath = String.Format(filePath, jobRunTask.JobRun.Started);
 
             var storePath = Path.Combine(filePath, fileName);
 

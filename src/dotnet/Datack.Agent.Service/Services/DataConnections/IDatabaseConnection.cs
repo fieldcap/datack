@@ -16,4 +16,12 @@ public interface IDatabaseConnection
                       String destinationFilePath,
                       Action<DatabaseProgressEvent> progressCallback,
                       CancellationToken cancellationToken);
+
+    Task RestoreBackup(String connectionString,
+                       String databaseName,
+                       String? password,
+                       String? options,
+                       String sourceFilePath,
+                       Action<DatabaseProgressEvent> progressCallback,
+                       CancellationToken cancellationToken);
 }

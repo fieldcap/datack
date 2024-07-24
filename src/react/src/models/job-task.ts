@@ -25,6 +25,9 @@ export type JobTaskSettings = {
   compress?: JobTaskCompressSettings;
   deleteFile?: JobTaskDeleteSettings;
   deleteS3?: JobTaskDeleteS3Settings;
+  downloadS3?: JobTaskDownloadS3Settings;
+  extract?: JobTaskExtractSettings;
+  restoreBackup?: JobTaskRestoreDatabaseSettings;
   uploadAzure?: JobTaskUploadAzureSettings;
   uploadS3?: JobTaskUploadS3Settings;
 };
@@ -65,6 +68,29 @@ export type JobTaskDeleteS3Settings = {
 
 export type JobTaskDeleteSettings = {
   ignoreIfFileDoesNotExist: boolean;
+};
+
+export type JobTaskDownloadS3Settings = {
+  fileName: string;
+  region: string;
+  bucket: string;
+  accessKey: string;
+  secret: string;
+};
+
+export type JobTaskExtractSettings = {
+  fileName: string;
+  archiveType: string;
+  multithreadMode: string;
+  password: string | null;
+};
+
+export type JobTaskRestoreDatabaseSettings = {
+  databaseType: string;
+  connectionString: string;
+  connectionStringPassword: string | null;
+  databaseName: string;
+  options: string;
 };
 
 export type JobTaskUploadS3Settings = {

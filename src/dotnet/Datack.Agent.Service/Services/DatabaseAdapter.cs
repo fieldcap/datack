@@ -63,6 +63,18 @@ public class DatabaseAdapter
         await GetConnection(databaseType).CreateBackup(connectionString, databaseName, backupType, password, options, destinationFilePath, progressCallback, cancellationToken);
     }
 
+    public async Task RestoreBackup(String databaseType,
+                                    String connectionString,
+                                    String databaseName,
+                                    String? password,
+                                    String? options,
+                                    String sourceFilePath,
+                                    Action<DatabaseProgressEvent> progressCallback,
+                                    CancellationToken cancellationToken)
+    {
+        await GetConnection(databaseType).RestoreBackup(connectionString, databaseName, password, options, sourceFilePath, progressCallback, cancellationToken);
+    }
+
     private IDatabaseConnection GetConnection(String? databaseType)
     {
         if (String.IsNullOrWhiteSpace(databaseType))

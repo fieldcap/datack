@@ -8,7 +8,7 @@ type Props = {
   onSettingsChanged: (settings: JobTaskDeleteS3Settings) => void;
 };
 
-const JobTaskUploadS3: FC<Props> = (props) => {
+const JobTaskDeleteS3: FC<Props> = (props) => {
   const { onSettingsChanged } = props;
 
   useEffect(() => {
@@ -93,7 +93,7 @@ const JobTaskUploadS3: FC<Props> = (props) => {
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
-          &#123;0:yyyyMMddHHmm&#125; The date and time of the start date of the job task
+          &#123;Started:yyyyMMddHHmm&#125; The date and time of the start date of the job task
           <br />
           Example:
           <br />
@@ -152,4 +152,4 @@ const JobTaskUploadS3: FC<Props> = (props) => {
   );
 };
 
-export default JobTaskUploadS3;
+export default JobTaskDeleteS3;

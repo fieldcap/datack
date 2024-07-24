@@ -9,13 +9,13 @@ using StringTokenFormatter;
 namespace Datack.Agent.Services.Tasks;
 
 /// <summary>
-/// This task compresses files with 7z.
+/// This task extracts a 7z file.
 /// </summary>
-public class CompressTask : BaseTask
+public class ExtractTask : BaseTask
 {
     private readonly DataProtector _dataProtector;
 
-    public CompressTask(DataProtector dataProtector)
+    public ExtractTask(DataProtector dataProtector)
     {
         _dataProtector = dataProtector;
     }
@@ -32,14 +32,14 @@ public class CompressTask : BaseTask
                 throw new Exception("No previous task found");
             }
 
-            if (jobRunTask.Settings.Compress == null)
+            if (jobRunTask.Settings.Extract == null)
             {
                 throw new Exception("No settings set");
             }
 
             var sourceFileName = previousTask.ResultArtifact;
 
-            OnProgress(jobRunTask.JobRunTaskId, $"Starting compression task for file {sourceFileName}");
+            OnProgress(jobRunTask.JobRunTaskId, $"Starting extraction task for file {sourceFileName}");
 
             if (String.IsNullOrWhiteSpace(sourceFileName))
             {
@@ -57,25 +57,29 @@ public class CompressTask : BaseTask
                 jobRunTask.JobRun.Started
             };
 
-            var rawFileName = Path.GetFileName(jobRunTask.Settings.Compress.FileName);
+            var rawFileName = Path.GetFileName(jobRunTask.Settings.Extract.FileName);
 
             if (String.IsNullOrWhiteSpace(rawFileName))
             {
-                throw new Exception($"Invalid filename '{jobRunTask.Settings.Compress.FileName}'");
+                throw new Exception($"Invalid filename '{jobRunTask.Settings.Extract.FileName}'");
             }
 
             var fileName = rawFileName.FormatFromObject(tokenValues);
 
-            var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.Compress.FileName);
+            var rawFilePath = Path.GetDirectoryName(jobRunTask.Settings.Extract.FileName);
 
             if (String.IsNullOrWhiteSpace(rawFilePath))
             {
-                throw new Exception($"Invalid file path '{jobRunTask.Settings.Compress.FileName}'");
+                throw new Exception($"Invalid file path '{jobRunTask.Settings.Extract.FileName}'");
             }
 
             var filePath = rawFilePath.FormatFromObject(tokenValues);
 
             var storePath = Path.Combine(filePath, fileName);
+
+            var tempPath = Path.Combine(filePath, Guid.NewGuid().ToString());
+
+            Directory.CreateDirectory(tempPath);
 
             OnProgress(jobRunTask.JobRunTaskId, $"Testing path {storePath}");
 
@@ -98,22 +102,19 @@ public class CompressTask : BaseTask
                 File.Delete(storePath);
             }
 
-            var archiveType = jobRunTask.Settings.Compress.ArchiveType;
-            var compressionLevel = jobRunTask.Settings.Compress.CompressionLevel;
-            var multithreadMode = jobRunTask.Settings.Compress.MultithreadMode;
-            var password = jobRunTask.Settings.Compress.Password;
+            var archiveType = jobRunTask.Settings.Extract.ArchiveType;
+            var multithreadMode = jobRunTask.Settings.Extract.MultithreadMode;
+            var password = jobRunTask.Settings.Extract.Password;
 
             var arguments = new List<String>
             {
-                // Add files to archive
-                "a",
+                // Extract files from archive
+                "e",
                 // Set output streams
                 "-bso1 -bse2 -bsp1",
-                // Compression method
-                $"-mx={compressionLevel}",
                 // Multithread mode
                 $"-mmt={multithreadMode}",
-                // Compression type
+                // Extraction type
                 $"-t{archiveType}",
             };
 
@@ -128,7 +129,7 @@ public class CompressTask : BaseTask
                 arguments.Add(@$"-p""{decryptedPassword}""");
             }
 
-            arguments.Add($"\"{storePath}\"");
+            arguments.Add($"-o\"{tempPath}\"");
             arguments.Add($"\"{sourceFileName}\"");
 
             var argumentsString = String.Join(" ", arguments);
@@ -144,7 +145,7 @@ public class CompressTask : BaseTask
                 logCmd = logCmd.Replace(decryptedPassword, "****");
             }
 
-            OnProgress(jobRunTask.JobRunTaskId, $"Starting compress cmd {jobRunTask.ItemName} with parameters {logCmd}");
+            OnProgress(jobRunTask.JobRunTaskId, $"Starting extract cmd {jobRunTask.ItemName} with parameters {logCmd}");
 
             var stdErrBuffer = new StringBuilder();
 
@@ -186,18 +187,36 @@ public class CompressTask : BaseTask
                 throw new Exception(stdErrBuffer.ToString());
             }
 
+            var resultingFiles = Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories);
+            
+            if (resultingFiles.Length == 0)
+            {
+                throw new Exception("No files extracted");
+            }
+
+            if (resultingFiles.Length > 1)
+            {
+                throw new Exception($"Multiple files extracted: {String.Join(", ", resultingFiles)}");
+            }
+
+            var resultingFile = resultingFiles[0];
+
+            File.Move(resultingFile, storePath, true);
+
+            Directory.Delete(tempPath, true);
+
             sw.Stop();
 
             var fileSize = new FileInfo(sourceFileName).Length;
             var finalFileSize = new FileInfo(storePath).Length;
                 
-            var message = $"Completed compression of {jobRunTask.ItemName} from {ByteSize.FromBytes(fileSize):0.00} to {ByteSize.FromBytes(finalFileSize):0.00} ({(Int32) ((Double)finalFileSize / fileSize * 100.0) }%) in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
-                
+            var message = $"Completed extraction of {jobRunTask.ItemName} from {ByteSize.FromBytes(fileSize):0.00} to {ByteSize.FromBytes(finalFileSize):0.00} in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
+            
             OnComplete(jobRunTask.JobRunTaskId, message, storePath, false);
         }
         catch (Exception ex)
         {
-            var message = $"Compression {jobRunTask.ItemName} resulted in an error: {ex.Message}";
+            var message = $"Extraction {jobRunTask.ItemName} resulted in an error: {ex.Message}";
 
             OnComplete(jobRunTask.JobRunTaskId, message, null, true);
         }

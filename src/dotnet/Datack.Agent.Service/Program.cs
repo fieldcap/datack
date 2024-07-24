@@ -119,6 +119,9 @@ public static class Program
                        services.AddSingleton<CompressTask>();
                        services.AddSingleton<DeleteS3Task>();
                        services.AddSingleton<DeleteFileTask>();
+                       services.AddSingleton<DownloadS3Task>();
+                       services.AddSingleton<ExtractTask>();
+                       services.AddSingleton<RestoreBackupTask>();
                        services.AddSingleton<UploadAzureTask>();
                        services.AddSingleton<UploadS3Task>();
 

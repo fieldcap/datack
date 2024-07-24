@@ -17,6 +17,15 @@ public class JobTaskSettings
     [JsonPropertyName("deleteS3")]
     public JobTaskDeleteS3Settings? DeleteS3 { get; set; }
 
+    [JsonPropertyName("downloadS3")]
+    public JobTaskDownloadS3Settings? DownloadS3 { get; set; }
+
+    [JsonPropertyName("extract")]
+    public JobTaskExtractSettings? Extract { get; set; }
+
+    [JsonPropertyName("restoreBackup")]
+    public JobTaskRestoreDatabaseSettings? RestoreBackup { get; set; }
+
     [JsonPropertyName("uploadS3")]
     public JobTaskUploadS3Settings? UploadS3 { get; set; }
 
@@ -115,6 +124,60 @@ public class JobTaskDeleteFileSettings
 {
     [JsonPropertyName("ignoreIfFileDoesNotExist")]
     public Boolean IgnoreIfFileDoesNotExist { get; set; }
+}
+
+public class JobTaskDownloadS3Settings
+{
+    [JsonPropertyName("fileName")]
+    public String? FileName { get; set; }
+
+    [JsonPropertyName("region")]
+    public String? Region { get; set; }
+
+    [JsonPropertyName("bucket")]
+    public String? Bucket { get; set; }
+
+    [JsonPropertyName("accessKey")]
+    public String? AccessKey { get; set; }
+
+    [JsonPropertyName("secret")]
+    [Protected]
+    public String? Secret { get; set; }
+}
+
+public class JobTaskExtractSettings
+{
+    [JsonPropertyName("fileName")]
+    public String? FileName { get; set; }
+
+    [JsonPropertyName("archiveType")]
+    public String? ArchiveType { get; set; }
+
+    [JsonPropertyName("multithreadMode")]
+    public String? MultithreadMode { get; set; }
+
+    [JsonPropertyName("password")]
+    [Protected]
+    public String? Password { get; set; }
+}
+
+public class JobTaskRestoreDatabaseSettings
+{
+    [JsonPropertyName("databaseType")]
+    public String? DatabaseType { get; set; }
+
+    [JsonPropertyName("connectionString")]
+    public String? ConnectionString { get; set; }
+
+    [JsonPropertyName("connectionStringPassword")]
+    [Protected]
+    public String? ConnectionStringPassword { get; set; }
+
+    [JsonPropertyName("databaseName")]
+    public String? DatabaseName { get; set; }
+
+    [JsonPropertyName("options")]
+    public String? Options { get; set; }
 }
 
 public class JobTaskUploadS3Settings

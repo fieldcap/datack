@@ -23,6 +23,9 @@ public class JobRunner
                      CompressTask compressTask,
                      DeleteFileTask deleteTask,
                      DeleteS3Task deleteS3Task,
+                     DownloadS3Task downloadS3Task,
+                     ExtractTask extractTask,
+                     RestoreBackupTask restoreBackupTask,
                      UploadAzureTask uploadAzureTask,
                      UploadS3Task uploadS3Task)
     {
@@ -42,6 +45,15 @@ public class JobRunner
             },
             {
                 "deleteS3", deleteS3Task
+            },
+            {
+                "downloadS3", downloadS3Task
+            },
+            {
+                "extract", extractTask
+            },
+            {
+                "restoreBackup", restoreBackupTask
             },
             {
                 "uploadAzure", uploadAzureTask

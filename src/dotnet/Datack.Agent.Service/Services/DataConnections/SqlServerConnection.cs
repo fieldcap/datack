@@ -84,9 +84,9 @@ FROM
 
         var queryHeader = backupType switch
         {
-            "Full" => $@"BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH",
-            "Differential" => $@"BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH DIFFERENTIAL,",
-            "TransactionLog" => $@"BACKUP LOG @DatabaseName TO DISK = @FilePath WITH",
+            "Full" => "BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH",
+            "Differential" => "BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH DIFFERENTIAL,",
+            "TransactionLog" => "BACKUP LOG @DatabaseName TO DISK = @FilePath WITH",
             _ => throw new Exception($"Unknown backup type {backupType}")
         };
 
@@ -103,6 +103,151 @@ FROM
                                             {
                                                 DatabaseName = databaseName,
                                                 FilePath = destinationFilePath
+                                            },
+                                            null,
+                                            Int32.MaxValue,
+                                            null,
+                                            CommandFlags.Buffered,
+                                            cancellationToken);
+            
+        await sqlConnection.ExecuteScalarAsync(command);
+    }
+
+    public async Task RestoreBackup(String connectionString,
+                                    String databaseName,
+                                    String? password,
+                                    String? options,
+                                    String sourceFilePath,
+                                    Action<DatabaseProgressEvent> progressCallback,
+                                    CancellationToken cancellationToken)
+    {
+        await using var sqlConnection = new SqlConnection(connectionString);
+
+        if (String.IsNullOrWhiteSpace(options))
+        {
+            options = "STATS = 5";
+        }
+
+        sqlConnection.InfoMessage += (_, args) =>
+        {
+            if (String.IsNullOrWhiteSpace(args.Message))
+            {
+                return;
+            }
+
+            progressCallback.Invoke(new DatabaseProgressEvent
+            {
+                Message = args.Message,
+                Source = args.Source
+            });
+        };
+
+        var logicalNameQuery = $@"
+DECLARE @Table TABLE (
+    LogicalName varchar(128),
+    [PhysicalName] varchar(128), 
+    [Type] varchar, 
+    [FileGroupName] varchar(128), 
+    [Size] varchar(128),
+    [MaxSize] varchar(128), 
+    [FileId]varchar(128), 
+    [CreateLSN]varchar(128), 
+    [DropLSN]varchar(128), 
+    [UniqueId]varchar(128), 
+    [ReadOnlyLSN]varchar(128), 
+    [ReadWriteLSN]varchar(128),
+    [BackupSizeInBytes]varchar(128), 
+    [SourceBlockSize]varchar(128), 
+    [FileGroupId]varchar(128), 
+    [LogGroupGUID]varchar(128), 
+    [DifferentialBaseLSN]varchar(128), 
+    [DifferentialBaseGUID]varchar(128), 
+    [IsReadOnly]varchar(128), 
+    [IsPresent]varchar(128), 
+    [TDEThumbprint]varchar(128),
+    [SnapshotUrl]varchar(128)
+)
+DECLARE @Path varchar(1000)='{sourceFilePath}'
+DECLARE @LogicalNameData varchar(128),@LogicalNameLog varchar(128)
+INSERT INTO @table
+EXEC('
+RESTORE FILELISTONLY
+   FROM DISK=''' +@Path+ '''
+   ')
+
+   SET @LogicalNameData=(SELECT LogicalName FROM @Table WHERE Type = 'D')
+   SET @LogicalNameLog=(SELECT LogicalName FROM @Table WHERE Type = 'L')
+
+SELECT @LogicalNameData,@LogicalNameLog";
+
+        var logicalNamesCommand = new CommandDefinition(logicalNameQuery,
+                                                        null,
+                                                        null,
+                                                        Int32.MaxValue,
+                                                        null,
+                                                        CommandFlags.Buffered,
+                                                        cancellationToken);
+
+        var logicalNamesQueryDataReader = await sqlConnection.ExecuteReaderAsync(logicalNamesCommand);
+
+        var logicalNamesQueryDataRow = await logicalNamesQueryDataReader.ReadAsync(cancellationToken);
+
+        if (!logicalNamesQueryDataRow)
+        {
+            throw new Exception($"Unable to determine the logical file name of the backup set.{Environment.NewLine}{logicalNameQuery}");
+        }
+
+        var logicalNameData = logicalNamesQueryDataReader.GetFieldValue<String>(0);
+        var logicalNameLog = logicalNamesQueryDataReader.GetFieldValue<String>(1);
+
+        var killQuery = $@"DECLARE @kill varchar(8000) = '';  
+SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'  
+FROM sys.dm_exec_sessions
+WHERE database_id  = db_id('{databaseName}') or login_name = '{databaseName}'
+
+EXEC(@kill);";
+
+        progressCallback.Invoke(new DatabaseProgressEvent
+        {
+            Message = $"Killing connections to target database{Environment.NewLine}{killQuery}",
+            Source = "Datack"
+        });
+
+        var killCommand = new CommandDefinition(killQuery,
+                                                null,
+                                                null,
+                                                Int32.MaxValue,
+                                                null,
+                                                CommandFlags.Buffered,
+                                                cancellationToken);
+            
+        await sqlConnection.ExecuteScalarAsync(killCommand);
+
+        var queryHeader = "RESTORE DATABASE @DatabaseName FROM DISK = @FilePath WITH FILE = 1,";
+
+        var query = $"{queryHeader} {options}";
+
+        query = query.FormatFromObject(new
+        {
+            DatabaseName = databaseName,
+            FilePath = sourceFilePath,
+            LogicalNameData = logicalNameData,
+            LogicalNameLog = logicalNameLog
+        });
+
+        progressCallback.Invoke(new DatabaseProgressEvent
+        {
+            Message = $"Starting restore script{Environment.NewLine}{query}",
+            Source = "Datack"
+        });
+
+        var command = new CommandDefinition(query,
+                                            new
+                                            {
+                                                DatabaseName = databaseName,
+                                                FilePath = sourceFilePath,
+                                                LogicalNameData = logicalNameData,
+                                                LogicalNameLog = logicalNameLog
                                             },
                                             null,
                                             Int32.MaxValue,
