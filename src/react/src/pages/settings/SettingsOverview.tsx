@@ -90,7 +90,7 @@ const SettingsOverview: FC = () => {
         <Heading size="md">Server Logging</Heading>
       </Box>
       <Box marginBottom={4}>
-        Server version <span id="version">1.0.19</span>
+        Server version <span id="version">1.0.20</span>
       </Box>
       <Box marginBottom={4}>
         <SettingsSetting

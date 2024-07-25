@@ -190,7 +190,7 @@ public class JobRunner
                     // If so, skip it in the run.
                     foreach (var jobRunTask in jobRunTasks)
                     {
-                        if (runningTasks.Count(m => m.JobTaskId == jobRunTask.JobTaskId && m.ItemName == jobRunTask.ItemName && m.Completed == null) > 0)
+                        if (runningTasks.Count(m => m.ItemName == jobRunTask.ItemName && m.Completed == null) > 0)
                         {
                             _logger.LogDebug("Skipping task {type} for job {name} as it's already running", jobTask.Type, job.Name);
                         }
