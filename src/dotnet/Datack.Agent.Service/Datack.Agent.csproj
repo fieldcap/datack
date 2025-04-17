@@ -26,18 +26,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.7.310.8" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.21.0" />
+    <PackageReference Include="AWSSDK.S3" Version="3.7.416.12" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageReference Include="ByteSize" Version="2.1.2" />
-    <PackageReference Include="CliWrap" Version="3.6.6" />
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.7" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
+    <PackageReference Include="CliWrap" Version="3.8.2" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="8.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.15" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
-    <PackageReference Include="Npgsql" Version="8.0.3" />
-    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Npgsql" Version="8.0.7" />
+    <PackageReference Include="Serilog" Version="4.2.0" />
     <PackageReference Include="Serilog.Exceptions" Version="8.4.0" />
     <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
