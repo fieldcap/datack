@@ -38,7 +38,7 @@ public class JobRunner
 
         _logger.LogTrace("Constructor");
 
-        _tasks = new Dictionary<String, IBaseTask>
+        _tasks = new()
         {
             {
                 "createBackup", createBackupTask
@@ -80,7 +80,7 @@ public class JobRunner
         if (!receivedLockSuccesfully)
         {
             // Lock timed out
-            throw new Exception($"Could not obtain runSetupLock within 30 seconds for job {job.Name}!");
+            throw new($"Could not obtain runSetupLock within 30 seconds for job {job.Name}!");
         }
 
         _logger.LogDebug("Entered lock for job {name}", job.Name);

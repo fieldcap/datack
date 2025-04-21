@@ -66,20 +66,21 @@ public class DatabaseAdapter
     public async Task RestoreBackup(String databaseType,
                                     String connectionString,
                                     String databaseName,
+                                    String? databaseLocation,
                                     String? password,
                                     String? options,
                                     String sourceFilePath,
                                     Action<DatabaseProgressEvent> progressCallback,
                                     CancellationToken cancellationToken)
     {
-        await GetConnection(databaseType).RestoreBackup(connectionString, databaseName, password, options, sourceFilePath, progressCallback, cancellationToken);
+        await GetConnection(databaseType).RestoreBackup(connectionString, databaseName, databaseLocation, password, options, sourceFilePath, progressCallback, cancellationToken);
     }
 
     private IDatabaseConnection GetConnection(String? databaseType)
     {
         if (String.IsNullOrWhiteSpace(databaseType))
         {
-            throw new Exception("Invalid Database Type");
+            throw new("Invalid Database Type");
         }
 
         if (databaseType == "sqlServer")
@@ -92,6 +93,6 @@ public class DatabaseAdapter
             return _postgresConnection;
         }
 
-        throw new Exception($"Invalid database type {databaseType}");
+        throw new($"Invalid database type {databaseType}");
     }
 }

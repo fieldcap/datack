@@ -50,7 +50,7 @@ public class AgentRepository
 
         if (dbAgent == null)
         {
-            throw new Exception($"Agent with ID {agent.AgentId} not found");
+            throw new($"Agent with ID {agent.AgentId} not found");
         }
 
         dbAgent.Name = agent.Name;
@@ -66,7 +66,7 @@ public class AgentRepository
 
         if (dbAgent == null)
         {
-            throw new Exception($"Agent with ID {agentId} not found");
+            throw new($"Agent with ID {agentId} not found");
         }
 
         _dataContext.Agents.Remove(dbAgent);

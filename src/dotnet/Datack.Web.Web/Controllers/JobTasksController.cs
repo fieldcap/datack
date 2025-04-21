@@ -107,7 +107,7 @@ public class JobTasksController : Controller
 
         if (agent == null)
         {
-            throw new Exception($"Agent with ID {request.AgentId} not found");
+            throw new($"Agent with ID {request.AgentId} not found");
         }
 
         var password = request.ConnectionStringPassword;
@@ -118,7 +118,7 @@ public class JobTasksController : Controller
 
             if (jobTask == null)
             {
-                throw new Exception($"Cannot find job task with ID {request.JobTaskId}");
+                throw new($"Cannot find job task with ID {request.JobTaskId}");
             }
 
             password = jobTask.Settings.CreateBackup?.ConnectionStringPassword;
@@ -138,7 +138,7 @@ public class JobTasksController : Controller
 
         if (agent == null)
         {
-            throw new Exception($"Agent with ID {request.AgentId} not found");
+            throw new($"Agent with ID {request.AgentId} not found");
         }
 
         if (String.IsNullOrWhiteSpace(request.ConnectionString))
@@ -154,7 +154,7 @@ public class JobTasksController : Controller
 
             if (jobTask == null)
             {
-                throw new Exception($"Cannot find job task with ID {request.JobTaskId}");
+                throw new($"Cannot find job task with ID {request.JobTaskId}");
             }
 
             password = jobTask.Settings.CreateBackup?.ConnectionStringPassword;

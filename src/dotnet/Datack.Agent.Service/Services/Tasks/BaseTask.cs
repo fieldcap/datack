@@ -8,7 +8,7 @@ public abstract class BaseTask
     public event EventHandler<ProgressEvent>? OnProgressEvent;
     public event EventHandler<CompleteEvent>? OnCompleteEvent;
         
-    public abstract Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken);
+    public abstract Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken);
         
     private DateTime _lastProgressUpdate = DateTime.UtcNow;
     private String? _lastProgressMessage;
@@ -28,7 +28,7 @@ public abstract class BaseTask
             _lastProgressMessage = message;
         }
 
-        OnProgressEvent?.Invoke(this, new ProgressEvent
+        OnProgressEvent?.Invoke(this, new()
         {
             JobRunTaskId = jobRunTaskId,
             Message = message,
@@ -38,7 +38,7 @@ public abstract class BaseTask
         
     protected void OnComplete(Guid jobRunTaskId, String message, String? resultArtifact, Boolean isError)
     {
-        OnCompleteEvent?.Invoke(this, new CompleteEvent
+        OnCompleteEvent?.Invoke(this, new()
         {
             JobRunTaskId = jobRunTaskId,
             Message = message,

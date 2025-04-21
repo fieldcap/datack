@@ -20,7 +20,7 @@ public class ExtractTask : BaseTask
         _dataProtector = dataProtector;
     }
 
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
@@ -29,12 +29,12 @@ public class ExtractTask : BaseTask
 
             if (previousTask == null)
             {
-                throw new Exception("No previous task found");
+                throw new("No previous task found");
             }
 
             if (jobRunTask.Settings.Extract == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             var sourceFileName = previousTask.ResultArtifact;
@@ -43,25 +43,27 @@ public class ExtractTask : BaseTask
 
             if (String.IsNullOrWhiteSpace(sourceFileName))
             {
-                throw new Exception($"No source file found");
+                throw new($"No source file found");
             }
 
             if (!File.Exists(sourceFileName))
             {
-                throw new Exception($"Source file '{sourceFileName}' not found");
+                throw new($"Source file '{sourceFileName}' not found");
             }
 
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             var rawFileName = Path.GetFileName(jobRunTask.Settings.Extract.FileName);
 
             if (String.IsNullOrWhiteSpace(rawFileName))
             {
-                throw new Exception($"Invalid filename '{jobRunTask.Settings.Extract.FileName}'");
+                throw new($"Invalid filename '{jobRunTask.Settings.Extract.FileName}'");
             }
 
             var fileName = rawFileName.FormatFromObject(tokenValues);
@@ -70,7 +72,7 @@ public class ExtractTask : BaseTask
 
             if (String.IsNullOrWhiteSpace(rawFilePath))
             {
-                throw new Exception($"Invalid file path '{jobRunTask.Settings.Extract.FileName}'");
+                throw new($"Invalid file path '{jobRunTask.Settings.Extract.FileName}'");
             }
 
             var filePath = rawFilePath.FormatFromObject(tokenValues);
@@ -184,19 +186,19 @@ public class ExtractTask : BaseTask
             }
             catch
             {
-                throw new Exception(stdErrBuffer.ToString());
+                throw new(stdErrBuffer.ToString());
             }
 
             var resultingFiles = Directory.GetFiles(tempPath, "*", SearchOption.AllDirectories);
             
             if (resultingFiles.Length == 0)
             {
-                throw new Exception("No files extracted");
+                throw new("No files extracted");
             }
 
             if (resultingFiles.Length > 1)
             {
-                throw new Exception($"Multiple files extracted: {String.Join(", ", resultingFiles)}");
+                throw new($"Multiple files extracted: {String.Join(", ", resultingFiles)}");
             }
 
             var resultingFile = resultingFiles[0];

@@ -19,6 +19,9 @@ public class JobTaskSettings
 
     [JsonPropertyName("downloadS3")]
     public JobTaskDownloadS3Settings? DownloadS3 { get; set; }
+    
+    [JsonPropertyName("downloadAzure")]
+    public JobTaskDownloadAzureSettings? DownloadAzure { get; set; }
 
     [JsonPropertyName("extract")]
     public JobTaskExtractSettings? Extract { get; set; }
@@ -145,6 +148,22 @@ public class JobTaskDownloadS3Settings
     public String? Secret { get; set; }
 }
 
+public class JobTaskDownloadAzureSettings
+{
+    [JsonPropertyName("blob")]
+    public String? Blob { get; set; }
+
+    [JsonPropertyName("fileName")]
+    public String? FileName { get; set; }
+
+    [JsonPropertyName("containerName")]
+    public String? ContainerName { get; set; }
+
+    [JsonPropertyName("connectionString")]
+    [Protected]
+    public String? ConnectionString { get; set; }
+}
+
 public class JobTaskExtractSettings
 {
     [JsonPropertyName("fileName")]
@@ -175,6 +194,9 @@ public class JobTaskRestoreDatabaseSettings
 
     [JsonPropertyName("databaseName")]
     public String? DatabaseName { get; set; }
+
+    [JsonPropertyName("databaseLocation")]
+    public String? DatabaseLocation { get; set; }
 
     [JsonPropertyName("options")]
     public String? Options { get; set; }

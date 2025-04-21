@@ -19,6 +19,7 @@ public interface IDatabaseConnection
 
     Task RestoreBackup(String connectionString,
                        String databaseName,
+                       String? databaseLocation,
                        String? password,
                        String? options,
                        String sourceFilePath,

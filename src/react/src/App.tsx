@@ -2,7 +2,7 @@ import axios from 'axios';
 import { curray } from 'curray';
 import React, { FC } from 'react';
 import { HashRouter, Route, Routes } from 'react-router-dom';
-import './App.scss';
+import './App.css';
 import MainLayout from './containers/MainLayout';
 import Login from './pages/Login';
 import Auth from './services/auth';

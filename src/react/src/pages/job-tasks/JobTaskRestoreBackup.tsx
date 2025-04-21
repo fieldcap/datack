@@ -48,6 +48,7 @@ const JobTaskRestoreBackup: FC<Props> = (props) => {
       onSettingsChanged({
         databaseType: 'sqlServer',
         databaseName: '',
+        databaseLocation: '',
         options: '',
         connectionString: '',
         connectionStringPassword: null,
@@ -106,11 +107,30 @@ const JobTaskRestoreBackup: FC<Props> = (props) => {
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
+          &#123;FileName&#125; The filename of the file to download without the path
+          <br />
           &#123;Started:yyyyMMddHHmm&#125; The date and time of the start date of the job task
           <br />
           Example:
           <br />
           Restored-&#123;ItemName&#125;-&#123;Started:yyyyMMddHHmm&#125;
+        </FormHelperText>
+      </FormControl>
+      <FormControl id="databaseLocation" marginBottom={4}>
+        <FormLabel>Database Location</FormLabel>
+        <Input
+          type="text"
+          value={props.settings?.databaseLocation || ''}
+          onChange={(evt) => set('databaseLocation', evt.target.value)}
+        ></Input>
+        <FormHelperText>
+          The target location of the database. Will use the logical name of the data file in the backup set.
+          <br />
+          Leave empty to use the default location configured in SQL Server.
+          <br />
+          Example:
+          <br />
+          D:\SQLData\
         </FormHelperText>
       </FormControl>
 
@@ -176,6 +196,8 @@ const JobTaskRestoreBackup: FC<Props> = (props) => {
           The following tokens are supported:
           <br />
           &#123;ItemName&#125; The item name of the job task
+          <br />
+          &#123;FileName&#125; The filename of the file to download without the path
           <br />
           &#123;Started:yyyyMMddHHmm&#125; The date and time of the start date of the job task
           <br />

@@ -229,7 +229,7 @@ public class DataContext : IdentityDbContext
         ///     facets for the converted data.
         /// </param>
         public DateTimeOffsetToUtcDateTimeTicksConverter(ConverterMappingHints mappingHints = null)
-            : base(v => v.UtcDateTime.Ticks, v => new DateTimeOffset(v, new TimeSpan(0, 0, 0)), mappingHints)
+            : base(v => v.UtcDateTime.Ticks, v => new(v, new(0, 0, 0)), mappingHints)
         {
         }
 
@@ -246,6 +246,6 @@ public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
     {
         var builder = new DbContextOptionsBuilder<DataContext>();
         builder.UseSqlite($"Data Source=DatackDev.db");
-        return new DataContext(builder.Options);
+        return new(builder.Options);
     }
 }

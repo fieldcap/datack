@@ -19,7 +19,7 @@ public class UploadAzureTask : BaseTask
         _dataProtector = dataProtector;
     }
 
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
@@ -28,17 +28,17 @@ public class UploadAzureTask : BaseTask
 
             if (previousTask == null)
             {
-                throw new Exception("No previous task found");
+                throw new("No previous task found");
             }
 
             if (jobRunTask.Settings.UploadAzure == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadAzure.ConnectionString))
             {
-                throw new Exception("No connection string set");
+                throw new("No connection string set");
             }
 
             var sourceFileName = previousTask.ResultArtifact;
@@ -47,25 +47,27 @@ public class UploadAzureTask : BaseTask
 
             if (String.IsNullOrWhiteSpace(sourceFileName))
             {
-                throw new Exception($"No source file found");
+                throw new($"No source file found");
             }
 
             if (!File.Exists(sourceFileName))
             {
-                throw new Exception($"Source file '{sourceFileName}' not found");
+                throw new($"Source file '{sourceFileName}' not found");
             }
 
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             var blobFileName = Path.GetFileName(jobRunTask.Settings.UploadAzure.FileName);
 
             if (String.IsNullOrWhiteSpace(blobFileName))
             {
-                throw new Exception("Blob name cannot be null");
+                throw new("Blob name cannot be null");
             }
 
             blobFileName = blobFileName.FormatFromObject(tokenValues);

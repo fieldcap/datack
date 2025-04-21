@@ -34,6 +34,7 @@ import JobTaskCreateBackup from './JobTaskCreateBackup';
 import JobTaskDeleteFile from './JobTaskDeleteFile';
 import JobTaskDeleteS3 from './JobTaskDeleteS3';
 import JobTaskDownloadS3 from './JobTaskDownloadS3';
+import JobTaskDownloadAzure from './JobTaskDownloadAzure';
 import JobTaskRestoreBackup from './JobTaskRestoreBackup';
 import JobTaskUploadAzure from './JobTaskUploadAzure';
 import JobTaskUploadS3 from './JobTaskUploadS3';
@@ -239,6 +240,18 @@ const JobTaskEditor: FC = () => {
             }}
           ></JobTaskDownloadS3>
         );
+      case 'downloadAzure':
+        return (
+          <JobTaskDownloadAzure
+            settings={settings.downloadAzure}
+            agentId={agentId}
+            onSettingsChanged={(newSettings) => {
+              setSettings({
+                downloadAzure: newSettings,
+              });
+            }}
+          ></JobTaskDownloadAzure>
+        );
       case 'extract':
         return (
           <JobTaskExtract
@@ -334,6 +347,7 @@ const JobTaskEditor: FC = () => {
             <option value="deleteFile">{JobTasks.map('deleteFile')}</option>
             <option value="deleteS3">{JobTasks.map('deleteS3')}</option>
             <option value="downloadS3">{JobTasks.map('downloadS3')}</option>
+            <option value="downloadAzure">{JobTasks.map('downloadAzure')}</option>
             <option value="restoreBackup">{JobTasks.map('restoreBackup')}</option>
             <option value="uploadAzure">{JobTasks.map('uploadAzure')}</option>
             <option value="uploadS3">{JobTasks.map('uploadS3')}</option>

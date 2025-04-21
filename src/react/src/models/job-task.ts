@@ -26,6 +26,7 @@ export type JobTaskSettings = {
   deleteFile?: JobTaskDeleteSettings;
   deleteS3?: JobTaskDeleteS3Settings;
   downloadS3?: JobTaskDownloadS3Settings;
+  downloadAzure?: JobTaskDownloadAzureSettings;
   extract?: JobTaskExtractSettings;
   restoreBackup?: JobTaskRestoreDatabaseSettings;
   uploadAzure?: JobTaskUploadAzureSettings;
@@ -78,6 +79,13 @@ export type JobTaskDownloadS3Settings = {
   secret: string;
 };
 
+export type JobTaskDownloadAzureSettings = {
+  blob: string;
+  fileName: string;
+  containerName: string;
+  connectionString: string;
+};
+
 export type JobTaskExtractSettings = {
   fileName: string;
   archiveType: string;
@@ -90,6 +98,7 @@ export type JobTaskRestoreDatabaseSettings = {
   connectionString: string;
   connectionStringPassword: string | null;
   databaseName: string;
+  databaseLocation: string;
   options: string;
 };
 

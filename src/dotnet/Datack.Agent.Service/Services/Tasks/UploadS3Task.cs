@@ -2,7 +2,6 @@
 using Amazon;
 using Amazon.Runtime;
 using Amazon.S3;
-using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using ByteSizeLib;
 using Datack.Common.Models.Data;
@@ -22,7 +21,7 @@ public class UploadS3Task : BaseTask
         _dataProtector = dataProtector;
     }
 
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
@@ -31,17 +30,17 @@ public class UploadS3Task : BaseTask
 
             if (previousTask == null)
             {
-                throw new Exception("No previous task found");
+                throw new("No previous task found");
             }
 
             if (jobRunTask.Settings.UploadS3 == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadS3.Secret))
             {
-                throw new Exception("No S3 password set");
+                throw new("No S3 password set");
             }
 
             var sourceFileName = previousTask.ResultArtifact;
@@ -50,25 +49,27 @@ public class UploadS3Task : BaseTask
 
             if (String.IsNullOrWhiteSpace(sourceFileName))
             {
-                throw new Exception($"No source file found");
+                throw new($"No source file found");
             }
 
             if (!File.Exists(sourceFileName))
             {
-                throw new Exception($"Source file '{sourceFileName}' not found");
+                throw new($"Source file '{sourceFileName}' not found");
             }
 
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             var keyFileName = Path.GetFileName(jobRunTask.Settings.UploadS3.FileName);
 
             if (String.IsNullOrWhiteSpace(keyFileName))
             {
-                throw new Exception($"Key cannot be null");
+                throw new($"Key cannot be null");
             }
 
             keyFileName = keyFileName.FormatFromObject(tokenValues);
@@ -102,9 +103,9 @@ public class UploadS3Task : BaseTask
                 BucketName = jobRunTask.Settings.UploadS3.Bucket,
                 FilePath = sourceFileName,
                 Key = key,
-                TagSet = new List<Tag>
+                TagSet = new()
                 {
-                    new Tag
+                    new()
                     {
                         Key = "Datack:JobDate",
                         Value = jobRunTask.JobRun.Started.ToString("O")
@@ -114,7 +115,7 @@ public class UploadS3Task : BaseTask
 
             if (!String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadS3.Tag))
             {
-                uploadRequest.TagSet.Add(new Tag
+                uploadRequest.TagSet.Add(new()
                 {
                     Key = "Datack:Tag",
                     Value = jobRunTask.Settings.UploadS3.Tag

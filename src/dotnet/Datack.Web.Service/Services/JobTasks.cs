@@ -41,7 +41,7 @@ public class JobTasks
     {
         if (String.IsNullOrWhiteSpace(jobTask.Name))
         {
-            throw new Exception("Name cannot be empty");
+            throw new("Name cannot be empty");
         }
 
         var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
@@ -49,22 +49,22 @@ public class JobTasks
 
         if (sameNameTasks)
         {
-            throw new Exception($"A task with this name for this job already exists");
+            throw new($"A task with this name for this job already exists");
         }
 
         if (String.IsNullOrWhiteSpace(jobTask.Type))
         {
-            throw new Exception("Task type cannot be empty");
+            throw new("Task type cannot be empty");
         }
 
         if (jobTask.AgentId == Guid.Empty)
         {
-            throw new Exception("Agent cannot be empty");
+            throw new("Agent cannot be empty");
         }
 
         if (jobTask.Parallel < 0)
         {
-            throw new Exception($"Parallel cannot be smaller than 0");
+            throw new($"Parallel cannot be smaller than 0");
         }
 
         return await _jobTaskRepository.Add(jobTask, cancellationToken);
@@ -74,7 +74,7 @@ public class JobTasks
     {
         if (String.IsNullOrWhiteSpace(jobTask.Name))
         {
-            throw new Exception("Name cannot be empty");
+            throw new("Name cannot be empty");
         }
 
         var dbJobTask = await GetById(jobTask.JobTaskId, cancellationToken);
@@ -82,12 +82,12 @@ public class JobTasks
 
         if (dbJobTask == null)
         {
-            throw new Exception($"Cannot find job task with ID {jobTask.JobTaskId}");
+            throw new($"Cannot find job task with ID {jobTask.JobTaskId}");
         }
 
         if (agent == null)
         {
-            throw new Exception($"Cannot find agent with ID {jobTask.JobTaskId}");
+            throw new($"Cannot find agent with ID {jobTask.JobTaskId}");
         }
 
         var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
@@ -95,22 +95,22 @@ public class JobTasks
 
         if (sameNameTasks)
         {
-            throw new Exception($"A task with this name for this job already exists");
+            throw new($"A task with this name for this job already exists");
         }
 
         if (String.IsNullOrWhiteSpace(jobTask.Type))
         {
-            throw new Exception("Task type cannot be empty");
+            throw new("Task type cannot be empty");
         }
 
         if (jobTask.AgentId == Guid.Empty)
         {
-            throw new Exception("Agent cannot be empty");
+            throw new("Agent cannot be empty");
         }
 
         if (jobTask.Parallel < 0)
         {
-            throw new Exception($"Parallel cannot be smaller than 0");
+            throw new($"Parallel cannot be smaller than 0");
         }
         
         await EncryptSettings(agent, jobTask.Settings, dbJobTask.Settings, cancellationToken);

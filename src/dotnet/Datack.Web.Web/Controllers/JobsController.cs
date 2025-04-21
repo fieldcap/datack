@@ -141,7 +141,7 @@ public class JobsController : Controller
 
         if (job == null)
         {
-            throw new Exception($"Job with ID {request.JobId} not found");
+            throw new($"Job with ID {request.JobId} not found");
         }
 
         var overrideItemList = new List<String>();
@@ -172,7 +172,7 @@ public class JobsController : Controller
 
         if (job == null)
         {
-            throw new Exception($"Job with ID {request.JobId} not found");
+            throw new($"Job with ID {request.JobId} not found");
         }
 
         var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
@@ -188,17 +188,17 @@ public class JobsController : Controller
 
         if (agent == null)
         {
-            throw new Exception($"Agent with ID {jobTask.AgentId} not found");
+            throw new($"Agent with ID {jobTask.AgentId} not found");
         }
 
         if (String.IsNullOrWhiteSpace(jobTask.Settings.CreateBackup?.ConnectionString))
         {
-            throw new Exception("Job task has no database connection string configured");
+            throw new("Job task has no database connection string configured");
         }
 
         if (String.IsNullOrWhiteSpace(jobTask.Settings.CreateBackup?.DatabaseType))
         {
-            throw new Exception($"Job task {jobTask.Name} does not have a database type set");
+            throw new($"Job task {jobTask.Name} does not have a database type set");
         }
 
         var databases = await _remoteService.GetDatabaseList(agent, 
@@ -211,6 +211,64 @@ public class JobsController : Controller
         var databaseList = databases.Where(m => m.HasAccess).Select(m => m.DatabaseName).ToList();
 
         return Ok(databaseList);
+    }
+            
+    [HttpPost]
+    [Route("GetAzureFileList")]
+    public async Task<ActionResult> GetAzureFileList([FromBody] JobGetFileListRequest request, CancellationToken cancellationToken)
+    {
+        var job = await _jobs.GetById(request.JobId, cancellationToken);
+
+        if (job == null)
+        {
+            throw new($"Job with ID {request.JobId} not found");
+        }
+
+        var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
+
+        var jobTask = jobTasks.FirstOrDefault(m => m.Order == 0 && m.Type == "downloadAzure");
+
+        if (jobTask == null)
+        {
+            return Ok(new List<String>());
+        }
+
+        var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
+
+        if (agent == null)
+        {
+            throw new($"Agent with ID {jobTask.AgentId} not found");
+        }
+
+        if (jobTask.Settings.DownloadAzure == null)
+        {
+            throw new($"Job task {jobTask.Name} does not have a downloadAzure settings set");
+        }
+
+        if (String.IsNullOrWhiteSpace(jobTask.Settings.DownloadAzure.ConnectionString))
+        {
+            throw new("Job task has no connection string configured");
+        }
+
+        if (String.IsNullOrWhiteSpace(jobTask.Settings.DownloadAzure.ContainerName))
+        {
+            throw new($"Job task {jobTask.Name} does not have a container name set");
+        }
+
+        if (String.IsNullOrWhiteSpace(jobTask.Settings.DownloadAzure.Blob))
+        {
+            jobTask.Settings.DownloadAzure.Blob = "";
+        }
+        
+        var files = await _remoteService.GetFileList(agent, 
+                                                     "azure",
+                                                     jobTask.Settings.DownloadAzure.ConnectionString, 
+                                                     jobTask.Settings.DownloadAzure.ContainerName,
+                                                     jobTask.Settings.DownloadAzure.Blob,
+                                                     request.Path,
+                                                     cancellationToken);
+        
+        return Ok(files);
     }
 }
 
@@ -238,4 +296,10 @@ public class JobStopRequest
 public class JobGetDatabaseListRequest
 {
     public Guid JobId { get; set; }
+}
+
+public class JobGetFileListRequest
+{
+    public Guid JobId { get; set; }
+    public String? Path { get; set; }
 }

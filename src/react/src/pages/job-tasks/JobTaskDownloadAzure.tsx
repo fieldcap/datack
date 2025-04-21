@@ -1,28 +1,28 @@
-import { FormControl, FormHelperText, FormLabel, Input } from '@chakra-ui/react';
+import { FormControl, FormHelperText, FormLabel, Input, Select } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react';
-import { JobTaskUploadAzureSettings } from '../../models/job-task';
+import { JobTaskDownloadAzureSettings } from '../../models/job-task';
 
 type Props = {
   agentId: string;
-  settings: JobTaskUploadAzureSettings | undefined | null;
-  onSettingsChanged: (settings: JobTaskUploadAzureSettings) => void;
+  settings: JobTaskDownloadAzureSettings | undefined | null;
+  onSettingsChanged: (settings: JobTaskDownloadAzureSettings) => void;
 };
 
-const JobTaskUploadAzure: FC<Props> = (props) => {
+const JobTaskDownloadAzure: FC<Props> = (props) => {
   const { onSettingsChanged } = props;
 
   useEffect(() => {
     if (props.settings == null) {
       onSettingsChanged({
+        blob: '',
         fileName: '',
         containerName: '',
         connectionString: '',
-        tag: '',
       });
     }
   }, [props.settings, onSettingsChanged]);
 
-  const set = (settingName: keyof JobTaskUploadAzureSettings, newValue: string | number | boolean): void => {
+  const set = (settingName: keyof JobTaskDownloadAzureSettings, newValue: string | number | boolean): void => {
     if (props.settings == null) {
       return;
     }
@@ -43,15 +43,22 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
         ></Input>
         <FormHelperText>The Azure Blob storage container.</FormHelperText>
       </FormControl>
-      <FormControl id="fileName" marginBottom={4}>
+      <FormControl id="blob" marginBottom={4}>
         <FormLabel>Blob</FormLabel>
+        <Input type="text" value={props.settings?.blob || ''} onChange={(evt) => set('blob', evt.target.value)}></Input>
+        <FormHelperText>
+          The Azure blob root to download a file from. Is used to fetch the list of files and not in the actual job.
+        </FormHelperText>
+      </FormControl>
+      <FormControl id="fileName" marginBottom={4}>
+        <FormLabel>Destination Filename</FormLabel>
         <Input
           type="text"
           value={props.settings?.fileName || ''}
           onChange={(evt) => set('fileName', evt.target.value)}
         ></Input>
         <FormHelperText>
-          The Azure blob file name to upload the file to. The following tokens are supported:
+          The filename to download the Azure file to. The following tokens are supported:
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
@@ -73,13 +80,8 @@ const JobTaskUploadAzure: FC<Props> = (props) => {
         ></Input>
         <FormHelperText>The Azure connection string. This setting is stored encrypted.</FormHelperText>
       </FormControl>
-      <FormControl id="tag" marginBottom={4}>
-        <FormLabel>Tag</FormLabel>
-        <Input type="text" value={props.settings?.tag || ''} onChange={(evt) => set('tag', evt.target.value)}></Input>
-        <FormHelperText>An optional tag to write on the object.</FormHelperText>
-      </FormControl>
     </>
   );
 };
 
-export default JobTaskUploadAzure;
+export default JobTaskDownloadAzure;

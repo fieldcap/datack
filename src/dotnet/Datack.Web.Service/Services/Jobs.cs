@@ -31,7 +31,7 @@ public class Jobs
     {
         if (String.IsNullOrWhiteSpace(job.Name))
         {
-            throw new Exception($"Name cannot be empty");
+            throw new($"Name cannot be empty");
         }
 
         var allJobs = await _jobRepository.GetAll(cancellationToken);
@@ -39,7 +39,7 @@ public class Jobs
 
         if (sameNameJobs)
         {
-            throw new Exception($"A job with this name already exists");
+            throw new($"A job with this name already exists");
         }
 
         return await _jobRepository.Add(job, cancellationToken);
@@ -49,7 +49,7 @@ public class Jobs
     {
         if (String.IsNullOrWhiteSpace(job.Name))
         {
-            throw new Exception($"Name cannot be empty");
+            throw new($"Name cannot be empty");
         }
 
         var allJobs = await _jobRepository.GetAll(cancellationToken);
@@ -57,7 +57,7 @@ public class Jobs
 
         if (sameNameJobs)
         {
-            throw new Exception($"A job with this name already exists");
+            throw new($"A job with this name already exists");
         }
 
         await _jobRepository.Update(job, cancellationToken);

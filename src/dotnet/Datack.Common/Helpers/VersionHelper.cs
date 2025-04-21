@@ -10,14 +10,14 @@ public static class VersionHelper
 
         if (assembly == null)
         {
-            throw new Exception("Cannot find EntryAssembly");
+            throw new("Cannot find EntryAssembly");
         }
 
         var versionAttribute = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>();
 
         if (versionAttribute == null)
         {
-            throw new Exception($"AssemblyFileVersionAttribute not found for {assembly.FullName}");
+            throw new($"AssemblyFileVersionAttribute not found for {assembly.FullName}");
         }
 
         return versionAttribute.Version;

@@ -114,12 +114,14 @@ public static class Program
                        services.AddSingleton<DataProtector>();
                        services.AddSingleton<JobRunner>();
                        services.AddSingleton<RpcService>();
+                       services.AddSingleton<StorageAdapter>();
 
                        services.AddSingleton<CreateBackupTask>();
                        services.AddSingleton<CompressTask>();
                        services.AddSingleton<DeleteS3Task>();
                        services.AddSingleton<DeleteFileTask>();
                        services.AddSingleton<DownloadS3Task>();
+                       services.AddSingleton<DownloadAzureTask>();
                        services.AddSingleton<ExtractTask>();
                        services.AddSingleton<RestoreBackupTask>();
                        services.AddSingleton<UploadAzureTask>();
@@ -127,6 +129,9 @@ public static class Program
 
                        services.AddSingleton<SqlServerConnection>();
                        services.AddSingleton<PostgresConnection>();
+                       
+                       services.AddSingleton<AwsS3Connection>();
+                       services.AddSingleton<AzureBlobStorageConnection>();
 
                        services.AddHostedService<AgentHostedService>();
                    })

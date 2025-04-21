@@ -30,7 +30,7 @@ public class PostgresConnection : IDatabaseConnection
 
         while (await reader.ReadAsync(cancellationToken))
         {
-            result.Add(new Database
+            result.Add(new()
             {
                 DatabaseId = reader.GetInt32(0),
                 DatabaseName = reader.GetString(1),
@@ -57,7 +57,7 @@ public class PostgresConnection : IDatabaseConnection
     {
         if (backupType != "Full")
         {
-            throw new Exception($"Unsupported backup type {backupType}, only Full backups are supported for Postgresql");
+            throw new($"Unsupported backup type {backupType}, only Full backups are supported for Postgresql");
         }
 
         var server = Get(connectionString, "Server");
@@ -89,7 +89,7 @@ public class PostgresConnection : IDatabaseConnection
             logCmd = logCmd.Replace($":{password}@", ":****@");
         }
 
-        progressCallback.Invoke(new DatabaseProgressEvent
+        progressCallback.Invoke(new()
         {
             Message = $"Starting backup {Environment.NewLine}{logCmd}",
             Source = "Datack"
@@ -107,7 +107,7 @@ public class PostgresConnection : IDatabaseConnection
                 {
                     case StandardOutputCommandEvent stdOut:
                     {
-                        progressCallback.Invoke(new DatabaseProgressEvent
+                        progressCallback.Invoke(new()
                         {
                             Message = stdOut.Text,
                             Source = "Datack"
@@ -117,7 +117,7 @@ public class PostgresConnection : IDatabaseConnection
                     }
                     case StandardErrorCommandEvent stdErr:
                     {
-                        progressCallback.Invoke(new DatabaseProgressEvent
+                        progressCallback.Invoke(new()
                         {
                             Message = stdErr.Text,
                             Source = "Datack"
@@ -132,12 +132,13 @@ public class PostgresConnection : IDatabaseConnection
         }
         catch
         {
-            throw new Exception(stdErrBuffer.ToString());
+            throw new(stdErrBuffer.ToString());
         }
     }
 
     public async Task RestoreBackup(String connectionString,
                                     String databaseName,
+                                    String? databaseLocation,
                                     String? password,
                                     String? options,
                                     String sourceFilePath,
@@ -154,7 +155,7 @@ public class PostgresConnection : IDatabaseConnection
 
         if (!match.Success)
         {
-            throw new Exception($"Cannot find the parameter {key} in the connection string");
+            throw new($"Cannot find the parameter {key} in the connection string");
         }
 
         return match.Groups[1].Captures[0].Value;

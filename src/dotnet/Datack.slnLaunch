@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "Web & Agent",
+    "Projects": [
+      {
+        "Path": "Datack.Agent.Service\\Datack.Agent.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "Datack.Web.Web\\Datack.Web.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

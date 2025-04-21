@@ -49,12 +49,12 @@ FROM
 
         if (backupType == null)
         {
-            throw new Exception("Backup type cannot be null");
+            throw new("Backup type cannot be null");
         }
 
         if (backupType != "Full" && backupType != "Differential" && backupType != "TransactionLog")
         {
-            throw new Exception($"Invalid backup type {backupType}, has to be one of Full, Differential or TransactionLog");
+            throw new($"Invalid backup type {backupType}, has to be one of Full, Differential or TransactionLog");
         }
 
         if (String.IsNullOrWhiteSpace(options))
@@ -75,7 +75,7 @@ FROM
                 return;
             }
 
-            progressCallback.Invoke(new DatabaseProgressEvent
+            progressCallback.Invoke(new()
             {
                 Message = args.Message,
                 Source = args.Source
@@ -87,12 +87,12 @@ FROM
             "Full" => "BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH",
             "Differential" => "BACKUP DATABASE @DatabaseName TO DISK = @FilePath WITH DIFFERENTIAL,",
             "TransactionLog" => "BACKUP LOG @DatabaseName TO DISK = @FilePath WITH",
-            _ => throw new Exception($"Unknown backup type {backupType}")
+            _ => throw new($"Unknown backup type {backupType}")
         };
 
         var query = $"{queryHeader} {options}";
 
-        progressCallback.Invoke(new DatabaseProgressEvent
+        progressCallback.Invoke(new()
         {
             Message = $"Starting backup script{Environment.NewLine}{query}",
             Source = "Datack"
@@ -115,6 +115,7 @@ FROM
 
     public async Task RestoreBackup(String connectionString,
                                     String databaseName,
+                                    String? databaseLocation,
                                     String? password,
                                     String? options,
                                     String sourceFilePath,
@@ -122,7 +123,7 @@ FROM
                                     CancellationToken cancellationToken)
     {
         await using var sqlConnection = new SqlConnection(connectionString);
-
+        
         if (String.IsNullOrWhiteSpace(options))
         {
             options = "STATS = 5";
@@ -135,7 +136,7 @@ FROM
                 return;
             }
 
-            progressCallback.Invoke(new DatabaseProgressEvent
+            progressCallback.Invoke(new()
             {
                 Message = args.Message,
                 Source = args.Source
@@ -188,17 +189,46 @@ SELECT @LogicalNameData,@LogicalNameLog";
                                                         CommandFlags.Buffered,
                                                         cancellationToken);
 
-        var logicalNamesQueryDataReader = await sqlConnection.ExecuteReaderAsync(logicalNamesCommand);
+        var logicalNamesQueryResults = await sqlConnection.QueryAsync<(String LogicalNameData, String LogicalNameLog)?>(logicalNamesCommand);
+        var logicalNamesQueryResult = logicalNamesQueryResults.FirstOrDefault();
 
-        var logicalNamesQueryDataRow = await logicalNamesQueryDataReader.ReadAsync(cancellationToken);
-
-        if (!logicalNamesQueryDataRow)
+        if (logicalNamesQueryResult == null)
         {
-            throw new Exception($"Unable to determine the logical file name of the backup set.{Environment.NewLine}{logicalNameQuery}");
+            throw new("No logical names found in backup file");
         }
 
-        var logicalNameData = logicalNamesQueryDataReader.GetFieldValue<String>(0);
-        var logicalNameLog = logicalNamesQueryDataReader.GetFieldValue<String>(1);
+        var logicalNameData = logicalNamesQueryResult.Value.LogicalNameData;
+        var logicalNameLog = logicalNamesQueryResult.Value.LogicalNameLog;
+
+        String dataPath;
+        String logPath;
+
+        if (databaseLocation != null)
+        {
+            if (!Directory.Exists(databaseLocation))
+            {
+                Directory.CreateDirectory(databaseLocation);
+            }
+
+            dataPath = databaseLocation;
+            logPath = databaseLocation;
+        }
+        else
+        {
+            var defaultPathsCommand = new CommandDefinition("SELECT SERVERPROPERTY('InstanceDefaultDataPath') AS InstanceDefaultDataPath, SERVERPROPERTY('InstanceDefaultLogPath') AS InstanceDefaultLogPath;",
+                                                            null,
+                                                            null,
+                                                            5,
+                                                            null,
+                                                            CommandFlags.Buffered,
+                                                            cancellationToken);
+
+            var defaultPathsQueryResults = await sqlConnection.QueryAsync<(String InstanceDefaultDataPath, String InstanceDefaultLogPath)>(defaultPathsCommand);
+            var defaultPathsQueryResult = defaultPathsQueryResults.First();
+
+            dataPath = defaultPathsQueryResult.InstanceDefaultDataPath;
+            logPath = defaultPathsQueryResult.InstanceDefaultLogPath;
+        }
 
         var killQuery = $@"DECLARE @kill varchar(8000) = '';  
 SELECT @kill = @kill + 'kill ' + CONVERT(varchar(5), session_id) + ';'  
@@ -207,7 +237,7 @@ WHERE database_id  = db_id('{databaseName}') or login_name = '{databaseName}'
 
 EXEC(@kill);";
 
-        progressCallback.Invoke(new DatabaseProgressEvent
+        progressCallback.Invoke(new()
         {
             Message = $"Killing connections to target database{Environment.NewLine}{killQuery}",
             Source = "Datack"
@@ -223,19 +253,29 @@ EXEC(@kill);";
             
         await sqlConnection.ExecuteScalarAsync(killCommand);
 
-        var queryHeader = "RESTORE DATABASE @DatabaseName FROM DISK = @FilePath WITH FILE = 1,";
-
-        var query = $"{queryHeader} {options}";
+        var query = """
+                    RESTORE DATABASE @DatabaseName
+                    FROM DISK = @FilePath
+                    WITH 
+                        MOVE N'{LogicalNameData}' TO N'{LogicalDataFileName}',
+                        MOVE N'{LogicalNameLog}'  TO N'{LogicalLogFileName}',
+                        FILE = 1,
+                        REPLACE,
+                        {Options}
+                    """;
 
         query = query.FormatFromObject(new
         {
             DatabaseName = databaseName,
             FilePath = sourceFilePath,
             LogicalNameData = logicalNameData,
-            LogicalNameLog = logicalNameLog
+            LogicalNameLog = logicalNameLog,
+            LogicalDataFileName = Path.Combine(dataPath) + $"{databaseName}.mdf",
+            LogicalLogFileName = Path.Combine(logPath) + $"{databaseName}_log.ldf",
+            Options = options
         });
 
-        progressCallback.Invoke(new DatabaseProgressEvent
+        progressCallback.Invoke(new()
         {
             Message = $"Starting restore script{Environment.NewLine}{query}",
             Source = "Datack"
@@ -245,9 +285,7 @@ EXEC(@kill);";
                                             new
                                             {
                                                 DatabaseName = databaseName,
-                                                FilePath = sourceFilePath,
-                                                LogicalNameData = logicalNameData,
-                                                LogicalNameLog = logicalNameLog
+                                                FilePath = sourceFilePath
                                             },
                                             null,
                                             Int32.MaxValue,

@@ -64,7 +64,7 @@ public class JobTaskRepository
 
         if (dbJobTask == null)
         {
-            throw new Exception($"Job task with ID {jobTask.JobTaskId} not found");
+            throw new($"Job task with ID {jobTask.JobTaskId} not found");
         }
 
         dbJobTask.Name = jobTask.Name;

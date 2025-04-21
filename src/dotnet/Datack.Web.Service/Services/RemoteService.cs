@@ -32,6 +32,13 @@ public class RemoteService
 
         return await GetConnection(agent).InvokeAsync<IList<Database>>("GetDatabaseList", databaseType, connectionString, password, decryptPassword, cancellationToken);
     }
+
+    public async Task<IList<String>> GetFileList(Agent agent, String storageType, String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
+    {
+        _logger.LogDebug("GetFileList {name} {agentId}", agent.Name, agent.AgentId);
+
+        return await GetConnection(agent).InvokeAsync<IList<String>>("GetFileList", storageType, connectionString, containerName, rootPath, path, cancellationToken);
+    }
         
     public async Task<String> Run(Agent agent, JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
@@ -96,7 +103,7 @@ public class RemoteService
 
         if (!hasConnection || connection == null)
         {
-            throw new Exception($"No connection found for agent with key {agent.Key}");
+            throw new($"No connection found for agent with key {agent.Key}");
         }
 
         return _agentHub.Clients.Client(connection.ConnectionId);

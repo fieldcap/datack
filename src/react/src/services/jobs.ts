@@ -66,6 +66,23 @@ export namespace Jobs {
     );
     return result.data;
   };
+
+  export const getAzureFileList = async (
+    jobId: string,
+    path: string | null,
+    cancelToken: CancelTokenSource
+  ): Promise<string[]> => {
+    const config = { cancelToken: cancelToken.token };
+    const result = await axios.post<string[]>(
+      `/api/Jobs/GetAzureFileList/`,
+      {
+        jobId,
+        path,
+      },
+      config
+    );
+    return result.data;
+  };
 }
 
 export type TestCronResult = {

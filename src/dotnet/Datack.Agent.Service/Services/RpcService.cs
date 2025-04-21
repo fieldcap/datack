@@ -15,6 +15,7 @@ public class RpcService
 #nullable disable
     public Func<String, Task<String>> Encrypt;
     public Func<String, String, String, Boolean, Task<IList<Database>>> GetDatabaseList;
+    public Func<String, String, String, String, String, Task<IList<String>>> GetFileList;
     public Func<Task<String>> GetLogs;
     public Func<Task<List<Guid>>> GetRunningTasks;
     public Func<JobRunTask, JobRunTask, Task<String>> Run;
@@ -49,7 +50,7 @@ public class RpcService
     {
         if (String.IsNullOrWhiteSpace(_appSettings.ServerUrl))
         {
-            throw new Exception($"No server URL set. Please update appsettings.json");
+            throw new($"No server URL set. Please update appsettings.json");
         }
 
         var url = $"{_appSettings.ServerUrl.TrimEnd('/')}/hubs/agent";
@@ -88,6 +89,7 @@ public class RpcService
 
         _connection.On("Encrypt",Encrypt);
         _connection.On("GetDatabaseList", GetDatabaseList);
+        _connection.On("GetFileList", GetFileList);
         _connection.On("GetLogs", GetLogs);
         _connection.On("GetRunningTasks", GetRunningTasks);
         _connection.On("Run", Run);
@@ -119,7 +121,7 @@ public class RpcService
 
         if (_connection == null)
         {
-            throw new Exception("Cannot connect, connection is not initialized yet");
+            throw new("Cannot connect, connection is not initialized yet");
         }
 
         _ = Task.Run(async () =>
@@ -191,8 +193,8 @@ public class RpcService
                     return;
                 }
 
-                progressEvents = new Dictionary<Guid, RpcProgressEvent>(_progressEvents);
-                completeEvents = new Dictionary<Guid, RpcCompleteEvent>(_completeEvents);
+                progressEvents = new(_progressEvents);
+                completeEvents = new(_completeEvents);
             }
             finally
             {
@@ -258,7 +260,7 @@ public class RpcService
 
         try
         {
-            _progressEvents.Add(Guid.NewGuid(), new RpcProgressEvent
+            _progressEvents.Add(Guid.NewGuid(), new()
             {
                 IsError = progressEvent.IsError,
                 JobRunTaskId = progressEvent.JobRunTaskId,
@@ -277,7 +279,7 @@ public class RpcService
 
         try
         {
-            _completeEvents.Add(Guid.NewGuid(), new RpcCompleteEvent
+            _completeEvents.Add(Guid.NewGuid(), new()
             {
                 IsError = completeEvent.IsError,
                 JobRunTaskId = completeEvent.JobRunTaskId,

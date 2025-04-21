@@ -61,7 +61,7 @@ public class JobRepository
 
         if (dbJob == null)
         {
-            throw new Exception($"Job with ID {job.JobId} not found");
+            throw new($"Job with ID {job.JobId} not found");
         }
 
         dbJob.Name = job.Name;
@@ -84,7 +84,7 @@ public class JobRepository
 
         if (dbJob == null)
         {
-            throw new Exception($"Job with ID {jobId} not found");
+            throw new($"Job with ID {jobId} not found");
         }
 
         var dbJobTasks = await _dataContext.JobTasks

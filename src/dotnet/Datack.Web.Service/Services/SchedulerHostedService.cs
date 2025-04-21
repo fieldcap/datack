@@ -54,7 +54,7 @@ public class SchedulerHostedService : IHostedService
             while (!cancellationToken.IsCancellationRequested)
             {
                 var now = DateTimeOffset.Now;
-                now = new DateTimeOffset(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
+                now = new(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
 
                 // Get all the jobs and group them by Group.
                 // This enables the user to have multiple tasks fire at the same time
@@ -269,7 +269,7 @@ public class SchedulerHostedService : IHostedService
         if (!receivedLockSuccesfully)
         {
             // Lock timed out
-            throw new Exception($"Could not obtain runSetupLock within 30 seconds!");
+            throw new($"Could not obtain runSetupLock within 30 seconds!");
         }
 
         try
@@ -313,7 +313,7 @@ public class SchedulerHostedService : IHostedService
                                 await jobRunTasksService.UpdateStarted(runningTask.JobRunTaskId, null, _cancellationToken);
                             }
 
-                            await jobRunTaskLogsService.Add(new JobRunTaskLog
+                            await jobRunTaskLogsService.Add(new()
                                                             {
                                                                 JobRunTaskId = runningTask.JobRunTaskId,
                                                                 DateTime = DateTimeOffset.UtcNow,
@@ -391,7 +391,7 @@ public class SchedulerHostedService : IHostedService
             {
                 try
                 {
-                    await jobRunTaskLogsService.Add(new JobRunTaskLog
+                    await jobRunTaskLogsService.Add(new()
                                                     {
                                                         JobRunTaskId = runningTask.JobRunTaskId,
                                                         DateTime = DateTimeOffset.UtcNow,
@@ -417,7 +417,7 @@ public class SchedulerHostedService : IHostedService
         {
             try
             {
-                await jobRunTaskLogsService.Add(new JobRunTaskLog
+                await jobRunTaskLogsService.Add(new()
                                                 {
                                                     JobRunTaskId = progressEvent.JobRunTaskId,
                                                     DateTime = DateTimeOffset.UtcNow,
@@ -456,7 +456,7 @@ public class SchedulerHostedService : IHostedService
 
                 distinctJobRunIds.Add(jobRunTask.JobRunId);
 
-                await jobRunTaskLogsService.Add(new JobRunTaskLog
+                await jobRunTaskLogsService.Add(new()
                                                 {
                                                     JobRunTaskId = completeEvent.JobRunTaskId,
                                                     DateTime = DateTimeOffset.UtcNow,

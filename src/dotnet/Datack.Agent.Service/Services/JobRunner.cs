@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using Datack.Agent.Models;
 using Datack.Agent.Services.Tasks;
 using Datack.Common.Models.Data;
 using Microsoft.Extensions.Logging;
@@ -24,6 +23,7 @@ public class JobRunner
                      DeleteFileTask deleteTask,
                      DeleteS3Task deleteS3Task,
                      DownloadS3Task downloadS3Task,
+                     DownloadAzureTask downloadAzureTask,
                      ExtractTask extractTask,
                      RestoreBackupTask restoreBackupTask,
                      UploadAzureTask uploadAzureTask,
@@ -32,7 +32,7 @@ public class JobRunner
         _logger = logger;
         _rpcService = rpcService;
 
-        _tasks = new Dictionary<String, BaseTask>
+        _tasks = new()
         {
             {
                 "createBackup", createBackupTask
@@ -48,6 +48,9 @@ public class JobRunner
             },
             {
                 "downloadS3", downloadS3Task
+            },
+            {
+                "downloadAzure", downloadAzureTask
             },
             {
                 "extract", extractTask
@@ -99,7 +102,7 @@ public class JobRunner
         }
     }
 
-    public async Task ExecuteJobRunTask(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public async Task ExecuteJobRunTask(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         _logger.LogDebug("Running job run task {jobRunTaskId}", jobRunTask.JobRunTaskId);
 
@@ -127,7 +130,7 @@ public class JobRunner
 
                 if (!_tasks.TryGetValue(jobRunTask.Type, out var task))
                 {
-                    throw new Exception($"Unknown task type {jobRunTask.Type}");
+                    throw new($"Unknown task type {jobRunTask.Type}");
                 }
                     
                 if (RunningTasks.TryGetValue(jobRunTask.JobRunTaskId, out _))
@@ -171,7 +174,7 @@ public class JobRunner
         }
         catch (Exception ex)
         {
-            await _rpcService.QueueComplete(new CompleteEvent
+            await _rpcService.QueueComplete(new()
             {
                 IsError = true,
                 JobRunTaskId = jobRunTask.JobRunTaskId,

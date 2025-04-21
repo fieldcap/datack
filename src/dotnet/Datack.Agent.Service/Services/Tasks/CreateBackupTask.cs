@@ -19,13 +19,13 @@ public class CreateBackupTask : BaseTask
         _dataProtector = dataProtector;
     }
         
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
             if (jobRunTask.Settings.CreateBackup == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             var sw = new Stopwatch();
@@ -35,20 +35,22 @@ public class CreateBackupTask : BaseTask
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.FileName))
             {
-                throw new Exception($"No filename given");
+                throw new($"No filename given");
             }
 
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             var rawFileName = Path.GetFileName(jobRunTask.Settings.CreateBackup.FileName);
 
             if (String.IsNullOrWhiteSpace(rawFileName))
             {
-                throw new Exception($"Invalid filename '{jobRunTask.Settings.CreateBackup.FileName}'");
+                throw new($"Invalid filename '{jobRunTask.Settings.CreateBackup.FileName}'");
             }
 
             var fileName = rawFileName.FormatFromObject(tokenValues);
@@ -57,7 +59,7 @@ public class CreateBackupTask : BaseTask
 
             if (String.IsNullOrWhiteSpace(rawFilePath))
             {
-                throw new Exception($"Invalid file path '{jobRunTask.Settings.CreateBackup.FileName}'");
+                throw new($"Invalid file path '{jobRunTask.Settings.CreateBackup.FileName}'");
             }
 
             var filePath = rawFilePath.FormatFromObject(tokenValues);
@@ -91,12 +93,12 @@ public class CreateBackupTask : BaseTask
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.DatabaseType))
             {
-                throw new Exception($"Job Task does not have a database type selected");
+                throw new($"Job Task does not have a database type selected");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.CreateBackup.ConnectionString))
             {
-                throw new Exception($"Job Task does not have a connection string configured");
+                throw new($"Job Task does not have a connection string configured");
             }
 
             var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.CreateBackup.ConnectionString, jobRunTask.Settings.CreateBackup.ConnectionStringPassword, true);

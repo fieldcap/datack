@@ -20,13 +20,13 @@ public class DeleteS3Task : BaseTask
         _dataProtector = dataProtector;
     }
 
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
             if (jobRunTask.Settings.DeleteS3 == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             OnProgress(jobRunTask.JobRunTaskId, $"Starting delete S3 task");
@@ -35,17 +35,17 @@ public class DeleteS3Task : BaseTask
 
             if (String.IsNullOrWhiteSpace(keyPath))
             {
-                throw new Exception($"Key path cannot be null");
+                throw new($"Key path cannot be null");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.DeleteS3.Tag))
             {
-                throw new Exception($"Tag cannot be null");
+                throw new($"Tag cannot be null");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.DeleteS3.Secret))
             {
-                throw new Exception($"Secret cannot be null");
+                throw new($"Secret cannot be null");
             }
 
             var sw = new Stopwatch();
@@ -54,7 +54,9 @@ public class DeleteS3Task : BaseTask
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             keyPath = keyPath.FormatFromObject(tokenValues);
@@ -95,7 +97,7 @@ public class DeleteS3Task : BaseTask
                     throw new TaskCanceledException();
                 }
 
-                var listObjectsResponse = await s3Client.ListObjectsV2Async(new ListObjectsV2Request
+                var listObjectsResponse = await s3Client.ListObjectsV2Async(new()
                                                                             {
                                                                                 BucketName = jobRunTask.Settings.DeleteS3.Bucket,
                                                                                 ContinuationToken = nextToken,
@@ -119,7 +121,7 @@ public class DeleteS3Task : BaseTask
                         throw new TaskCanceledException();
                     }
 
-                    var s3Tags = await s3Client.GetObjectTaggingAsync(new GetObjectTaggingRequest
+                    var s3Tags = await s3Client.GetObjectTaggingAsync(new()
                     {
                         Key = s3Object.Key,
                         BucketName = s3Object.BucketName
@@ -134,7 +136,7 @@ public class DeleteS3Task : BaseTask
 
                         if (date < deleteDate)
                         {
-                            objectsToDelete.Add(new KeyVersion
+                            objectsToDelete.Add(new()
                             {
                                 Key = s3Object.Key
                             });   
@@ -146,7 +148,7 @@ public class DeleteS3Task : BaseTask
                 {
                     OnProgress(jobRunTask.JobRunTaskId, $"Deleting {objectsToDelete.Count} objects");
 
-                    var deleteResult = await s3Client.DeleteObjectsAsync(new DeleteObjectsRequest
+                    var deleteResult = await s3Client.DeleteObjectsAsync(new()
                                                                          {
                                                                              BucketName = jobRunTask.Settings.DeleteS3.Bucket,
                                                                              Objects = objectsToDelete

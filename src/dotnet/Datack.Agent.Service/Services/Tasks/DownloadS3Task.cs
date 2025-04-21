@@ -21,7 +21,7 @@ public class DownloadS3Task : BaseTask
         _dataProtector = dataProtector;
     }
 
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
@@ -30,23 +30,25 @@ public class DownloadS3Task : BaseTask
 
             if (previousTask == null)
             {
-                throw new Exception("No previous task found");
+                throw new("No previous task found");
             }
 
             if (jobRunTask.Settings.DownloadS3 == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.DownloadS3.Secret))
             {
-                throw new Exception("No S3 password set");
+                throw new("No S3 password set");
             }
 
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             var sourceKey = previousTask.ResultArtifact;
@@ -54,7 +56,7 @@ public class DownloadS3Task : BaseTask
 
             if (String.IsNullOrWhiteSpace(destinationFileName))
             {
-                throw new Exception($"Destination filename cannot be null");
+                throw new($"Destination filename cannot be null");
             }
 
             destinationFileName = destinationFileName.FormatFromObject(tokenValues);
@@ -89,7 +91,7 @@ public class DownloadS3Task : BaseTask
 
             if (!File.Exists(destinationFileName))
             {
-                throw new Exception($"Downloaded file '{destinationFileName}' not found");
+                throw new($"Downloaded file '{destinationFileName}' not found");
             }
 
             var fileSize = new FileInfo(destinationFileName).Length;

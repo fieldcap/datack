@@ -46,6 +46,8 @@ const JobTaskExtract: FC<Props> = (props) => {
           <br />
           &#123;ItemName&#125; The item name of the job task
           <br />
+          &#123;FileName&#125; The filename of the file to download without the path
+          <br />
           &#123;Started:yyyyMMddHHmm&#125; The date and time of the start date of the job task
           <br />
           Example:

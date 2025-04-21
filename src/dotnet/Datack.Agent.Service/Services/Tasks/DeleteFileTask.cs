@@ -9,23 +9,23 @@ namespace Datack.Agent.Services.Tasks;
 /// </summary>
 public class DeleteFileTask : BaseTask
 {
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
             if (previousTask == null)
             {
-                throw new Exception("No previous task found");
+                throw new("No previous task found");
             }
 
             if (jobRunTask.Settings.DeleteFile == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             if (jobRunTask.JobTask.Settings.DeleteFile == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             var sourceFileName = previousTask.ResultArtifact;
@@ -34,7 +34,7 @@ public class DeleteFileTask : BaseTask
 
             if (!jobRunTask.JobTask.Settings.DeleteFile.IgnoreIfFileDoesNotExist && !File.Exists(sourceFileName))
             {
-                throw new Exception($"Source file '{sourceFileName}' not found");
+                throw new($"Source file '{sourceFileName}' not found");
             }
 
             if (!File.Exists(sourceFileName))

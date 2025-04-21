@@ -81,12 +81,12 @@ public class Agents
     {
         if (String.IsNullOrWhiteSpace(agent.Name))
         {
-            throw new Exception("Name cannot be empty");
+            throw new("Name cannot be empty");
         }
 
         if (String.IsNullOrWhiteSpace(agent.Key))
         {
-            throw new Exception("Key cannot be empty");
+            throw new("Key cannot be empty");
         }
 
         var allAgents = await _agentRepository.GetAll(cancellationToken);
@@ -95,12 +95,12 @@ public class Agents
 
         if (sameNameAgents)
         {
-            throw new Exception($"An agent with this name already exists");
+            throw new($"An agent with this name already exists");
         }
 
         if (sameKeyAgents)
         {
-            throw new Exception($"An agent with this key already exists");
+            throw new($"An agent with this key already exists");
         }
 
         return await _agentRepository.Add(agent, cancellationToken);
@@ -110,12 +110,12 @@ public class Agents
     {
         if (String.IsNullOrWhiteSpace(agent.Name))
         {
-            throw new Exception("Name cannot be empty");
+            throw new("Name cannot be empty");
         }
 
         if (String.IsNullOrWhiteSpace(agent.Key))
         {
-            throw new Exception("Key cannot be empty");
+            throw new("Key cannot be empty");
         }
 
         var allAgents = await _agentRepository.GetAll(cancellationToken);
@@ -124,12 +124,12 @@ public class Agents
 
         if (sameNameAgents)
         {
-            throw new Exception($"An agent with this name already exists");
+            throw new($"An agent with this name already exists");
         }
 
         if (sameKeyAgents)
         {
-            throw new Exception($"An agent with this key already exists");
+            throw new($"An agent with this key already exists");
         }
 
         await _agentRepository.Update(agent, cancellationToken);
@@ -143,7 +143,7 @@ public class Agents
         {
             var errors = jobTasks.Select(m => $"{m.Name} on job {m.Job.Name}");
 
-            throw new Exception($"This agent is still attached to the following tasks: {Environment.NewLine}{errors}");
+            throw new($"This agent is still attached to the following tasks: {Environment.NewLine}{errors}");
         }
 
         await _agentRepository.Delete(agentId, cancellationToken);
@@ -155,7 +155,7 @@ public class Agents
 
         if (agent == null)
         {
-            throw new Exception($"Agent with ID {agentId} not found");
+            throw new($"Agent with ID {agentId} not found");
         }
 
         var result = await _remoteService.GetLogs(agent, cancellationToken);
@@ -169,7 +169,7 @@ public class Agents
 
         if (agent == null)
         {
-            throw new Exception($"Agent with ID {agentId} not found");
+            throw new($"Agent with ID {agentId} not found");
         }
 
         var jobRunTasks = await _jobRunTaskRepository.GetByAgentId(agentId, cancellationToken);
@@ -178,14 +178,14 @@ public class Agents
 
         if (jobRunsRunning)
         {
-            throw new Exception($"Cannot upgrade agent, some jobs are running");
+            throw new($"Cannot upgrade agent, some jobs are running");
         }
 
         var result = await _remoteService.UpgradeAgent(agent, cancellationToken);
 
         if (result != "Success")
         {
-            throw new Exception("Failed to start upgrade");
+            throw new("Failed to start upgrade");
         }
     }
 }

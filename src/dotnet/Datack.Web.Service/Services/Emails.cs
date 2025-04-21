@@ -52,7 +52,7 @@ public class Emails
 
             if (String.IsNullOrWhiteSpace(smtpHost))
             {
-                throw new Exception($"No e-mail host defined");
+                throw new($"No e-mail host defined");
             }
 
             if (smtpPort == 0)
@@ -85,7 +85,7 @@ public class Emails
         {
             if (ex.InnerException != null)
             {
-                throw new Exception($"{ex.Message}{Environment.NewLine}{ex.InnerException.Message}");
+                throw new($"{ex.Message}{Environment.NewLine}{ex.InnerException.Message}");
             }
 
             throw;

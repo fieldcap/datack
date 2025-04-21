@@ -14,6 +14,7 @@ public class AgentHostedService : IHostedService
 {
     private readonly AppSettings _appSettings;
     private readonly DatabaseAdapter _databaseAdapter;
+    private readonly StorageAdapter _storageAdapter;
     private readonly JobRunner _jobRunner;
     private readonly DataProtector _dataProtector;
     private readonly ILogger _logger;
@@ -26,6 +27,7 @@ public class AgentHostedService : IHostedService
     public AgentHostedService(ILogger<AgentHostedService> logger,
                               AppSettings appSettings,
                               DatabaseAdapter databaseAdapter,
+                              StorageAdapter storageAdapter,
                               RpcService rpcService,
                               JobRunner jobRunner,
                               DataProtector dataProtector)
@@ -33,6 +35,7 @@ public class AgentHostedService : IHostedService
         _logger = logger;
         _appSettings = appSettings;
         _databaseAdapter = databaseAdapter;
+        _storageAdapter = storageAdapter;
         _rpcService = rpcService;
         _jobRunner = jobRunner;
         _dataProtector = dataProtector;
@@ -41,6 +44,7 @@ public class AgentHostedService : IHostedService
 
         _rpcService.Encrypt = Encrypt;
         _rpcService.GetDatabaseList = GetDatabaseList;
+        _rpcService.GetFileList = GetFileList;
         _rpcService.GetLogs = GetLogs;
         _rpcService.GetRunningTasks = GetRunningTasks;
         _rpcService.Run = Run;
@@ -100,6 +104,13 @@ public class AgentHostedService : IHostedService
         var fullConnectionString = _databaseAdapter.CreateConnectionString(connectionString, password, decryptPassword);
 
         return await _databaseAdapter.GetDatabaseList(databaseType, fullConnectionString, CancellationToken.None);
+    }
+
+    private async Task<IList<String>> GetFileList(String storageType, String connectionString, String containerName, String rootPath, String? path)
+    {
+        _logger.LogTrace("GetFileList");
+
+        return await _storageAdapter.GetFileList(storageType, connectionString, containerName, rootPath, path, CancellationToken.None);
     }
 
     private async Task<String> GetLogs()
@@ -166,7 +177,7 @@ public class AgentHostedService : IHostedService
         return Task.FromResult(result);
     }
 
-    private Task<String> Run(JobRunTask jobRunTask, JobRunTask previousTask)
+    private Task<String> Run(JobRunTask jobRunTask, JobRunTask? previousTask)
     {
         _logger.LogDebug("Run {jobRunTaskId}", jobRunTask.JobRunTaskId);
 
@@ -207,21 +218,21 @@ public class AgentHostedService : IHostedService
 
         if (entryAssembly == null)
         {
-            throw new Exception($"Cannot find EntryAssembly");
+            throw new($"Cannot find EntryAssembly");
         }
 
         var root = Path.GetDirectoryName(entryAssembly.Location);
 
         if (root == null)
         {
-            throw new Exception($"Cannot create root path from {entryAssembly.Location}");
+            throw new($"Cannot create root path from {entryAssembly.Location}");
         }
 
         var updatePath = Path.Combine(root, "Update.ps1");
 
         if (!File.Exists(updatePath))
         {
-            throw new Exception($"Cannot find update file at {updatePath}");
+            throw new($"Cannot find update file at {updatePath}");
         }
 
         _logger.LogDebug("Starting upgrade {updatePath}", updatePath);

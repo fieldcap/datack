@@ -19,59 +19,65 @@ public class RestoreBackupTask : BaseTask
         _dataProtector = dataProtector;
     }
         
-    public override async Task Run(JobRunTask jobRunTask, JobRunTask previousTask, CancellationToken cancellationToken)
+    public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
         {
+            if (previousTask == null)
+            {
+                throw new("No previous task found");
+            }
+
             if (jobRunTask.Settings.RestoreBackup == null)
             {
-                throw new Exception("No settings set");
+                throw new("No settings set");
             }
 
             var sw = new Stopwatch();
             sw.Start();
 
-            OnProgress(jobRunTask.JobRunTaskId, $"Starting backup task for database {jobRunTask.ItemName}");
+            OnProgress(jobRunTask.JobRunTaskId, $"Starting restore task");
 
             var sourceFileName = previousTask.ResultArtifact;
 
             if (String.IsNullOrWhiteSpace(sourceFileName))
             {
-                throw new Exception($"No filename given");
+                throw new($"No filename given");
             }
 
             if (!File.Exists(sourceFileName))
             {
-                throw new Exception($"File {sourceFileName} does not exist");
+                throw new($"File {sourceFileName} does not exist");
             }
 
             var tokenValues = new
             {
                 jobRunTask.ItemName,
-                jobRunTask.JobRun.Started
+                jobRunTask.JobRun.Started,
+                FileName = Path.GetFileName(jobRunTask.ItemName),
+                FileNameWithoutExtension = Path.GetFileNameWithoutExtension(jobRunTask.ItemName)
             };
 
             var rawDatabaseName = Path.GetFileName(jobRunTask.Settings.RestoreBackup.DatabaseName);
 
             if (String.IsNullOrWhiteSpace(rawDatabaseName))
             {
-                throw new Exception($"Invalid database name '{jobRunTask.Settings.RestoreBackup.DatabaseName}'");
+                throw new($"Invalid database name '{jobRunTask.Settings.RestoreBackup.DatabaseName}'");
             }
 
             var databaseName = rawDatabaseName.FormatFromObject(tokenValues);
+            var databaseLocation = jobRunTask.Settings.RestoreBackup.DatabaseLocation?.FormatFromObject(tokenValues);
             
-            var resultArtifact = databaseName;
-
             OnProgress(jobRunTask.JobRunTaskId, $"Restoring backup of database {jobRunTask.ItemName} to {databaseName}");
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.RestoreBackup.DatabaseType))
             {
-                throw new Exception($"Job Task does not have a database type selected");
+                throw new($"Job Task does not have a database type selected");
             }
 
             if (String.IsNullOrWhiteSpace(jobRunTask.Settings.RestoreBackup.ConnectionString))
             {
-                throw new Exception($"Job Task does not have a connection string configured");
+                throw new($"Job Task does not have a connection string configured");
             }
 
             var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.RestoreBackup.ConnectionString, jobRunTask.Settings.RestoreBackup.ConnectionStringPassword, true);
@@ -85,6 +91,7 @@ public class RestoreBackupTask : BaseTask
             await _databaseAdapter.RestoreBackup(jobRunTask.Settings.RestoreBackup.DatabaseType,
                                                 connectionString,
                                                 databaseName,
+                                                databaseLocation,
                                                 password,
                                                 jobRunTask.Settings.RestoreBackup.Options,
                                                 sourceFileName,
@@ -98,13 +105,13 @@ public class RestoreBackupTask : BaseTask
 
             var fileSize = new FileInfo(sourceFileName).Length;
                 
-            var message = $"Completed backup of database of {jobRunTask.ItemName} ({ByteSize.FromBytes(fileSize):0.00} in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
+            var message = $"Completed restore of database of {databaseName} ({ByteSize.FromBytes(fileSize):0.00} in {sw.Elapsed:g} ({ByteSize.FromBytes(fileSize / sw.Elapsed.TotalSeconds):0.00}/s)";
 
-            OnComplete(jobRunTask.JobRunTaskId, message, resultArtifact, false);
+            OnComplete(jobRunTask.JobRunTaskId, message, databaseName, false);
         }
         catch (Exception ex)
         {
-            var message = $"Creation of backup of database {jobRunTask.ItemName} resulted in an error: {ex.Message}";
+            var message = $"Creation of restoring of database resulted in an error: {ex.Message}";
 
             OnComplete(jobRunTask.JobRunTaskId, message, null, true);
         }
