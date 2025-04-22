@@ -1,6 +1,6 @@
 {
   "name": "datack",
-  "version": "1.0.20",
+  "version": "1.0.21",
   "description": "Simple database backup tool.",
   "main": "index.js",
   "dependencies": {
