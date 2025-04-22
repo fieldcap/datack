@@ -246,7 +246,7 @@ const JobTaskCreateBackup: FC<Props> = (props) => {
       return 'Included because database matches "Include Regex"';
     }
     if (database.isBackupDefaultExcluded) {
-      return 'Excluded because database does not match any rules"';
+      return 'Excluded because database does not match any rules';
     }
     return 'Included because database does not match any rules';
   };

@@ -174,6 +174,52 @@ public class JobTasksController : Controller
 
         return Ok(result);
     }
+
+    [HttpPost]
+    [Route("TestFilesRegex")]
+    public async Task<ActionResult> TestFilesRegex([FromBody] JobTasksTestFilesRegexRequest request, CancellationToken cancellationToken)
+    {
+        var agent = await _agents.GetById(request.AgentId, cancellationToken);
+
+        if (agent == null)
+        {
+            throw new($"Agent with ID {request.AgentId} not found");
+        }
+
+        if (String.IsNullOrWhiteSpace(request.ConnectionString))
+        {
+            return Ok(new List<DatabaseTestResult>());
+        }
+
+        var connectionString = request.ConnectionString;
+        if (connectionString == "******")
+        {
+            var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
+
+            if (jobTask == null)
+            {
+                throw new($"Cannot find job task with ID {request.JobTaskId}");
+            }
+
+            connectionString = jobTask.Settings.DownloadAzure?.ConnectionString;
+        }
+
+        if (connectionString == null)
+        {
+            throw new($"Cannot find connection string for job task with ID {request.JobTaskId}");
+        }
+
+        var files = await _remoteService.GetFileList(agent, "azure", connectionString, request.ContainerName, request.Blob, null, cancellationToken);
+
+        var result = FileHelper.FilterFiles(files,
+                                            request.RestoreDefaultExclude,
+                                            request.RestoreIncludeRegex,
+                                            request.RestoreExcludeRegex,
+                                            request.RestoreIncludeManual,
+                                            request.RestoreExcludeManual);
+
+        return Ok(result);
+    }
 }
 
 public class AgentsTestDatabaseConnectionRequest
@@ -199,6 +245,20 @@ public class JobTasksTestDatabaseRegexRequest
     public required String ConnectionString { get; set; }
     public required String ConnectionStringPassword { get; set; }
     public required String BackupType { get; set; }
+}
+
+public class JobTasksTestFilesRegexRequest
+{
+    public Boolean RestoreDefaultExclude { get; set; }
+    public required String RestoreIncludeRegex { get; set; }
+    public required String RestoreExcludeRegex { get; set; }
+    public required String RestoreIncludeManual { get; set; }
+    public required String RestoreExcludeManual { get; set; }
+    public Guid AgentId { get; set; }
+    public Guid JobTaskId { get; set; }
+    public required String ContainerName { get; set; }
+    public required String Blob { get; set; }
+    public required String ConnectionString { get; set; }
 }
 
 public class JobTaskReOrderRequest

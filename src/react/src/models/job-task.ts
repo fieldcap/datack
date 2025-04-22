@@ -84,6 +84,12 @@ export type JobTaskDownloadAzureSettings = {
   fileName: string;
   containerName: string;
   connectionString: string;
+
+  restoreDefaultExclude: boolean;
+  restoreIncludeRegex: string;
+  restoreExcludeRegex: string;
+  restoreIncludeManual: string;
+  restoreExcludeManual: string;
 };
 
 export type JobTaskExtractSettings = {

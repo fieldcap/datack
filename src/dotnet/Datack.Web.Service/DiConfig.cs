@@ -24,6 +24,7 @@ public class DiConfig
         services.AddScoped<Settings>();
 
         services.AddScoped<CreateBackupTask>();
+        services.AddScoped<DownloadAzureFileTask>();
             
         services.AddHostedService<SchedulerHostedService>();
         services.AddHostedService<StartupHostedService>();

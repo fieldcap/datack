@@ -162,6 +162,21 @@ public class JobTaskDownloadAzureSettings
     [JsonPropertyName("connectionString")]
     [Protected]
     public String? ConnectionString { get; set; }
+
+    [JsonPropertyName("restoreDefaultExclude")]
+    public Boolean RestoreDefaultExclude { get; set; }
+
+    [JsonPropertyName("restoreIncludeRegex")]
+    public String? RestoreIncludeRegex { get; set; }
+
+    [JsonPropertyName("restoreExcludeRegex")]
+    public String? RestoreExcludeRegex { get; set; }
+
+    [JsonPropertyName("restoreIncludeManual")]
+    public String? RestoreIncludeManual { get; set; }
+
+    [JsonPropertyName("restorepExcludeManual")]
+    public String? RestoreExcludeManual { get; set; }
 }
 
 public class JobTaskExtractSettings

@@ -1,4 +1,6 @@
-﻿using Datack.Agent.Services.DataConnections;
+﻿using System.Globalization;
+using Datack.Agent.Services.DataConnections;
+using Datack.Common.Models.Internal;
 
 namespace Datack.Agent.Services;
 
@@ -13,9 +15,30 @@ public class StorageAdapter
         _awsS3Connection = awsS3Connection;
     }
 
-    public async Task<IList<String>> GetFileList(String storageType, String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
+    public async Task<IList<BackupFile>> GetFileList(String storageType, String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
     {
-        return await GetConnection(storageType).GetFileList(connectionString, containerName, rootPath, path, cancellationToken);
+        var results = new List<BackupFile>();
+
+        var files = await GetConnection(storageType).GetFileList(connectionString, containerName, rootPath, path, cancellationToken);
+
+        foreach (var file in files)
+        {
+            var fileName = file.Split('/').Last();
+
+            var parts = fileName.Split("-");
+
+            var backupFile = new BackupFile
+            {
+                FileName = file,
+                DatabaseName = parts.Length >= 1 ? parts[0] : null,
+                DateTime = parts.Length >= 2 ? DateTimeOffset.ParseExact(parts[1], "yyyyMMddHHmm", CultureInfo.InvariantCulture) : null,
+                BackupType = parts.Length >= 3 ? parts[2] : null
+            };
+
+            results.Add(backupFile);
+        }
+
+        return results;
     }
 
     private IStorageConnection GetConnection(String? storageType)

@@ -106,7 +106,7 @@ public class AgentHostedService : IHostedService
         return await _databaseAdapter.GetDatabaseList(databaseType, fullConnectionString, CancellationToken.None);
     }
 
-    private async Task<IList<String>> GetFileList(String storageType, String connectionString, String containerName, String rootPath, String? path)
+    private async Task<IList<BackupFile>> GetFileList(String storageType, String connectionString, String containerName, String rootPath, String? path)
     {
         _logger.LogTrace("GetFileList");
 

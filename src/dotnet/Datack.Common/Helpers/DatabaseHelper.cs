@@ -3,75 +3,56 @@ using Datack.Common.Models.Internal;
 
 namespace Datack.Common.Helpers;
 
-public static class DatabaseHelper
+public static class FileHelper
 {
-    private static readonly String[] SystemDatabases =
+    public static List<DatabaseTestResult> FilterFiles(IList<BackupFile>? files,
+                                                       Boolean restoreDefaultExclude,
+                                                       String? restoreIncludeRegex,
+                                                       String? restoreExcludeRegex,
+                                                       String? restoreIncludeManual,
+                                                       String? restoreExcludeManual)
     {
-        "master", "tempdb", "model", "msdb"
-    };
-
-    public static List<DatabaseTestResult> FilterDatabases(IList<Database>? databases,
-                                                           Boolean backupDefaultExclude,
-                                                           Boolean backupExcludeSystemDatabases,
-                                                           String? backupIncludeRegex,
-                                                           String? backupExcludeRegex,
-                                                           String? backupIncludeManual,
-                                                           String? backupExcludeManual,
-                                                           String? backupType)
-    {
-        databases ??= new List<Database>();
+        files ??= new List<BackupFile>();
 
         var resultList = new List<DatabaseTestResult>();
 
         var excludeManualList = new List<String>();
         var includeManualList = new List<String>();
 
-        if (!String.IsNullOrWhiteSpace(backupIncludeManual))
+        if (!String.IsNullOrWhiteSpace(restoreIncludeManual))
         {
-            includeManualList = backupIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            includeManualList = restoreIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         }
 
-        if (!String.IsNullOrWhiteSpace(backupExcludeManual))
+        if (!String.IsNullOrWhiteSpace(restoreExcludeManual))
         {
-            excludeManualList = backupExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            excludeManualList = restoreExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
         }
 
-        foreach (var database in databases)
+        foreach (var file in files)
         {
             var result = new DatabaseTestResult
             {
-                DatabaseName = database.DatabaseName
+                DatabaseName = file.FileName
             };
 
-            if (!database.HasAccess)
-            {
-                result.HasNoAccess = true;
-            }
-            else if (!database.HasFullbackup && backupType != "Full")
-            {
-                result.HasNoFullBackup = true;
-            }
-            else if (includeManualList.Contains(database.DatabaseName))
+            if (includeManualList.Contains(file.FileName))
             {
                 result.IsManualIncluded = true;
             }
-            else if (excludeManualList.Contains(database.DatabaseName))
+            else if (excludeManualList.Contains(file.FileName))
             {
                 result.IsManualExcluded = true;
             }
-            else if (backupExcludeSystemDatabases && SystemDatabases.Contains(database.DatabaseName))
-            {
-                result.IsSystemDatabase = true;
-            }
-            else if (!String.IsNullOrWhiteSpace(backupIncludeRegex) && Regex.IsMatch(database.DatabaseName, backupIncludeRegex))
+            else if (!String.IsNullOrWhiteSpace(restoreIncludeRegex) && Regex.IsMatch(file.FileName, restoreIncludeRegex))
             {
                 result.IsRegexIncluded = true;
             }
-            else if (!String.IsNullOrWhiteSpace(backupExcludeRegex) && Regex.IsMatch(database.DatabaseName, backupExcludeRegex))
+            else if (!String.IsNullOrWhiteSpace(restoreExcludeRegex) && Regex.IsMatch(file.FileName, restoreExcludeRegex))
             {
                 result.IsRegexExcluded = true;
             }
-            else if (backupDefaultExclude)
+            else if (restoreDefaultExclude)
             {
                 result.IsBackupDefaultExcluded = true;
             }

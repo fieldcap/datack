@@ -245,6 +245,7 @@ const JobTaskEditor: FC = () => {
           <JobTaskDownloadAzure
             settings={settings.downloadAzure}
             agentId={agentId}
+            jobTaskId={jobTask!.jobTaskId}
             onSettingsChanged={(newSettings) => {
               setSettings({
                 downloadAzure: newSettings,

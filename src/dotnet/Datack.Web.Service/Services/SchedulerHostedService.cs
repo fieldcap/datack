@@ -136,6 +136,13 @@ public class SchedulerHostedService : IHostedService
                         await jobRunsService.UpdateComplete(runningJob.JobRunId, cancellationToken);
                     }
 
+                    if (pendingTasks.Count == 0 && allTasks.Count == 0)
+                    {
+                        _logger.LogWarning("No tasks found for job {runningJob.JobRunId}, marking job run complete", runningJob.JobRunId);
+
+                        await jobRunsService.UpdateComplete(runningJob.JobRunId, cancellationToken);
+                    }
+
                     foreach (var jobRunTask in runningTasks)
                     {
                         var timeout = jobRunTask.JobTask.Timeout ?? 3600;

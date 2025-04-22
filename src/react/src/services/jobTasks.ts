@@ -132,6 +132,39 @@ export namespace JobTasks {
     );
     return result.data;
   };
+
+  export const testFilesRegex = async (
+    restoreDefaultExclude: boolean,
+    restoreIncludeRegex: string,
+    restoreExcludeRegex: string,
+    restoreIncludeManual: string,
+    restoreExcludeManual: string,
+    agentId: string,
+    jobTaskId: string,
+    containerName: string,
+    blob: string,
+    connectionString: string,
+    cancelToken: CancelTokenSource
+  ): Promise<DatabaseListTestResult[]> => {
+    const config = { cancelToken: cancelToken.token };
+    const result = await axios.post<DatabaseListTestResult[]>(
+      `/api/JobTasks/TestFilesRegex/`,
+      {
+        restoreDefaultExclude: restoreDefaultExclude ?? false,
+        restoreIncludeRegex: restoreIncludeRegex ?? '',
+        restoreExcludeRegex: restoreExcludeRegex ?? '',
+        restoreIncludeManual: restoreIncludeManual ?? '',
+        restoreExcludeManual: restoreExcludeManual ?? '',
+        agentId,
+        jobTaskId,
+        containerName,
+        blob,
+        connectionString,
+      },
+      config
+    );
+    return result.data;
+  };
 }
 
 export default JobTasks;

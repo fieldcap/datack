@@ -1,5 +1,6 @@
 import axios, { CancelTokenSource } from 'axios';
 import { Job } from '../models/job';
+import { BackupFile } from '../models/backup-file';
 
 export namespace Jobs {
   export const getList = async (cancelToken: CancelTokenSource): Promise<Job[]> => {
@@ -71,9 +72,9 @@ export namespace Jobs {
     jobId: string,
     path: string | null,
     cancelToken: CancelTokenSource
-  ): Promise<string[]> => {
+  ): Promise<BackupFile[]> => {
     const config = { cancelToken: cancelToken.token };
-    const result = await axios.post<string[]>(
+    const result = await axios.post<BackupFile[]>(
       `/api/Jobs/GetAzureFileList/`,
       {
         jobId,

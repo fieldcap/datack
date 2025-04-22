@@ -33,11 +33,11 @@ public class RemoteService
         return await GetConnection(agent).InvokeAsync<IList<Database>>("GetDatabaseList", databaseType, connectionString, password, decryptPassword, cancellationToken);
     }
 
-    public async Task<IList<String>> GetFileList(Agent agent, String storageType, String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
+    public async Task<IList<BackupFile>> GetFileList(Agent agent, String storageType, String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
     {
         _logger.LogDebug("GetFileList {name} {agentId}", agent.Name, agent.AgentId);
 
-        return await GetConnection(agent).InvokeAsync<IList<String>>("GetFileList", storageType, connectionString, containerName, rootPath, path, cancellationToken);
+        return await GetConnection(agent).InvokeAsync<IList<BackupFile>>("GetFileList", storageType, connectionString, containerName, rootPath, path, cancellationToken);
     }
         
     public async Task<String> Run(Agent agent, JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)

@@ -27,7 +27,8 @@ public class JobRunner
                      JobRuns jobRuns,
                      JobTasks jobTasks,
                      JobRunTasks jobRunTasks,
-                     CreateBackupTask createBackupTask)
+                     CreateBackupTask createBackupTask,
+                     DownloadAzureFileTask downloadAzureFileTask)
     {
         _logger = logger;
         _remoteService = remoteService;
@@ -42,6 +43,9 @@ public class JobRunner
         {
             {
                 "createBackup", createBackupTask
+            },
+            {
+                "downloadAzure", downloadAzureFileTask
             }
         };
     }

@@ -15,7 +15,7 @@ public class RpcService
 #nullable disable
     public Func<String, Task<String>> Encrypt;
     public Func<String, String, String, Boolean, Task<IList<Database>>> GetDatabaseList;
-    public Func<String, String, String, String, String, Task<IList<String>>> GetFileList;
+    public Func<String, String, String, String, String, Task<IList<BackupFile>>> GetFileList;
     public Func<Task<String>> GetLogs;
     public Func<Task<List<Guid>>> GetRunningTasks;
     public Func<JobRunTask, JobRunTask, Task<String>> Run;
@@ -30,7 +30,7 @@ public class RpcService
     private readonly ILogger<RpcService> _logger;
     private readonly AppSettings _appSettings;
 
-    public HubConnection? _connection;
+    public HubConnection? Connection;
 
     private readonly String _version;
 
@@ -57,7 +57,7 @@ public class RpcService
 
         _logger.LogDebug("Connecting to {url}", url);
 
-        _connection = new HubConnectionBuilder()
+        Connection = new HubConnectionBuilder()
                       .WithUrl(url)
                       .ConfigureLogging(logging => 
                       {
@@ -68,10 +68,10 @@ public class RpcService
                       })
                       .Build();
 
-        _connection.ServerTimeout = TimeSpan.FromMinutes(30);
-        _connection.HandshakeTimeout = TimeSpan.FromMinutes(2);
+        Connection.ServerTimeout = TimeSpan.FromMinutes(30);
+        Connection.HandshakeTimeout = TimeSpan.FromMinutes(2);
 
-        _connection.Closed += exception =>
+        Connection.Closed += exception =>
         {
             if (exception == null)
             {
@@ -87,15 +87,15 @@ public class RpcService
             return Task.CompletedTask;
         };
 
-        _connection.On("Encrypt",Encrypt);
-        _connection.On("GetDatabaseList", GetDatabaseList);
-        _connection.On("GetFileList", GetFileList);
-        _connection.On("GetLogs", GetLogs);
-        _connection.On("GetRunningTasks", GetRunningTasks);
-        _connection.On("Run", Run);
-        _connection.On("Stop", Stop);
-        _connection.On("TestDatabaseConnection", TestDatabaseConnection);
-        _connection.On("UpgradeAgent", UpgradeAgent);
+        Connection.On("Encrypt",Encrypt);
+        Connection.On("GetDatabaseList", GetDatabaseList);
+        Connection.On("GetFileList", GetFileList);
+        Connection.On("GetLogs", GetLogs);
+        Connection.On("GetRunningTasks", GetRunningTasks);
+        Connection.On("Run", Run);
+        Connection.On("Stop", Stop);
+        Connection.On("TestDatabaseConnection", TestDatabaseConnection);
+        Connection.On("UpgradeAgent", UpgradeAgent);
         
         _sendTimer.Elapsed += async (_, _) => await TimerTick();
         _sendTimer.Start();
@@ -109,9 +109,9 @@ public class RpcService
     {
         _logger.LogDebug("Stopping");
 
-        if (_connection != null)
+        if (Connection != null)
         {
-            await _connection.StopAsync(cancellationToken);
+            await Connection.StopAsync(cancellationToken);
         }
     }
 
@@ -119,7 +119,7 @@ public class RpcService
     {
         _logger.LogDebug("Connecting...");
 
-        if (_connection == null)
+        if (Connection == null)
         {
             throw new("Cannot connect, connection is not initialized yet");
         }
@@ -132,7 +132,7 @@ public class RpcService
 
                 try
                 {
-                    await _connection.StartAsync(cancellationToken);
+                    await Connection.StartAsync(cancellationToken);
 
                     break;
                 }
@@ -155,7 +155,7 @@ public class RpcService
                 
             _logger.LogDebug("Connect {token} v{_version}", _appSettings.Token, _version);
 
-            await _connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
+            await Connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
         }, cancellationToken);
     }
     
@@ -171,7 +171,7 @@ public class RpcService
 
         try
         {
-            if (_connection?.State != HubConnectionState.Connected)
+            if (Connection?.State != HubConnectionState.Connected)
             {
                 return;
             }
@@ -211,13 +211,13 @@ public class RpcService
                 foreach (var progressEventsChunk in progressEventsChunks)
                 {
                     var innerCancellationToken = new CancellationTokenSource(500).Token;
-                    await _connection.SendAsync("UpdateProgress", progressEventsChunk.Select(m => m.Value).ToList(), innerCancellationToken);
+                    await Connection.SendAsync("UpdateProgress", progressEventsChunk.Select(m => m.Value).ToList(), innerCancellationToken);
                 }
 
                 foreach (var completeEventsChunk in completeEventsChunks)
                 {
                     var innerCancellationToken = new CancellationTokenSource(500).Token;
-                    await _connection.SendAsync("UpdateComplete", completeEventsChunk.Select(m => m.Value).ToList(), innerCancellationToken);
+                    await Connection.SendAsync("UpdateComplete", completeEventsChunk.Select(m => m.Value).ToList(), innerCancellationToken);
                 }
 
                 await SendLock.WaitAsync();
