@@ -79,7 +79,6 @@ jobs:
           cd src/dotnet/Datack.Web.Web
           dotnet build Datack.Web.Web.csproj
           dotnet publish Datack.Web.Web.csproj -c Release -o ..\..\..\out\server
-          Compress-Archive -Path server -DestinationPath ../Datack.Server.zip -Force
 
       - name: Build .NET Web
         shell: pwsh
@@ -87,7 +86,13 @@ jobs:
           cd ..\Datack.Agent.Service
           dotnet build Datack.Agent.csproj
           dotnet publish Datack.Agent.csproj -c Release -o ..\..\..\out\agent
-          Compress-Archive -Path agent -DestinationPath ../Datack.Agent.zip -Force          
+
+      - name: Zip outputs
+        shell: pwsh
+        run: |
+          cd out
+          Compress-Archive -Path server -DestinationPath ../Datack.Server.zip -Force
+          Compress-Archive -Path agent -DestinationPath ../Datack.Agent.zip -Force
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
