@@ -1,0 +1,101 @@
+name: Build and upload
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: write
+
+jobs:
+  deploy:
+    name: Build
+    runs-on: ubuntu-large
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v1
+        with:
+          nuget-version: "latest"
+          
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Navigate to Workspace
+        run: cd $GITHUB_WORKSPACE
+
+      - name: Get version from package.json
+        id: get_version
+        shell: pwsh
+        run: |
+          $version = (Get-Content "package.json" | ConvertFrom-Json).version
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Update .csproj versions and navbar version
+        shell: pwsh
+        run: |
+          $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding $False
+          $version = "${{ steps.get_version.outputs.version }}"
+
+          $csProjServer = "$pwd\src\dotnet\Datack.Web.Web\Datack.Web.Web.csproj"
+          $csProjAgent = "$pwd\src\dotnet\Datack.Agent.Service\Datack.Agent.csproj"
+          $navbar = "$pwd\src\react\src\pages\settings\SettingsOverview.tsx"
+
+          $newCsProjServer = (Get-Content $csProjServer) -replace '<Version>.*?<\/Version>', "<Version>$version</Version>"
+          [System.IO.File]::WriteAllLines($csProjServer, $newCsProjServer, $utf8NoBomEncoding)
+
+          $newCsProjAgent = (Get-Content $csProjAgent) -replace '<Version>.*?<\/Version>', "<Version>$version</Version>"
+          [System.IO.File]::WriteAllLines($csProjAgent, $newCsProjAgent, $utf8NoBomEncoding)
+
+          $newNavbar = (Get-Content $navbar) -replace '<span id="version">.*?<\/span>', "<span id=""version"">$version</span>"
+          [System.IO.File]::WriteAllLines($navbar, $newNavbar, $utf8NoBomEncoding)
+
+      - name: Build React app
+        shell: pwsh
+        run: |
+          cd src/react
+          npm ci
+          npm run build
+
+      - name: Build .NET Agent services
+        shell: pwsh
+        run: |
+          cd src/dotnet/Datack.Web.Web
+          dotnet build Datack.Web.Web.csproj
+          dotnet publish Datack.Web.Web.csproj -c Release -o ..\..\..\out\server
+          Compress-Archive -Path server -DestinationPath ../Datack.Server.zip -Force
+
+      - name: Build .NET Web
+        shell: pwsh
+        run: |
+          cd ..\Datack.Agent.Service
+          dotnet build Datack.Agent.csproj
+          dotnet publish Datack.Agent.csproj -c Release -o ..\..\..\out\agent
+          Compress-Archive -Path agent -DestinationPath ../Datack.Agent.zip -Force          
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ steps.get_version.outputs.version }}
+          files: |
+            Datack.Server.zip
+            Datack.Agent.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
