@@ -65,7 +65,12 @@ try
         Debug.Print(msg);
         Debugger.Break();
         Console.WriteLine(msg);
-        File.WriteAllText(@"C:\Temp\Datack.txt", msg);
+
+        if (!Directory.Exists(@"C:\Temp\Datack"))
+        {
+            Directory.CreateDirectory(@"C:\Temp\Datack");
+        }
+        File.WriteAllText($@"C:\Temp\Datack\{Guid.NewGuid()}.txt", msg);
     });
 
     Log.Information($"Starting host version {VersionHelper.GetVersion()}");
