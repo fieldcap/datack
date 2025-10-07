@@ -99,15 +99,17 @@ public class DeleteS3Task(DataProtector dataProtector) : BaseTask
                                                                             },
                                                                             cancellationToken);
 
-                OnProgress(jobRunTask.JobRunTaskId, $"Listing {progressCount} - {progressCount + listObjectsResponse.S3Objects.Count}");
+                var objects = listObjectsResponse?.S3Objects ?? [];
 
-                progressCount += listObjectsResponse.S3Objects.Count;
+                OnProgress(jobRunTask.JobRunTaskId, $"Listing {progressCount} - {progressCount + objects.Count}");
 
-                nextToken = listObjectsResponse.NextContinuationToken;
+                progressCount += objects.Count;
+
+                nextToken = listObjectsResponse?.NextContinuationToken;
 
                 var objectsToDelete = new List<KeyVersion>();
                     
-                foreach (var s3Object in listObjectsResponse.S3Objects)
+                foreach (var s3Object in objects)
                 {
                     if (cancellationToken.IsCancellationRequested)
                     {
@@ -120,8 +122,8 @@ public class DeleteS3Task(DataProtector dataProtector) : BaseTask
                         BucketName = s3Object.BucketName
                     }, cancellationToken);
 
-                    var jobDateTag = s3Tags.Tagging.FirstOrDefault(m => m.Key == "Datack:JobDate");
-                    var tagTag = s3Tags.Tagging.FirstOrDefault(m => m.Key == "Datack:Tag");
+                    var jobDateTag = s3Tags.Tagging?.FirstOrDefault(m => m.Key == "Datack:JobDate");
+                    var tagTag = s3Tags.Tagging?.FirstOrDefault(m => m.Key == "Datack:Tag");
 
                     if (jobDateTag != null && tagTag?.Value == jobRunTask.Settings.DeleteS3.Tag)
                     {
@@ -148,7 +150,7 @@ public class DeleteS3Task(DataProtector dataProtector) : BaseTask
                                                                          },
                                                                          cancellationToken);
 
-                    if (deleteResult.DeleteErrors != null)
+                    if (deleteResult?.DeleteErrors != null)
                     {
                         errorCount += deleteResult.DeleteErrors.Count;
                         totalCount += deleteResult.DeletedObjects.Count;
