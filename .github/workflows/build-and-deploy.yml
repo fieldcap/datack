@@ -16,7 +16,7 @@ permissions:
 jobs:
   deploy:
     name: Build
-    runs-on: ubuntu-large
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
