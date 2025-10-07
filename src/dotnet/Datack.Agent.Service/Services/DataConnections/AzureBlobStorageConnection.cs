@@ -2,18 +2,11 @@
 
 namespace Datack.Agent.Services.DataConnections;
 
-public class AzureBlobStorageConnection : IStorageConnection
+public class AzureBlobStorageConnection(DataProtector dataProtector) : IStorageConnection
 {
-    private readonly DataProtector _dataProtector;
-
-    public AzureBlobStorageConnection(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public async Task<IList<String>> GetFileList(String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
     {
-        connectionString = _dataProtector.Decrypt(connectionString);
+        connectionString = dataProtector.Decrypt(connectionString);
 
         var blobServiceClient = new BlobServiceClient(connectionString);
 

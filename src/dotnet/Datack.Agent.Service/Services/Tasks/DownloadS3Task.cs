@@ -12,15 +12,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task downloads a file from an AWS s3 bucket.
 /// </summary>
-public class DownloadS3Task : BaseTask
+public class DownloadS3Task(DataProtector dataProtector) : BaseTask
 {
-    private readonly DataProtector _dataProtector;
-
-    public DownloadS3Task(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -65,7 +58,7 @@ public class DownloadS3Task : BaseTask
             
             var region = RegionEndpoint.GetBySystemName(jobRunTask.Settings.DownloadS3.Region);
 
-            var secret = _dataProtector.Decrypt(jobRunTask.Settings.DownloadS3.Secret);
+            var secret = dataProtector.Decrypt(jobRunTask.Settings.DownloadS3.Secret);
 
             var s3Client = new AmazonS3Client(new BasicAWSCredentials(jobRunTask.Settings.DownloadS3.AccessKey, secret), region);
 

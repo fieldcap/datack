@@ -7,20 +7,13 @@ namespace Datack.Web.Web.Controllers;
 
 [Authorize]
 [Route("Api/Agents")]
-public class AgentsController : Controller
+public class AgentsController(Agents agents) : Controller
 {
-    private readonly Agents _agents;
-
-    public AgentsController(Agents agents)
-    {
-        _agents = agents;
-    }
-
     [HttpGet]
     [Route("List")]
     public async Task<ActionResult> List(CancellationToken cancellationToken)
     {
-        var result = await _agents.GetAll(cancellationToken);
+        var result = await agents.GetAll(cancellationToken);
         return Ok(result);
     }
         
@@ -28,7 +21,7 @@ public class AgentsController : Controller
     [Route("GetById/{agentId:guid}")]
     public async Task<ActionResult> GetById(Guid agentId, CancellationToken cancellationToken)
     {
-        var agent = await _agents.GetById(agentId, cancellationToken);
+        var agent = await agents.GetById(agentId, cancellationToken);
 
         if (agent == null)
         {
@@ -51,7 +44,7 @@ public class AgentsController : Controller
             return BadRequest(errors);
         }
 
-        var result = await _agents.Add(agent, cancellationToken);
+        var result = await agents.Add(agent, cancellationToken);
 
         return Ok(result);
     }
@@ -69,7 +62,7 @@ public class AgentsController : Controller
             return BadRequest(errors);
         }
 
-        await _agents.Update(agent, cancellationToken);
+        await agents.Update(agent, cancellationToken);
 
         return Ok();
     }
@@ -78,7 +71,7 @@ public class AgentsController : Controller
     [Route("Delete/{agentId:guid}")]
     public async Task<ActionResult> Delete(Guid agentId, CancellationToken cancellationToken)
     {
-        await _agents.Delete(agentId, cancellationToken);
+        await agents.Delete(agentId, cancellationToken);
 
         return Ok();
     }
@@ -87,7 +80,7 @@ public class AgentsController : Controller
     [Route("Logs/{agentId:guid}")]
     public async Task<ActionResult<String>> Logs(Guid agentId, CancellationToken cancellationToken)
     {
-        var logs = await _agents.GetLogs(agentId, cancellationToken);
+        var logs = await agents.GetLogs(agentId, cancellationToken);
 
         return Ok(logs);
     }
@@ -96,7 +89,7 @@ public class AgentsController : Controller
     [Route("UpgradeAgent/{agentId:guid}")]
     public async Task<ActionResult> UpgradeAgent(Guid agentId, CancellationToken cancellationToken)
     {
-        await _agents.UpgradeAgent(agentId, cancellationToken);
+        await agents.UpgradeAgent(agentId, cancellationToken);
 
         return Ok();
     }

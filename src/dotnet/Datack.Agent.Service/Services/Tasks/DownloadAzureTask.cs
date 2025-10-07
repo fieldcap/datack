@@ -10,15 +10,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task downloads a file from an Azure Blob.
 /// </summary>
-public class DownloadAzureTask : BaseTask
+public class DownloadAzureTask(DataProtector dataProtector) : BaseTask
 {
-    private readonly DataProtector _dataProtector;
-
-    public DownloadAzureTask(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -70,7 +63,7 @@ public class DownloadAzureTask : BaseTask
 
             OnProgress(jobRunTask.JobRunTaskId, $"Starting downloading of file {jobRunTask.Settings.DownloadAzure.ContainerName}://{sourceKey} from Azure to file {destinationFileName}");
 
-            var connectionString = _dataProtector.Decrypt(jobRunTask.Settings.DownloadAzure.ConnectionString);
+            var connectionString = dataProtector.Decrypt(jobRunTask.Settings.DownloadAzure.ConnectionString);
 
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient(jobRunTask.Settings.DownloadAzure.ContainerName);

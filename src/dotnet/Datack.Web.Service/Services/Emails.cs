@@ -4,15 +4,8 @@ using Datack.Common.Models.Data;
 
 namespace Datack.Web.Service.Services;
 
-public class Emails
+public class Emails(Settings settings)
 {
-    private readonly Settings _settings;
-
-    public Emails(Settings settings)
-    {
-        _settings = settings;
-    }
-
     public async Task SendComplete(JobRun jobRun, CancellationToken cancellationToken)
     {
         if (String.IsNullOrWhiteSpace(jobRun.Job.Settings.EmailTo))
@@ -43,12 +36,12 @@ public class Emails
     {
         try
         {
-            var smtpHost = await _settings.Get<String>("Email:Smtp:Host", cancellationToken);
-            var smtpPort = await _settings.Get<Int32>("Email:Smtp:Port", cancellationToken);
-            var smtpUserName = await _settings.Get<String>("Email:Smtp:UserName", cancellationToken);
-            var smtpPassword = await _settings.Get<String>("Email:Smtp:Password", cancellationToken);
-            var smtpUseSsl = await _settings.Get<Boolean>("Email:Smtp:UseSsl", cancellationToken);
-            var smtpFrom = await _settings.Get<String>("Email:Smtp:From", cancellationToken);
+            var smtpHost = await settings.Get<String>("Email:Smtp:Host", cancellationToken);
+            var smtpPort = await settings.Get<Int32>("Email:Smtp:Port", cancellationToken);
+            var smtpUserName = await settings.Get<String>("Email:Smtp:UserName", cancellationToken);
+            var smtpPassword = await settings.Get<String>("Email:Smtp:Password", cancellationToken);
+            var smtpUseSsl = await settings.Get<Boolean>("Email:Smtp:UseSsl", cancellationToken);
+            var smtpFrom = await settings.Get<String>("Email:Smtp:From", cancellationToken);
 
             if (String.IsNullOrWhiteSpace(smtpHost))
             {

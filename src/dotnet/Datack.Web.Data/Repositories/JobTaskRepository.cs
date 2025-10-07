@@ -3,18 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Web.Data.Repositories;
 
-public class JobTaskRepository
+public class JobTaskRepository(DataContext dataContext)
 {
-    private readonly DataContext _dataContext;
-
-    public JobTaskRepository(DataContext dataContext)
-    {
-        _dataContext = dataContext;
-    }
-
     public async Task<IList<JobTask>> GetForJob(Guid jobId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobTasks
+        return await dataContext.JobTasks
                                  .AsNoTracking()
                                  .Include(m => m.Agent)
                                  .Include(m => m.UsePreviousTaskArtifactsFromJobTask)
@@ -25,7 +18,7 @@ public class JobTaskRepository
 
     public async Task<List<JobTask>> GetByAgentId(Guid agentId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobTasks
+        return await dataContext.JobTasks
                                  .AsNoTracking()
                                  .Include(m => m.Agent)
                                  .Include(m => m.Job)
@@ -35,7 +28,7 @@ public class JobTaskRepository
 
     public async Task<JobTask?> GetById(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobTasks
+        return await dataContext.JobTasks
                                  .AsNoTracking()
                                  .FirstOrDefaultAsync(m => m.JobTaskId == jobTaskId, cancellationToken);
     }
@@ -44,21 +37,21 @@ public class JobTaskRepository
     {
         jobTask.JobTaskId = Guid.NewGuid();
 
-        var jobTaskCount = await _dataContext.JobTasks
+        var jobTaskCount = await dataContext.JobTasks
                                              .AsNoTracking()
                                              .CountAsync(m => m.JobId == jobTask.JobId, cancellationToken);
 
         jobTask.Order = jobTaskCount;
 
-        await _dataContext.JobTasks.AddAsync(jobTask, cancellationToken);
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.JobTasks.AddAsync(jobTask, cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
             
         return jobTask;
     }
 
     public async Task Update(JobTask jobTask, CancellationToken cancellationToken)
     {
-        var dbJobTask = await _dataContext
+        var dbJobTask = await dataContext
                               .JobTasks
                               .FirstOrDefaultAsync(m => m.JobTaskId == jobTask.JobTaskId, cancellationToken);
 
@@ -79,12 +72,12 @@ public class JobTaskRepository
         dbJobTask.Settings = jobTask.Settings;
         dbJobTask.AgentId = jobTask.AgentId;
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task ReOrder(Guid jobId, IList<Guid> jobTaskIds, CancellationToken cancellationToken)
     {
-        var dbJobTasks = await _dataContext
+        var dbJobTasks = await dataContext
                                .JobTasks
                                .Where(m => m.JobId == jobId)
                                .ToListAsync(cancellationToken);
@@ -98,27 +91,27 @@ public class JobTaskRepository
             index++;
         }
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task DeleteForJob(Guid jobId, CancellationToken cancellationToken)
     {
-        var jobTasks = await _dataContext.JobTasks.Where(m => m.JobId == jobId).ToListAsync(cancellationToken);
+        var jobTasks = await dataContext.JobTasks.Where(m => m.JobId == jobId).ToListAsync(cancellationToken);
 
-        _dataContext.JobTasks.RemoveRange(jobTasks);
+        dataContext.JobTasks.RemoveRange(jobTasks);
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task Delete(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        var jobTask = await _dataContext.JobTasks.FirstOrDefaultAsync(m => m.JobTaskId == jobTaskId, cancellationToken);
+        var jobTask = await dataContext.JobTasks.FirstOrDefaultAsync(m => m.JobTaskId == jobTaskId, cancellationToken);
 
         if (jobTask != null)
         {
-            _dataContext.JobTasks.Remove(jobTask);
+            dataContext.JobTasks.Remove(jobTask);
 
-            await _dataContext.SaveChangesAsync(cancellationToken);
+            await dataContext.SaveChangesAsync(cancellationToken);
         }
     }
 }

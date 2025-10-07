@@ -7,15 +7,8 @@ namespace Datack.Web.Service.Tasks;
 /// <summary>
 ///     This task backs up databases based on the parameters given.
 /// </summary>
-public class CreateBackupTask : IBaseTask
+public class CreateBackupTask(RemoteService remoteService) : IBaseTask
 {
-    private readonly RemoteService _remoteService;
-
-    public CreateBackupTask(RemoteService remoteService)
-    {
-        _remoteService = remoteService;
-    }
-
     public async Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, Guid jobRunId, CancellationToken cancellationToken)
     {
         if (jobTask.Settings?.CreateBackup == null)
@@ -33,7 +26,7 @@ public class CreateBackupTask : IBaseTask
             throw new($"Job task {jobTask.Name} does not have a database type set");
         }
 
-        var allDatabases = await _remoteService.GetDatabaseList(jobTask.Agent,
+        var allDatabases = await remoteService.GetDatabaseList(jobTask.Agent,
                                                                 jobTask.Settings.CreateBackup.DatabaseType,
                                                                 jobTask.Settings.CreateBackup.ConnectionString,
                                                                 jobTask.Settings.CreateBackup.ConnectionStringPassword,
@@ -51,7 +44,7 @@ public class CreateBackupTask : IBaseTask
 
         var index = 0;
 
-        return filteredDatabases
+        return [.. filteredDatabases
                .Where(m => m.Include)
                .Select(database => new JobRunTask
                {
@@ -64,7 +57,6 @@ public class CreateBackupTask : IBaseTask
                    IsError = false,
                    Result = null,
                    Settings = jobTask.Settings
-               })
-               .ToList();
+               })];
     }
 }

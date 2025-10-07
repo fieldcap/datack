@@ -2,14 +2,9 @@
 
 namespace Datack.Agent.Services;
 
-public class DataProtector
+public class DataProtector(IDataProtectionProvider provider)
 {
-    private readonly IDataProtector _protector;
-
-    public DataProtector(IDataProtectionProvider provider)
-    {
-        _protector = provider.CreateProtector("Datack.Agent.DataProtector");
-    }
+    private readonly IDataProtector _protector = provider.CreateProtector("Datack.Agent.DataProtector");
 
     public String Encrypt(String input)
     {

@@ -4,17 +4,8 @@ using Datack.Common.Models.Internal;
 
 namespace Datack.Agent.Services;
 
-public class StorageAdapter
+public class StorageAdapter(AzureBlobStorageConnection azureBlobStorageConnection, AwsS3Connection awsS3Connection)
 {
-    private readonly AzureBlobStorageConnection _azureBlobStorageConnection;
-    private readonly AwsS3Connection _awsS3Connection;
-
-    public StorageAdapter(AzureBlobStorageConnection azureBlobStorageConnection, AwsS3Connection awsS3Connection)
-    {
-        _azureBlobStorageConnection = azureBlobStorageConnection;
-        _awsS3Connection = awsS3Connection;
-    }
-
     public async Task<IList<BackupFile>> GetFileList(String storageType, String connectionString, String containerName, String rootPath, String? path, CancellationToken cancellationToken)
     {
         var results = new List<BackupFile>();
@@ -50,12 +41,12 @@ public class StorageAdapter
 
         if (storageType == "azure")
         {
-            return _azureBlobStorageConnection;
+            return azureBlobStorageConnection;
         }
 
         if (storageType == "s3")
         {
-            return _awsS3Connection;
+            return awsS3Connection;
         }
 
         throw new($"Invalid storage type {storageType}");

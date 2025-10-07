@@ -12,15 +12,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task uploads a file to an AWS s3 bucket.
 /// </summary>
-public class UploadS3Task : BaseTask
+public class UploadS3Task(DataProtector dataProtector) : BaseTask
 {
-    private readonly DataProtector _dataProtector;
-
-    public UploadS3Task(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -92,7 +85,7 @@ public class UploadS3Task : BaseTask
 
             var region = RegionEndpoint.GetBySystemName(jobRunTask.Settings.UploadS3.Region);
 
-            var secret = _dataProtector.Decrypt(jobRunTask.Settings.UploadS3.Secret);
+            var secret = dataProtector.Decrypt(jobRunTask.Settings.UploadS3.Secret);
 
             var s3Client = new AmazonS3Client(new BasicAWSCredentials(jobRunTask.Settings.UploadS3.AccessKey, secret), region);
 
@@ -103,14 +96,14 @@ public class UploadS3Task : BaseTask
                 BucketName = jobRunTask.Settings.UploadS3.Bucket,
                 FilePath = sourceFileName,
                 Key = key,
-                TagSet = new()
-                {
+                TagSet =
+                [
                     new()
                     {
                         Key = "Datack:JobDate",
                         Value = jobRunTask.JobRun.Started.ToString("O")
                     }
-                }
+                ]
             };
 
             if (!String.IsNullOrWhiteSpace(jobRunTask.Settings.UploadS3.Tag))

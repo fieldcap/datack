@@ -8,34 +8,22 @@ namespace Datack.Web.Web.Controllers;
 
 [Authorize]
 [Route("Api/Jobs")]
-public class JobsController : Controller
+public class JobsController(
+    RemoteService remoteService,
+    Agents agents,
+    Jobs jobs,
+    JobRuns jobRuns,
+    JobRunTasks jobRunTasks,
+    JobRunTaskLogs jobRunTaskLogs,
+    JobRunner jobRunner,
+    JobTasks tasks)
+    : Controller
 {
-    private readonly RemoteService _remoteService;
-    private readonly Agents _agents;
-    private readonly Jobs _jobs;
-    private readonly JobRuns _jobRuns;
-    private readonly JobRunTasks _jobRunTasks;
-    private readonly JobRunTaskLogs _jobRunTaskLogs;
-    private readonly JobRunner _jobRunner;
-    private readonly JobTasks _jobTasks;
-
-    public JobsController(RemoteService remoteService, Agents agents, Jobs jobs, JobRuns jobRuns, JobRunTasks jobRunTasks, JobRunTaskLogs jobRunTaskLogs, JobRunner jobRunner, JobTasks jobTasks)
-    {
-        _remoteService = remoteService;
-        _agents = agents;
-        _jobs = jobs;
-        _jobRuns = jobRuns;
-        _jobRunTasks = jobRunTasks;
-        _jobRunTaskLogs = jobRunTaskLogs;
-        _jobRunner = jobRunner;
-        _jobTasks = jobTasks;
-    }
-
     [HttpGet]
     [Route("List")]
     public async Task<ActionResult> List(CancellationToken cancellationToken)
     {
-        var result = await _jobs.GetList(cancellationToken);
+        var result = await jobs.GetList(cancellationToken);
         return Ok(result);
     }
 
@@ -43,7 +31,7 @@ public class JobsController : Controller
     [Route("GetForAgent/{agentId:guid}")]
     public async Task<ActionResult> GetForAgent(Guid agentId, CancellationToken cancellationToken)
     {
-        var result = await _jobs.GetForAgent(agentId, cancellationToken);
+        var result = await jobs.GetForAgent(agentId, cancellationToken);
         return Ok(result);
     }
         
@@ -51,7 +39,7 @@ public class JobsController : Controller
     [Route("GetById/{jobId:guid}")]
     public async Task<ActionResult> GetById(Guid jobId, CancellationToken cancellationToken)
     {
-        var job = await _jobs.GetById(jobId, cancellationToken);
+        var job = await jobs.GetById(jobId, cancellationToken);
 
         if (job == null)
         {
@@ -74,7 +62,7 @@ public class JobsController : Controller
             return BadRequest(errors);
         }
 
-        var result = await _jobs.Add(job, cancellationToken);
+        var result = await jobs.Add(job, cancellationToken);
 
         return Ok(result);
     }
@@ -92,7 +80,7 @@ public class JobsController : Controller
             return BadRequest(errors);
         }
 
-        await _jobs.Update(job, cancellationToken);
+        await jobs.Update(job, cancellationToken);
 
         return Ok();
     }
@@ -101,7 +89,7 @@ public class JobsController : Controller
     [Route("Duplicate")]
     public async Task<ActionResult<Job>> Duplicate([FromBody] JobDuplicateRequest request, CancellationToken cancellationToken)
     {
-        var result = await _jobs.Duplicate(request.JobId, cancellationToken);
+        var result = await jobs.Duplicate(request.JobId, cancellationToken);
 
         return Ok(result);
     }
@@ -110,11 +98,11 @@ public class JobsController : Controller
     [Route("Delete/{jobId:guid}")]
     public async Task<ActionResult<Job>> Delete(Guid jobId, CancellationToken cancellationToken)
     {
-        await _jobRunTaskLogs.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
-        await _jobRunTasks.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
-        await _jobRuns.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
-        await _jobTasks.DeleteForJob(jobId, cancellationToken);
-        await _jobs.Delete(jobId, cancellationToken);
+        await jobRunTaskLogs.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
+        await jobRunTasks.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
+        await jobRuns.DeleteForJob(jobId, DateTime.UtcNow.AddYears(1), cancellationToken);
+        await tasks.DeleteForJob(jobId, cancellationToken);
+        await jobs.Delete(jobId, cancellationToken);
 
         return Ok();
     }
@@ -137,7 +125,7 @@ public class JobsController : Controller
     [HttpPost]
     public async Task<ActionResult<Guid>> Run([FromBody] JobRunRequest request, CancellationToken cancellationToken)
     {
-        var job = await _jobs.GetById(request.JobId, cancellationToken);
+        var job = await jobs.GetById(request.JobId, cancellationToken);
 
         if (job == null)
         {
@@ -147,10 +135,10 @@ public class JobsController : Controller
         var overrideItemList = new List<String>();
         if (!String.IsNullOrWhiteSpace(request.ItemList))
         {
-            overrideItemList = request.ItemList.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
+            overrideItemList = [.. request.ItemList.Split(",", StringSplitOptions.RemoveEmptyEntries)];
         }
 
-        var jobRunId = await _jobRunner.SetupJobRun(job, overrideItemList, cancellationToken);
+        var jobRunId = await jobRunner.SetupJobRun(job, overrideItemList, cancellationToken);
 
         return Ok(jobRunId);
     }
@@ -159,7 +147,7 @@ public class JobsController : Controller
     [HttpPost]
     public async Task<ActionResult> Stop([FromBody] JobStopRequest request, CancellationToken cancellationToken)
     {
-        await _jobRunner.Stop(request.JobRunId, cancellationToken);
+        await jobRunner.Stop(request.JobRunId, cancellationToken);
 
         return Ok();
     }
@@ -168,14 +156,14 @@ public class JobsController : Controller
     [Route("GetDatabaseList")]
     public async Task<ActionResult> GetDatabaseList([FromBody] JobGetDatabaseListRequest request, CancellationToken cancellationToken)
     {
-        var job = await _jobs.GetById(request.JobId, cancellationToken);
+        var job = await jobs.GetById(request.JobId, cancellationToken);
 
         if (job == null)
         {
             throw new($"Job with ID {request.JobId} not found");
         }
 
-        var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
+        var jobTasks = await tasks.GetForJob(job.JobId, cancellationToken);
 
         var jobTask = jobTasks.FirstOrDefault(m => m.Order == 0 && m.Type == "createBackup");
 
@@ -184,7 +172,7 @@ public class JobsController : Controller
             return Ok(new List<String>());
         }
 
-        var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
+        var agent = await agents.GetById(jobTask.AgentId, cancellationToken);
 
         if (agent == null)
         {
@@ -201,7 +189,7 @@ public class JobsController : Controller
             throw new($"Job task {jobTask.Name} does not have a database type set");
         }
 
-        var databases = await _remoteService.GetDatabaseList(agent, 
+        var databases = await remoteService.GetDatabaseList(agent, 
                                                              jobTask.Settings.CreateBackup.DatabaseType,
                                                              jobTask.Settings.CreateBackup.ConnectionString, 
                                                              jobTask.Settings.CreateBackup.ConnectionStringPassword, 
@@ -217,14 +205,14 @@ public class JobsController : Controller
     [Route("GetAzureFileList")]
     public async Task<ActionResult> GetAzureFileList([FromBody] JobGetFileListRequest request, CancellationToken cancellationToken)
     {
-        var job = await _jobs.GetById(request.JobId, cancellationToken);
+        var job = await jobs.GetById(request.JobId, cancellationToken);
 
         if (job == null)
         {
             throw new($"Job with ID {request.JobId} not found");
         }
 
-        var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
+        var jobTasks = await tasks.GetForJob(job.JobId, cancellationToken);
 
         var jobTask = jobTasks.FirstOrDefault(m => m.Order == 0 && m.Type == "downloadAzure");
 
@@ -233,7 +221,7 @@ public class JobsController : Controller
             return Ok(new List<String>());
         }
 
-        var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
+        var agent = await agents.GetById(jobTask.AgentId, cancellationToken);
 
         if (agent == null)
         {
@@ -260,7 +248,7 @@ public class JobsController : Controller
             jobTask.Settings.DownloadAzure.Blob = "";
         }
         
-        var files = await _remoteService.GetFileList(agent, 
+        var files = await remoteService.GetFileList(agent, 
                                                      "azure",
                                                      jobTask.Settings.DownloadAzure.ConnectionString, 
                                                      jobTask.Settings.DownloadAzure.ContainerName,

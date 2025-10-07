@@ -20,6 +20,11 @@ public class AgentHostedService : IHostedService
     private readonly ILogger _logger;
     private readonly RpcService _rpcService;
 
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        WriteIndented = true
+    };
+
     private readonly String _version;
 
     private CancellationToken _cancellationToken;
@@ -68,10 +73,7 @@ public class AgentHostedService : IHostedService
 
             _appSettings.Token = Guid.NewGuid().ToString();
 
-            var appSettingsSerialized = JsonSerializer.Serialize(_appSettings, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            var appSettingsSerialized = JsonSerializer.Serialize(_appSettings, JsonSerializerOptions);
                 
             await File.WriteAllTextAsync(filePath, appSettingsSerialized, cancellationToken);
         }
@@ -162,7 +164,7 @@ public class AgentHostedService : IHostedService
         result.AddRange(jobRunnerTasks);
         result.AddRange(progressEvents);
 
-        result = result.Distinct().ToList();
+        result = [.. result.Distinct()];
 
         if (result.Count > 0)
         {

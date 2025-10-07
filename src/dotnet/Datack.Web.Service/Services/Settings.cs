@@ -5,23 +5,15 @@ using Serilog.Core;
 
 namespace Datack.Web.Service.Services;
 
-public class Settings
+public class Settings(SettingRepository settingRepository, IDataProtectionProvider provider)
 {
     public static readonly LoggingLevelSwitch LoggingLevelSwitch = new();
 
-    private readonly SettingRepository _settingRepository;
-    private readonly IDataProtector _protector;
-
-    public Settings(SettingRepository settingRepository, IDataProtectionProvider provider)
-    {
-        _protector = provider.CreateProtector("Datack.Web.Service.Settings");
-
-        _settingRepository = settingRepository;
-    }
+    private readonly IDataProtector _protector = provider.CreateProtector("Datack.Web.Service.Settings");
 
     public async Task<IList<Setting>> GetAll(CancellationToken cancellationToken)
     {
-        var settings = await _settingRepository.GetAll(cancellationToken);
+        var settings = await settingRepository.GetAll(cancellationToken);
 
         foreach (var setting in settings)
         {
@@ -52,20 +44,20 @@ public class Settings
                 if (updatedSetting.Value != null && updatedSetting.Value != "******")
                 {
                     dbSetting.Value = _protector.Protect(updatedSetting.Value);
-                    await _settingRepository.Update(dbSetting, cancellationToken);
+                    await settingRepository.Update(dbSetting, cancellationToken);
                 }
             }
             else
             {
                 dbSetting.Value = updatedSetting.Value;
-                await _settingRepository.Update(dbSetting, cancellationToken);
+                await settingRepository.Update(dbSetting, cancellationToken);
             }
         }
     }
 
     public async Task<T?> Get<T>(String key, CancellationToken cancellationToken)
     {
-        var setting = await _settingRepository.Get(key, cancellationToken);
+        var setting = await settingRepository.Get(key, cancellationToken);
 
         if (setting == null)
         {

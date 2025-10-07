@@ -3,17 +3,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Web.Data.Repositories;
 
-public class UserRepository
+public class UserRepository(DataContext dataContext)
 {
-    private readonly DataContext _dataContext;
-
-    public UserRepository(DataContext dataContext)
-    {
-        _dataContext = dataContext;
-    }
-
     public async Task<IdentityUser?> GetUser()
     {
-        return await _dataContext.Users.AsNoTracking().FirstOrDefaultAsync();
+        return await dataContext.Users.AsNoTracking().FirstOrDefaultAsync();
     }
 }

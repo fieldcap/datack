@@ -31,7 +31,7 @@ public static class CronHelper
     {
         if (String.IsNullOrWhiteSpace(cron))
         {
-            return new List<DateTimeOffset>();
+            return [];
         }
 
         try
@@ -43,11 +43,11 @@ public static class CronHelper
             var parsedExpression = CronExpression.Parse(cron);
             var occurrences = parsedExpression.GetOccurrences(from, to, TimeZoneInfo.Local, true, true);
 
-            return occurrences.ToList();
+            return [.. occurrences];
         }
         catch
         {
-            return new List<DateTimeOffset>();
+            return [];
         }
     }
 

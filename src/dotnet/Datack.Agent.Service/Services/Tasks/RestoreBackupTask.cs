@@ -8,17 +8,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task restores a backup of a database.
 /// </summary>
-public class RestoreBackupTask : BaseTask
+public class RestoreBackupTask(DatabaseAdapter databaseAdapter, DataProtector dataProtector) : BaseTask
 {
-    private readonly DatabaseAdapter _databaseAdapter;
-    private readonly DataProtector _dataProtector;
-
-    public RestoreBackupTask(DatabaseAdapter databaseAdapter, DataProtector dataProtector)
-    {
-        _databaseAdapter = databaseAdapter;
-        _dataProtector = dataProtector;
-    }
-        
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -80,15 +71,15 @@ public class RestoreBackupTask : BaseTask
                 throw new($"Job Task does not have a connection string configured");
             }
 
-            var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.RestoreBackup.ConnectionString, jobRunTask.Settings.RestoreBackup.ConnectionStringPassword, true);
+            var connectionString = databaseAdapter.CreateConnectionString(jobRunTask.Settings.RestoreBackup.ConnectionString, jobRunTask.Settings.RestoreBackup.ConnectionStringPassword, true);
             var password = jobRunTask.Settings.RestoreBackup.ConnectionStringPassword;
 
             if (!String.IsNullOrWhiteSpace(password))
             {
-                password = _dataProtector.Decrypt(password);
+                password = dataProtector.Decrypt(password);
             }
 
-            await _databaseAdapter.RestoreBackup(jobRunTask.Settings.RestoreBackup.DatabaseType,
+            await databaseAdapter.RestoreBackup(jobRunTask.Settings.RestoreBackup.DatabaseType,
                                                 connectionString,
                                                 databaseName,
                                                 databaseLocation,

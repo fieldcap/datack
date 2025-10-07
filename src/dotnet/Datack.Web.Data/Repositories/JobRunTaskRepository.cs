@@ -3,18 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Web.Data.Repositories;
 
-public class JobRunTaskRepository
+public class JobRunTaskRepository(DataContext dataContext)
 {
-    private readonly DataContext _dataContext;
-
-    public JobRunTaskRepository(DataContext dataContext)
-    {
-        _dataContext = dataContext;
-    }
-
     public async Task<JobRunTask?> GetById(Guid jobRunTaskId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobRunTasks
+        return await dataContext.JobRunTasks
                                  .AsNoTracking()
                                  .Include(m => m.JobTask)
                                  .Include(m => m.JobRun)
@@ -23,7 +16,7 @@ public class JobRunTaskRepository
 
     public async Task<IList<JobRunTask>> GetByJobRunId(Guid jobRunId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobRunTasks
+        return await dataContext.JobRunTasks
                                  .AsNoTracking()
                                  .Include(m => m.JobTask)
                                  .Include(m => m.JobTask.Agent)
@@ -36,7 +29,7 @@ public class JobRunTaskRepository
 
     public async Task<List<JobRunTask>> GetByAgentId(Guid agentId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobRunTasks
+        return await dataContext.JobRunTasks
                                  .AsNoTracking()
                                  .Include(m => m.JobTask)
                                  .Include(m => m.JobRun)
@@ -48,13 +41,13 @@ public class JobRunTaskRepository
 
     public async Task Create(IList<JobRunTask> jobRunTasks, CancellationToken cancellationToken)
     {
-        await _dataContext.AddRangeAsync(jobRunTasks, cancellationToken);
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.AddRangeAsync(jobRunTasks, cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateStarted(Guid jobRunTaskId, DateTimeOffset? date, CancellationToken cancellationToken)
     {
-        var jobRunTask = await _dataContext.JobRunTasks.FirstOrDefaultAsync(m => m.JobRunTaskId == jobRunTaskId, cancellationToken);
+        var jobRunTask = await dataContext.JobRunTasks.FirstOrDefaultAsync(m => m.JobRunTaskId == jobRunTaskId, cancellationToken);
 
         if (jobRunTask == null)
         {
@@ -65,12 +58,12 @@ public class JobRunTaskRepository
         jobRunTask.Result = null;
         jobRunTask.IsError = false;
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateCompleted(Guid jobRunTaskId, String result, String? resultArtifact, Boolean isError, CancellationToken cancellationToken)
     {
-        var jobRunTask = await _dataContext.JobRunTasks.FirstOrDefaultAsync(m => m.JobRunTaskId == jobRunTaskId, cancellationToken);
+        var jobRunTask = await dataContext.JobRunTasks.FirstOrDefaultAsync(m => m.JobRunTaskId == jobRunTaskId, cancellationToken);
 
         if (jobRunTask == null)
         {
@@ -89,12 +82,12 @@ public class JobRunTaskRepository
         jobRunTask.ResultArtifact = resultArtifact;
         jobRunTask.IsError = isError;
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Int32> DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
     {
-        return await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRunTasks
+        return await dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRunTasks
 WHERE JobRunTaskId IN(
     SELECT JobRunTasks.JobRunTaskId FROM JobRunTasks
     INNER JOIN JobRuns ON JobRuns.JobRunId = JobRunTasks.JobRunId
@@ -104,6 +97,6 @@ WHERE JobRunTaskId IN(
 
     public async Task DeleteForTask(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRunTasks WHERE JobRunTasks.JobTaskId = {jobTaskId}", cancellationToken);
+        await dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRunTasks WHERE JobRunTasks.JobTaskId = {jobTaskId}", cancellationToken);
     }
 }

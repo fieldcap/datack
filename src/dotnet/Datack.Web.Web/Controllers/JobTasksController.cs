@@ -9,24 +9,13 @@ namespace Datack.Web.Web.Controllers;
 
 [Authorize]
 [Route("Api/JobTasks")]
-public class JobTasksController : Controller
+public class JobTasksController(JobTasks jobTasks, Agents agents, RemoteService remoteService) : Controller
 {
-    private readonly JobTasks _jobTasks;
-    private readonly Agents _agents;
-    private readonly RemoteService _remoteService;
-
-    public JobTasksController(JobTasks jobTasks, Agents agents, RemoteService remoteService)
-    {
-        _jobTasks = jobTasks;
-        _agents = agents;
-        _remoteService = remoteService;
-    }
-
     [HttpGet]
     [Route("GetForJob/{jobId:guid}")]
     public async Task<ActionResult> List(Guid jobId, CancellationToken cancellationToken)
     {
-        var result = await _jobTasks.GetForJob(jobId, cancellationToken);
+        var result = await jobTasks.GetForJob(jobId, cancellationToken);
 
         return Ok(result);
     }
@@ -35,7 +24,7 @@ public class JobTasksController : Controller
     [Route("GetById/{jobTaskId:guid}")]
     public async Task<ActionResult> GetById(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        var agent = await _jobTasks.GetById(jobTaskId, cancellationToken);
+        var agent = await jobTasks.GetById(jobTaskId, cancellationToken);
 
         if (agent == null)
         {
@@ -58,7 +47,7 @@ public class JobTasksController : Controller
             return BadRequest(errors);
         }
 
-        var result = await _jobTasks.Add(jobTask, cancellationToken);
+        var result = await jobTasks.Add(jobTask, cancellationToken);
 
         return Ok(result);
     }
@@ -76,7 +65,7 @@ public class JobTasksController : Controller
             return BadRequest(errors);
         }
 
-        await _jobTasks.Update(jobTask, cancellationToken);
+        await jobTasks.Update(jobTask, cancellationToken);
 
         return Ok();
     }
@@ -85,7 +74,7 @@ public class JobTasksController : Controller
     [Route("Delete/{jobTaskId:guid}")]
     public async Task<ActionResult> Delete(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        await _jobTasks.Delete(jobTaskId, cancellationToken);
+        await jobTasks.Delete(jobTaskId, cancellationToken);
 
         return Ok();
     }
@@ -94,7 +83,7 @@ public class JobTasksController : Controller
     [HttpPost]
     public async Task<ActionResult> ReOrder([FromBody] JobTaskReOrderRequest request, CancellationToken cancellationToken)
     {
-        await _jobTasks.ReOrder(request.JobId, request.JobTaskIds, cancellationToken);
+        await jobTasks.ReOrder(request.JobId, request.JobTaskIds, cancellationToken);
 
         return Ok();
     }
@@ -103,7 +92,7 @@ public class JobTasksController : Controller
     [Route("TestDatabaseConnection")]
     public async Task<ActionResult<String>> TestDatabaseConnection([FromBody] AgentsTestDatabaseConnectionRequest request, CancellationToken cancellationToken)
     {
-        var agent = await _agents.GetById(request.AgentId, cancellationToken);
+        var agent = await agents.GetById(request.AgentId, cancellationToken);
 
         if (agent == null)
         {
@@ -114,7 +103,7 @@ public class JobTasksController : Controller
         var decryptPassword = false;
         if (request.ConnectionStringPassword == "******")
         {
-            var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
+            var jobTask = await jobTasks.GetById(request.JobTaskId, cancellationToken);
 
             if (jobTask == null)
             {
@@ -125,7 +114,7 @@ public class JobTasksController : Controller
             decryptPassword = true;
         }
 
-        var result = await _remoteService.TestDatabaseConnection(agent, request.DatabaseType, request.ConnectionString, password, decryptPassword, cancellationToken);
+        var result = await remoteService.TestDatabaseConnection(agent, request.DatabaseType, request.ConnectionString, password, decryptPassword, cancellationToken);
 
         return Ok(result);
     }
@@ -134,7 +123,7 @@ public class JobTasksController : Controller
     [Route("TestDatabaseRegex")]
     public async Task<ActionResult> TestDatabaseRegex([FromBody] JobTasksTestDatabaseRegexRequest request, CancellationToken cancellationToken)
     {
-        var agent = await _agents.GetById(request.AgentId, cancellationToken);
+        var agent = await agents.GetById(request.AgentId, cancellationToken);
 
         if (agent == null)
         {
@@ -150,7 +139,7 @@ public class JobTasksController : Controller
         var decryptPassword = false;
         if (request.ConnectionStringPassword == "******")
         {
-            var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
+            var jobTask = await jobTasks.GetById(request.JobTaskId, cancellationToken);
 
             if (jobTask == null)
             {
@@ -161,7 +150,7 @@ public class JobTasksController : Controller
             decryptPassword = true;
         }
 
-        var databases = await _remoteService.GetDatabaseList(agent, request.DatabaseType, request.ConnectionString, password, decryptPassword, cancellationToken);
+        var databases = await remoteService.GetDatabaseList(agent, request.DatabaseType, request.ConnectionString, password, decryptPassword, cancellationToken);
 
         var result = DatabaseHelper.FilterDatabases(databases,
                                                     request.BackupDefaultExclude,
@@ -179,7 +168,7 @@ public class JobTasksController : Controller
     [Route("TestFilesRegex")]
     public async Task<ActionResult> TestFilesRegex([FromBody] JobTasksTestFilesRegexRequest request, CancellationToken cancellationToken)
     {
-        var agent = await _agents.GetById(request.AgentId, cancellationToken);
+        var agent = await agents.GetById(request.AgentId, cancellationToken);
 
         if (agent == null)
         {
@@ -194,7 +183,7 @@ public class JobTasksController : Controller
         var connectionString = request.ConnectionString;
         if (connectionString == "******")
         {
-            var jobTask = await _jobTasks.GetById(request.JobTaskId, cancellationToken);
+            var jobTask = await jobTasks.GetById(request.JobTaskId, cancellationToken);
 
             if (jobTask == null)
             {
@@ -209,7 +198,7 @@ public class JobTasksController : Controller
             throw new($"Cannot find connection string for job task with ID {request.JobTaskId}");
         }
 
-        var files = await _remoteService.GetFileList(agent, "azure", connectionString, request.ContainerName, request.Blob, null, cancellationToken);
+        var files = await remoteService.GetFileList(agent, "azure", connectionString, request.ContainerName, request.Blob, null, cancellationToken);
 
         var result = FileHelper.FilterFiles(files,
                                             request.RestoreDefaultExclude,

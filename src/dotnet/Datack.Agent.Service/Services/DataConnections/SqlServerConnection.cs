@@ -224,10 +224,10 @@ SELECT @LogicalNameData,@LogicalNameLog";
                                                             cancellationToken);
 
             var defaultPathsQueryResults = await sqlConnection.QueryAsync<(String InstanceDefaultDataPath, String InstanceDefaultLogPath)>(defaultPathsCommand);
-            var defaultPathsQueryResult = defaultPathsQueryResults.First();
+            var (instanceDefaultDataPath, instanceDefaultLogPath) = defaultPathsQueryResults.First();
 
-            dataPath = defaultPathsQueryResult.InstanceDefaultDataPath;
-            logPath = defaultPathsQueryResult.InstanceDefaultLogPath;
+            dataPath = instanceDefaultDataPath;
+            logPath = instanceDefaultLogPath;
         }
 
         var killQuery = $@"DECLARE @kill varchar(8000) = '';  

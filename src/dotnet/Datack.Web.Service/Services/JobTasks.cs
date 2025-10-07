@@ -6,35 +6,21 @@ using Datack.Web.Data.Repositories;
 
 namespace Datack.Web.Service.Services;
 
-public class JobTasks
+public class JobTasks(
+    JobTaskRepository jobTaskRepository,
+    JobRunTaskRepository jobRunTaskRepository,
+    JobRunTaskLogRepository jobRunTaskLogRepository,
+    Agents agents,
+    RemoteService remoteService)
 {
-    private readonly Agents _agents;
-    private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
-    private readonly JobRunTaskRepository _jobRunTaskRepository;
-    private readonly JobTaskRepository _jobTaskRepository;
-    private readonly RemoteService _remoteService;
-
-    public JobTasks(JobTaskRepository jobTaskRepository,
-                    JobRunTaskRepository jobRunTaskRepository,
-                    JobRunTaskLogRepository jobRunTaskLogRepository,
-                    Agents agents,
-                    RemoteService remoteService)
-    {
-        _jobTaskRepository = jobTaskRepository;
-        _jobRunTaskRepository = jobRunTaskRepository;
-        _jobRunTaskLogRepository = jobRunTaskLogRepository;
-        _agents = agents;
-        _remoteService = remoteService;
-    }
-
     public async Task<IList<JobTask>> GetForJob(Guid jobId, CancellationToken cancellationToken)
     {
-        return await _jobTaskRepository.GetForJob(jobId, cancellationToken);
+        return await jobTaskRepository.GetForJob(jobId, cancellationToken);
     }
 
     public async Task<JobTask?> GetById(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        return await _jobTaskRepository.GetById(jobTaskId, cancellationToken);
+        return await jobTaskRepository.GetById(jobTaskId, cancellationToken);
     }
 
     public async Task<JobTask> Add(JobTask jobTask, CancellationToken cancellationToken)
@@ -44,7 +30,7 @@ public class JobTasks
             throw new("Name cannot be empty");
         }
 
-        var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
+        var jobTasks = await jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
         var sameNameTasks = jobTasks.Any(m => String.Equals(m.Name, jobTask.Name, StringComparison.CurrentCultureIgnoreCase));
 
         if (sameNameTasks)
@@ -67,7 +53,7 @@ public class JobTasks
             throw new($"Parallel cannot be smaller than 0");
         }
 
-        return await _jobTaskRepository.Add(jobTask, cancellationToken);
+        return await jobTaskRepository.Add(jobTask, cancellationToken);
     }
 
     public async Task Update(JobTask jobTask, CancellationToken cancellationToken)
@@ -78,7 +64,7 @@ public class JobTasks
         }
 
         var dbJobTask = await GetById(jobTask.JobTaskId, cancellationToken);
-        var agent = await _agents.GetById(jobTask.AgentId, cancellationToken);
+        var agent = await agents.GetById(jobTask.AgentId, cancellationToken);
 
         if (dbJobTask == null)
         {
@@ -90,7 +76,7 @@ public class JobTasks
             throw new($"Cannot find agent with ID {jobTask.JobTaskId}");
         }
 
-        var jobTasks = await _jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
+        var jobTasks = await jobTaskRepository.GetForJob(jobTask.JobId, cancellationToken);
         var sameNameTasks = jobTasks.Any(m => m.JobTaskId != jobTask.JobTaskId && String.Equals(m.Name, jobTask.Name, StringComparison.CurrentCultureIgnoreCase));
 
         if (sameNameTasks)
@@ -116,12 +102,12 @@ public class JobTasks
         await EncryptSettings(agent, jobTask.Settings, dbJobTask.Settings, cancellationToken);
         
 
-        await _jobTaskRepository.Update(jobTask, cancellationToken);
+        await jobTaskRepository.Update(jobTask, cancellationToken);
     }
 
     public async Task ReOrder(Guid jobId, IList<Guid> jobTaskIds, CancellationToken cancellationToken)
     {
-        await _jobTaskRepository.ReOrder(jobId, jobTaskIds, cancellationToken);
+        await jobTaskRepository.ReOrder(jobId, jobTaskIds, cancellationToken);
     }
 
     private async Task EncryptSettings(Agent agent, JobTaskSettings newJobTaskSettings, JobTaskSettings currentJobTaskSettings, CancellationToken cancellationToken)
@@ -173,7 +159,7 @@ public class JobTasks
                     continue;
                 }
 
-                var encryptedSettingValue = await _remoteService.Encrypt(agent, newSettingValueString, cancellationToken);
+                var encryptedSettingValue = await remoteService.Encrypt(agent, newSettingValueString, cancellationToken);
 
                 settingKey.SetValue(newSetting, encryptedSettingValue);
             }
@@ -182,13 +168,13 @@ public class JobTasks
 
     public async Task DeleteForJob(Guid jobId, CancellationToken cancellationToken)
     {
-        await _jobTaskRepository.DeleteForJob(jobId, cancellationToken);
+        await jobTaskRepository.DeleteForJob(jobId, cancellationToken);
     }
 
     public async Task Delete(Guid jobTaskId, CancellationToken cancellationToken)
     {
-        await _jobRunTaskLogRepository.DeleteForTask(jobTaskId, cancellationToken);
-        await _jobRunTaskRepository.DeleteForTask(jobTaskId, cancellationToken);
-        await _jobTaskRepository.Delete(jobTaskId, cancellationToken);
+        await jobRunTaskLogRepository.DeleteForTask(jobTaskId, cancellationToken);
+        await jobRunTaskRepository.DeleteForTask(jobTaskId, cancellationToken);
+        await jobTaskRepository.Delete(jobTaskId, cancellationToken);
     }
 }

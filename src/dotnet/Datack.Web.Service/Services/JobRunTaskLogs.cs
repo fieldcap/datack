@@ -3,34 +3,25 @@ using Datack.Web.Data.Repositories;
 
 namespace Datack.Web.Service.Services;
 
-public class JobRunTaskLogs
+public class JobRunTaskLogs(JobRunTaskLogRepository jobRunTaskLogRepository, RemoteService remoteService)
 {
-    private readonly JobRunTaskLogRepository _jobRunTaskLogRepository;
-    private readonly RemoteService _remoteService;
-
-    public JobRunTaskLogs(JobRunTaskLogRepository jobRunTaskLogRepository, RemoteService remoteService)
-    {
-        _jobRunTaskLogRepository = jobRunTaskLogRepository;
-        _remoteService = remoteService;
-    }
-
     public async Task Add(JobRunTaskLog jobRunTaskLog, CancellationToken cancellationToken)
     {
-        var result = await _jobRunTaskLogRepository.Add(jobRunTaskLog, cancellationToken);
+        var result = await jobRunTaskLogRepository.Add(jobRunTaskLog, cancellationToken);
 
         _ = Task.Run(async () =>
         {
-            await _remoteService.WebJobRunTaskLog(result);
+            await remoteService.WebJobRunTaskLog(result);
         }, cancellationToken);
     }
 
     public async Task<IList<JobRunTaskLog>> GetByJobRunTaskId(Guid jobRunTaskId, CancellationToken cancellationToken)
     {
-        return await _jobRunTaskLogRepository.GetByJobRunTaskId(jobRunTaskId, cancellationToken);
+        return await jobRunTaskLogRepository.GetByJobRunTaskId(jobRunTaskId, cancellationToken);
     }
 
     public async Task<Int32> DeleteForJob(Guid jobId, DateTime deleteDate, CancellationToken cancellationToken)
     {
-        return await _jobRunTaskLogRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
+        return await jobRunTaskLogRepository.DeleteForJob(jobId, deleteDate, cancellationToken);
     }
 }

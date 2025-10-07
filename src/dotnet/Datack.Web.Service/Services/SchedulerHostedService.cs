@@ -61,7 +61,7 @@ public class SchedulerHostedService : IHostedService
                 // and give priority to certain tasks in a group.
                 var jobs = await jobsService.GetList(cancellationToken);
 
-                jobs = jobs.Where(m => m.IsActive).ToList();
+                jobs = [.. jobs.Where(m => m.IsActive)];
 
                 foreach (var jobsGroup in jobs.GroupBy(m => m.Group))
                 {
@@ -173,8 +173,8 @@ public class SchedulerHostedService : IHostedService
                             }
                             finally
                             {
-                                await HandleCompleteTasks(new List<RpcCompleteEvent>
-                                {
+                                await HandleCompleteTasks(
+                                [
                                     new RpcCompleteEvent
                                     {
                                         IsError = true,
@@ -182,7 +182,7 @@ public class SchedulerHostedService : IHostedService
                                         ResultArtifact = null,
                                         JobRunTaskId = jobRunTask.JobRunTaskId
                                     }
-                                }, cancellationToken);
+                                ], cancellationToken);
                             }
                         }
                     }
@@ -480,7 +480,7 @@ public class SchedulerHostedService : IHostedService
             }
         }
 
-        distinctJobRunIds = distinctJobRunIds.Distinct().ToList();
+        distinctJobRunIds = [.. distinctJobRunIds.Distinct()];
 
         foreach (var jobRunId in distinctJobRunIds)
         {

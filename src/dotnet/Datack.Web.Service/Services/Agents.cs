@@ -5,24 +5,11 @@ using Datack.Web.Service.Hubs;
 
 namespace Datack.Web.Service.Services;
 
-public class Agents
+public class Agents(AgentRepository agentRepository, JobTaskRepository jobTaskRepository, JobRunTaskRepository jobRunTaskRepository, RemoteService remoteService)
 {
-    private readonly AgentRepository _agentRepository;
-    private readonly JobTaskRepository _jobTaskRepository;
-    private readonly JobRunTaskRepository _jobRunTaskRepository;
-    private readonly RemoteService _remoteService;
-
-    public Agents(AgentRepository agentRepository, JobTaskRepository jobTaskRepository, JobRunTaskRepository jobRunTaskRepository, RemoteService remoteService)
-    {
-        _agentRepository = agentRepository;
-        _jobTaskRepository = jobTaskRepository;
-        _jobRunTaskRepository = jobRunTaskRepository;
-        _remoteService = remoteService;
-    }
-
     public async Task<IList<Agent>> GetAll(CancellationToken cancellationToken)
     {
-        var agents = await _agentRepository.GetAll(cancellationToken);
+        var agents = await agentRepository.GetAll(cancellationToken);
 
         foreach (var agent in agents)
         {
@@ -46,7 +33,7 @@ public class Agents
 
     public async Task<Agent?> GetById(Guid agentId, CancellationToken cancellationToken)
     {
-        var agent = await _agentRepository.GetById(agentId, cancellationToken);
+        var agent = await agentRepository.GetById(agentId, cancellationToken);
 
         if (agent == null)
         {
@@ -74,7 +61,7 @@ public class Agents
 
     public async Task<Agent?> GetByKey(String key, CancellationToken cancellationToken)
     {
-        return await _agentRepository.GetByKey(key, cancellationToken);
+        return await agentRepository.GetByKey(key, cancellationToken);
     }
         
     public async Task<Guid> Add(Agent agent, CancellationToken cancellationToken)
@@ -89,7 +76,7 @@ public class Agents
             throw new("Key cannot be empty");
         }
 
-        var allAgents = await _agentRepository.GetAll(cancellationToken);
+        var allAgents = await agentRepository.GetAll(cancellationToken);
         var sameNameAgents = allAgents.Any(m => String.Equals(m.Name, agent.Name, StringComparison.CurrentCultureIgnoreCase));
         var sameKeyAgents = allAgents.Any(m => String.Equals(m.Key, agent.Key, StringComparison.CurrentCultureIgnoreCase));
 
@@ -103,7 +90,7 @@ public class Agents
             throw new($"An agent with this key already exists");
         }
 
-        return await _agentRepository.Add(agent, cancellationToken);
+        return await agentRepository.Add(agent, cancellationToken);
     }
 
     public async Task Update(Agent agent, CancellationToken cancellationToken)
@@ -118,7 +105,7 @@ public class Agents
             throw new("Key cannot be empty");
         }
 
-        var allAgents = await _agentRepository.GetAll(cancellationToken);
+        var allAgents = await agentRepository.GetAll(cancellationToken);
         var sameNameAgents = allAgents.Any(m => m.AgentId != agent.AgentId && String.Equals(m.Name, agent.Name, StringComparison.CurrentCultureIgnoreCase));
         var sameKeyAgents = allAgents.Any(m => m.AgentId != agent.AgentId && String.Equals(m.Key, agent.Key, StringComparison.CurrentCultureIgnoreCase));
 
@@ -132,12 +119,12 @@ public class Agents
             throw new($"An agent with this key already exists");
         }
 
-        await _agentRepository.Update(agent, cancellationToken);
+        await agentRepository.Update(agent, cancellationToken);
     }
 
     public async Task Delete(Guid agentId, CancellationToken cancellationToken)
     {
-        var jobTasks = await _jobTaskRepository.GetByAgentId(agentId, cancellationToken);
+        var jobTasks = await jobTaskRepository.GetByAgentId(agentId, cancellationToken);
 
         if (jobTasks.Count > 0)
         {
@@ -146,33 +133,33 @@ public class Agents
             throw new($"This agent is still attached to the following tasks: {Environment.NewLine}{errors}");
         }
 
-        await _agentRepository.Delete(agentId, cancellationToken);
+        await agentRepository.Delete(agentId, cancellationToken);
     }
 
     public async Task<String> GetLogs(Guid agentId, CancellationToken cancellationToken)
     {
-        var agent = await _agentRepository.GetById(agentId, cancellationToken);
+        var agent = await agentRepository.GetById(agentId, cancellationToken);
 
         if (agent == null)
         {
             throw new($"Agent with ID {agentId} not found");
         }
 
-        var result = await _remoteService.GetLogs(agent, cancellationToken);
+        var result = await remoteService.GetLogs(agent, cancellationToken);
 
         return result;
     }
 
     public async Task UpgradeAgent(Guid agentId, CancellationToken cancellationToken)
     {
-        var agent = await _agentRepository.GetById(agentId, cancellationToken);
+        var agent = await agentRepository.GetById(agentId, cancellationToken);
 
         if (agent == null)
         {
             throw new($"Agent with ID {agentId} not found");
         }
 
-        var jobRunTasks = await _jobRunTaskRepository.GetByAgentId(agentId, cancellationToken);
+        var jobRunTasks = await jobRunTaskRepository.GetByAgentId(agentId, cancellationToken);
 
         var jobRunsRunning = jobRunTasks.Any(m => m.JobRun.Completed == null);
 
@@ -181,7 +168,7 @@ public class Agents
             throw new($"Cannot upgrade agent, some jobs are running");
         }
 
-        var result = await _remoteService.UpgradeAgent(agent, cancellationToken);
+        var result = await remoteService.UpgradeAgent(agent, cancellationToken);
 
         if (result != "Success")
         {

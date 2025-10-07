@@ -7,18 +7,11 @@ using Serilog.Events;
 
 namespace Datack.Web.Service.Services;
 
-public class StartupHostedService : IHostedService
+public class StartupHostedService(IServiceProvider serviceProvider) : IHostedService
 {
-    private readonly IServiceProvider _serviceProvider;
-        
-    public StartupHostedService(IServiceProvider serviceProvider)
-    {
-        _serviceProvider = serviceProvider;
-    }
-
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        using var scope = _serviceProvider.CreateScope();
+        using var scope = serviceProvider.CreateScope();
 
         try
         {

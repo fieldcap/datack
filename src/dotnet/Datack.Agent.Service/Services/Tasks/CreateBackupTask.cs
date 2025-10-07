@@ -8,17 +8,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task backs up databases based on the parameters given.
 /// </summary>
-public class CreateBackupTask : BaseTask
+public class CreateBackupTask(DatabaseAdapter databaseAdapter, DataProtector dataProtector) : BaseTask
 {
-    private readonly DatabaseAdapter _databaseAdapter;
-    private readonly DataProtector _dataProtector;
-
-    public CreateBackupTask(DatabaseAdapter databaseAdapter, DataProtector dataProtector)
-    {
-        _databaseAdapter = databaseAdapter;
-        _dataProtector = dataProtector;
-    }
-        
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -101,15 +92,15 @@ public class CreateBackupTask : BaseTask
                 throw new($"Job Task does not have a connection string configured");
             }
 
-            var connectionString = _databaseAdapter.CreateConnectionString(jobRunTask.Settings.CreateBackup.ConnectionString, jobRunTask.Settings.CreateBackup.ConnectionStringPassword, true);
+            var connectionString = databaseAdapter.CreateConnectionString(jobRunTask.Settings.CreateBackup.ConnectionString, jobRunTask.Settings.CreateBackup.ConnectionStringPassword, true);
             var password = jobRunTask.Settings.CreateBackup.ConnectionStringPassword;
 
             if (!String.IsNullOrWhiteSpace(password))
             {
-                password = _dataProtector.Decrypt(password);
+                password = dataProtector.Decrypt(password);
             }
 
-            await _databaseAdapter.CreateBackup(jobRunTask.Settings.CreateBackup.DatabaseType,
+            await databaseAdapter.CreateBackup(jobRunTask.Settings.CreateBackup.DatabaseType,
                                                 connectionString,
                                                 jobRunTask.ItemName,
                                                 jobRunTask.Settings.CreateBackup.BackupType,

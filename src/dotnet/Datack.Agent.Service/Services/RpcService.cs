@@ -10,7 +10,7 @@ using Timer = System.Timers.Timer;
 
 namespace Datack.Agent.Services;
 
-public class RpcService
+public class RpcService(ILogger<RpcService> logger, AppSettings appSettings)
 {
 #nullable disable
     public Func<String, Task<String>> Encrypt;
@@ -27,35 +27,25 @@ public class RpcService
     private static readonly SemaphoreSlim TimerLock = new(1, 1);
     private static readonly SemaphoreSlim SendLock = new(1, 1);
 
-    private readonly ILogger<RpcService> _logger;
-    private readonly AppSettings _appSettings;
-
     public HubConnection? Connection;
 
-    private readonly String _version;
+    private readonly String _version = VersionHelper.GetVersion();
 
-    private readonly Dictionary<Guid, RpcProgressEvent> _progressEvents = new();
-    private readonly Dictionary<Guid, RpcCompleteEvent> _completeEvents = new();
+    private readonly Dictionary<Guid, RpcProgressEvent> _progressEvents = [];
+    private readonly Dictionary<Guid, RpcCompleteEvent> _completeEvents = [];
 
     private readonly Timer _sendTimer = new(1000);
 
-    public RpcService(ILogger<RpcService> logger, AppSettings appSettings)
-    {
-        _logger = logger;
-        _appSettings = appSettings;
-        _version = VersionHelper.GetVersion();
-    }
-
     public void StartAsync(CancellationToken cancellationToken)
     {
-        if (String.IsNullOrWhiteSpace(_appSettings.ServerUrl))
+        if (String.IsNullOrWhiteSpace(appSettings.ServerUrl))
         {
             throw new($"No server URL set. Please update appsettings.json");
         }
 
-        var url = $"{_appSettings.ServerUrl.TrimEnd('/')}/hubs/agent";
+        var url = $"{appSettings.ServerUrl.TrimEnd('/')}/hubs/agent";
 
-        _logger.LogDebug("Connecting to {url}", url);
+        logger.LogDebug("Connecting to {url}", url);
 
         Connection = new HubConnectionBuilder()
                       .WithUrl(url)
@@ -75,11 +65,11 @@ public class RpcService
         {
             if (exception == null)
             {
-                _logger.LogDebug("Connection Closed");
+                logger.LogDebug("Connection Closed");
             }
             else
             {
-                _logger.LogError(exception, "Connection Closed with error: {message}", exception.Message);
+                logger.LogError(exception, "Connection Closed with error: {message}", exception.Message);
             }
 
             Connect(cancellationToken);
@@ -100,14 +90,14 @@ public class RpcService
         _sendTimer.Elapsed += async (_, _) => await TimerTick();
         _sendTimer.Start();
 
-        _logger.LogDebug("Starting timer");
+        logger.LogDebug("Starting timer");
 
         Connect(cancellationToken);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Stopping");
+        logger.LogDebug("Stopping");
 
         if (Connection != null)
         {
@@ -117,7 +107,7 @@ public class RpcService
 
     private void Connect(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("Connecting...");
+        logger.LogDebug("Connecting...");
 
         if (Connection == null)
         {
@@ -128,7 +118,7 @@ public class RpcService
         {
             while (true)
             {
-                _logger.LogDebug("Trying to connect");
+                logger.LogDebug("Trying to connect");
 
                 try
                 {
@@ -146,16 +136,16 @@ public class RpcService
                 }
             }
 
-            _logger.LogDebug("Connected");
+            logger.LogDebug("Connected");
 
             if (cancellationToken.IsCancellationRequested)
             {
                 return;
             }
                 
-            _logger.LogDebug("Connect {token} v{_version}", _appSettings.Token, _version);
+            logger.LogDebug("Connect {token} v{_version}", appSettings.Token, _version);
 
-            await Connection.SendAsync("Connect", _appSettings.Token, _version, cancellationToken);
+            await Connection.SendAsync("Connect", appSettings.Token, _version, cancellationToken);
         }, cancellationToken);
     }
     
@@ -165,7 +155,7 @@ public class RpcService
 
         if (!hasLock)
         {
-            _logger.LogDebug("Failed lock");
+            logger.LogDebug("Failed lock");
             return;
         }
 
@@ -188,7 +178,7 @@ public class RpcService
 
             try
             {
-                if (!_progressEvents.Any() && !_completeEvents.Any())
+                if (_progressEvents.Count == 0 && _completeEvents.Count == 0)
                 {
                     return;
                 }
@@ -203,7 +193,7 @@ public class RpcService
 
             try
             {
-                _logger.LogDebug("Sending {count} progress events, {count} complete events", progressEvents.Count, completeEvents.Count);
+                logger.LogDebug("Sending {count} progress events, {count} complete events", progressEvents.Count, completeEvents.Count);
 
                 var progressEventsChunks = progressEvents.ChunkBy(100);
                 var completeEventsChunks = completeEvents.ChunkBy(100);
@@ -241,12 +231,12 @@ public class RpcService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending updates: {message}", ex.Message);
+                logger.LogError(ex, "Error sending updates: {message}", ex.Message);
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in timer loop: {message}", ex.Message);
+            logger.LogError(ex, "Error in timer loop: {message}", ex.Message);
         }
         finally
         {
@@ -302,6 +292,6 @@ public class RpcService
         result.AddRange(progressEvents);
         result.AddRange(completeEvents);
 
-        return result.Distinct().ToList();
+        return [.. result.Distinct()];
     }
 }

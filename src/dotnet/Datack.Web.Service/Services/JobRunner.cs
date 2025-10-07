@@ -113,7 +113,7 @@ public class JobRunner
                 var runningJobs = await _jobRuns.GetRunning(cancellationToken);
 
                 // Only check for tasks for this group, and filter itself out
-                runningJobs = runningJobs.Where(m => m.JobRunId != jobRun.JobRunId && m.Job.Group == job.Group).ToList();
+                runningJobs = [.. runningJobs.Where(m => m.JobRunId != jobRun.JobRunId && m.Job.Group == job.Group)];
 
                 _logger.LogDebug("Found {count} already running tasks for job group {group}", runningJobs.Count, job.Group);
 
@@ -130,7 +130,7 @@ public class JobRunner
                 // This queue will be used to run the tasks for each item.
                 var jobTasks = await _jobTasks.GetForJob(job.JobId, cancellationToken);
 
-                jobTasks = jobTasks.Where(m => m.IsActive).ToList();
+                jobTasks = [.. jobTasks.Where(m => m.IsActive)];
 
                 _logger.LogDebug("Found {count} job tasks for job {name}", jobTasks.Count, job.Name);
 
@@ -144,7 +144,7 @@ public class JobRunner
 
                     if (jobTask.UsePreviousTaskArtifactsFromJobTaskId != null)
                     {
-                        previousJobRunTasks = allJobRunTasks.Where(m => m.JobTaskId == jobTask.UsePreviousTaskArtifactsFromJobTaskId).ToList();
+                        previousJobRunTasks = [.. allJobRunTasks.Where(m => m.JobTaskId == jobTask.UsePreviousTaskArtifactsFromJobTaskId)];
                     }
 
                     List<JobRunTask> jobRunTasks;
@@ -152,7 +152,7 @@ public class JobRunner
                     if (overrideItemList != null && overrideItemList.Count > 0)
                     {
                         var itemIndex = 0;
-                        jobRunTasks = overrideItemList.Select(m => new JobRunTask
+                        jobRunTasks = [.. overrideItemList.Select(m => new JobRunTask
                                                       {
                                                           JobRunTaskId = Guid.NewGuid(),
                                                           JobTaskId = jobTask.JobTaskId,
@@ -163,8 +163,7 @@ public class JobRunner
                                                           IsError = false,
                                                           Result = null,
                                                           Settings = jobTask.Settings
-                                                      })
-                                                      .ToList();
+                                                      })];
                     }
                     else if (_tasks.TryGetValue(jobTask.Type, out var task))
                     {
@@ -172,7 +171,7 @@ public class JobRunner
                     }
                     else
                     {
-                        jobRunTasks = previousJobRunTasks
+                        jobRunTasks = [.. previousJobRunTasks
                                       .Select(m => new JobRunTask
                                       {
                                           JobRunTaskId = Guid.NewGuid(),
@@ -184,8 +183,7 @@ public class JobRunner
                                           IsError = false,
                                           Result = null,
                                           Settings = jobTask.Settings
-                                      })
-                                      .ToList();
+                                      })];
                     }
 
                     _logger.LogDebug("Received {count} new job run tasks for {type} for job {name}", jobRunTasks.Count, jobTask.Type, job.Name);
@@ -194,7 +192,7 @@ public class JobRunner
                     // If so, skip it in the run.
                     foreach (var jobRunTask in jobRunTasks)
                     {
-                        if (runningTasks.Count(m => m.ItemName == jobRunTask.ItemName && m.Completed == null) > 0)
+                        if (runningTasks.Any(m => m.ItemName == jobRunTask.ItemName && m.Completed == null))
                         {
                             _logger.LogDebug("Skipping task {type} for job {name} as it's already running", jobTask.Type, job.Name);
                         }
@@ -300,7 +298,7 @@ public class JobRunner
                              jobRun.Job.Name);
 
             // If there are no pending or running tasks left, the job run is completed.
-            if (!pendingJobRunTasks.Any() && !runningJobRunTasks.Any())
+            if (pendingJobRunTasks.Count == 0 && runningJobRunTasks.Count == 0)
             {
                 _logger.LogDebug("Marking job run as complete for job {jobRunId} {name}", jobRunId, jobRun.Job.Name);
 
@@ -312,8 +310,8 @@ public class JobRunner
             foreach (var jobRunTask in pendingJobRunTasks)
             {
                 // Update tasks as they could've updated it in this loop
-                runningJobRunTasks = jobRunTasks.Where(m => m.Started != null && m.Completed == null).ToList();
-                completedJobRunTasks = jobRunTasks.Where(m => m.Started != null && m.Completed != null).ToList();
+                runningJobRunTasks = [.. jobRunTasks.Where(m => m.Started != null && m.Completed == null)];
+                completedJobRunTasks = [.. jobRunTasks.Where(m => m.Started != null && m.Completed != null)];
 
                 // Check if the previous task is completed for this item
                 if (jobRunTask.TaskOrder > 0)

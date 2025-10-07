@@ -7,15 +7,8 @@ namespace Datack.Web.Service.Tasks;
 /// <summary>
 ///     This task downloads a file from Azure.
 /// </summary>
-public class DownloadAzureFileTask : IBaseTask
+public class DownloadAzureFileTask(RemoteService remoteService) : IBaseTask
 {
-    private readonly RemoteService _remoteService;
-
-    public DownloadAzureFileTask(RemoteService remoteService)
-    {
-        _remoteService = remoteService;
-    }
-
     public async Task<List<JobRunTask>> Setup(Job job, JobTask jobTask, IList<JobRunTask> previousJobRunTasks, Guid jobRunId, CancellationToken cancellationToken)
     {
         if (jobTask.Settings?.DownloadAzure == null)
@@ -38,7 +31,7 @@ public class DownloadAzureFileTask : IBaseTask
             throw new($"Job task {jobTask.Name} does not have a valid blob name set");
         }
 
-        var allFiles = await _remoteService.GetFileList(jobTask.Agent,
+        var allFiles = await remoteService.GetFileList(jobTask.Agent,
                                                         "azure",
                                                         jobTask.Settings.DownloadAzure.ConnectionString,
                                                         jobTask.Settings.DownloadAzure.ContainerName,
@@ -59,7 +52,7 @@ public class DownloadAzureFileTask : IBaseTask
 
         foreach (var file in filteredFiles.Where(m => m.Include))
         {
-            var files = await _remoteService.GetFileList(jobTask.Agent,
+            var files = await remoteService.GetFileList(jobTask.Agent,
                                                          "azure",
                                                          jobTask.Settings.DownloadAzure.ConnectionString,
                                                          jobTask.Settings.DownloadAzure.ContainerName,

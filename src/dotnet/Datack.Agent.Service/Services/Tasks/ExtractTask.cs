@@ -11,15 +11,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task extracts a 7z file.
 /// </summary>
-public class ExtractTask : BaseTask
+public class ExtractTask(DataProtector dataProtector) : BaseTask
 {
-    private readonly DataProtector _dataProtector;
-
-    public ExtractTask(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -122,7 +115,7 @@ public class ExtractTask : BaseTask
 
             if (!String.IsNullOrWhiteSpace(password))
             {
-                var decryptedPassword = _dataProtector.Decrypt(password);
+                var decryptedPassword = dataProtector.Decrypt(password);
 
                 // Encrypt header
                 arguments.Add("-mhe");
@@ -142,7 +135,7 @@ public class ExtractTask : BaseTask
                 
             if (!String.IsNullOrWhiteSpace(password))
             {
-                var decryptedPassword = _dataProtector.Decrypt(password);
+                var decryptedPassword = dataProtector.Decrypt(password);
 
                 logCmd = logCmd.Replace(decryptedPassword, "****");
             }

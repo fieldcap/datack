@@ -5,21 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 namespace Datack.Web.Web.Controllers;
 
 [Route("Api/Authentication")]
-public class AuthController : Controller
+public class AuthController(Authentication authentication) : Controller
 {
-    private readonly Authentication _authentication;
-
-    public AuthController(Authentication authentication)
-    {
-        _authentication = authentication;
-    }
-        
     [AllowAnonymous]
     [Route("IsSetup")]
     [HttpGet]
     public async Task<ActionResult<Boolean>> IsLoggedIn()
     {
-        var user = await _authentication.GetUser();
+        var user = await authentication.GetUser();
 
         if (user == null)
         {
@@ -39,11 +32,11 @@ public class AuthController : Controller
             return BadRequest("Invalid credentials");
         }
 
-        var user = await _authentication.GetUser();
+        var user = await authentication.GetUser();
 
         if (user == null)
         {
-            var registerResult = await _authentication.Register(request.UserName, request.Password);
+            var registerResult = await authentication.Register(request.UserName, request.Password);
 
             if (!registerResult.Succeeded)
             {
@@ -51,14 +44,14 @@ public class AuthController : Controller
             }
         }
 
-        var result = await _authentication.Login(request.UserName, request.Password, request.RememberMe);
+        var result = await authentication.Login(request.UserName, request.Password, request.RememberMe);
 
         if (!result.Succeeded)
         {
             return BadRequest("Invalid credentials");
         }
 
-        user = await _authentication.GetUser();
+        user = await authentication.GetUser();
 
         if (user == null)
         {
@@ -73,7 +66,7 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<ActionResult> Logout()
     {
-        await _authentication.Logout();
+        await authentication.Logout();
         return Ok();
     }
 }

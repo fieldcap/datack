@@ -11,15 +11,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task compresses files with 7z.
 /// </summary>
-public class CompressTask : BaseTask
+public class CompressTask(DataProtector dataProtector) : BaseTask
 {
-    private readonly DataProtector _dataProtector;
-
-    public CompressTask(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -121,7 +114,7 @@ public class CompressTask : BaseTask
 
             if (!String.IsNullOrWhiteSpace(password))
             {
-                var decryptedPassword = _dataProtector.Decrypt(password);
+                var decryptedPassword = dataProtector.Decrypt(password);
 
                 // Encrypt header
                 arguments.Add("-mhe");
@@ -141,7 +134,7 @@ public class CompressTask : BaseTask
                 
             if (!String.IsNullOrWhiteSpace(password))
             {
-                var decryptedPassword = _dataProtector.Decrypt(password);
+                var decryptedPassword = dataProtector.Decrypt(password);
 
                 logCmd = logCmd.Replace(decryptedPassword, "****");
             }

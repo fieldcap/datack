@@ -8,32 +8,23 @@ namespace Datack.Web.Web.Controllers;
 
 [Authorize]
 [Route("Api/Settings")]
-public class SettingsController : Controller
+public class SettingsController(Settings settings, Emails emails) : Controller
 {
-    private readonly Settings _settings;
-    private readonly Emails _emails;
-
-    public SettingsController(Settings settings, Emails emails)
-    {
-        _settings = settings;
-        _emails = emails;
-    }
-
     [HttpGet]
     [Route("")]
     public async Task<ActionResult<IList<Setting>>> Get(CancellationToken cancellationToken)
     {
-        var result = await _settings.GetAll(cancellationToken);
+        var result = await settings.GetAll(cancellationToken);
         return Ok(result);
     }
 
     [HttpPut]
     [Route("")]
-    public async Task<ActionResult> Update([FromBody] IList<Setting> settings, CancellationToken cancellationToken)
+    public async Task<ActionResult> Update([FromBody] IList<Setting> settings1, CancellationToken cancellationToken)
     {
-        await _settings.Update(settings, cancellationToken);
+        await settings.Update(settings1, cancellationToken);
             
-        var logLevelSetting = await _settings.Get<String>("LogLevel", cancellationToken);
+        var logLevelSetting = await settings.Get<String>("LogLevel", cancellationToken);
 
         if (!Enum.TryParse<LogEventLevel>(logLevelSetting, out var logLevel))
         {
@@ -49,7 +40,7 @@ public class SettingsController : Controller
     [Route("TestEmail")]
     public async Task<ActionResult> TestEmail([FromBody] SettingsTestEmailRequest request, CancellationToken cancellationToken)
     {
-        await _emails.SendTest(request.To, cancellationToken);
+        await emails.SendTest(request.To, cancellationToken);
 
         return Ok();
     }

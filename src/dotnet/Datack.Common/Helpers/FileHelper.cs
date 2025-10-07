@@ -6,9 +6,9 @@ namespace Datack.Common.Helpers;
 public static class DatabaseHelper
 {
     private static readonly String[] SystemDatabases =
-    {
+    [
         "master", "tempdb", "model", "msdb"
-    };
+    ];
 
     public static List<DatabaseTestResult> FilterDatabases(IList<Database>? databases,
                                                            Boolean backupDefaultExclude,
@@ -19,7 +19,7 @@ public static class DatabaseHelper
                                                            String? backupExcludeManual,
                                                            String? backupType)
     {
-        databases ??= new List<Database>();
+        databases ??= [];
 
         var resultList = new List<DatabaseTestResult>();
 
@@ -28,12 +28,12 @@ public static class DatabaseHelper
 
         if (!String.IsNullOrWhiteSpace(backupIncludeManual))
         {
-            includeManualList = backupIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            includeManualList = [.. backupIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
         }
 
         if (!String.IsNullOrWhiteSpace(backupExcludeManual))
         {
-            excludeManualList = backupExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            excludeManualList = [.. backupExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
         }
 
         foreach (var database in databases)

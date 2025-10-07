@@ -5,24 +5,13 @@ using StringTokenFormatter;
 
 namespace Datack.Agent.Services;
 
-public class DatabaseAdapter
+public class DatabaseAdapter(SqlServerConnection sqlServerConnection, PostgresConnection postgresConnection, DataProtector dataProtector)
 {
-    private readonly DataProtector _dataProtector;
-    private readonly SqlServerConnection _sqlServerConnection;
-    private readonly PostgresConnection _postgresConnection;
-
-    public DatabaseAdapter(SqlServerConnection sqlServerConnection, PostgresConnection postgresConnection, DataProtector dataProtector)
-    {
-        _sqlServerConnection = sqlServerConnection;
-        _postgresConnection = postgresConnection;
-        _dataProtector = dataProtector;
-    }
-
     public String CreateConnectionString(String connectionString, String? password, Boolean decryptPassword)
     {
         if (decryptPassword && !String.IsNullOrWhiteSpace(password))
         {
-            password = _dataProtector.Decrypt(password);
+            password = dataProtector.Decrypt(password);
         }
 
         return connectionString.FormatFromObject(new
@@ -85,12 +74,12 @@ public class DatabaseAdapter
 
         if (databaseType == "sqlServer")
         {
-            return _sqlServerConnection;
+            return sqlServerConnection;
         }
 
         if (databaseType == "postgreSql")
         {
-            return _postgresConnection;
+            return postgresConnection;
         }
 
         throw new($"Invalid database type {databaseType}");

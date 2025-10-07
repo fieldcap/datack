@@ -14,16 +14,12 @@ namespace Datack.Web.Data;
 
 #nullable disable
 
-public class DataContext : IdentityDbContext
+public class DataContext(DbContextOptions options) : IdentityDbContext(options)
 {
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
-
-    public DataContext(DbContextOptions options) : base(options)
-    {
-    }
 
     public DbSet<Agent> Agents { get; set; }
     public DbSet<Job> Jobs { get; set; }
@@ -65,10 +61,9 @@ public class DataContext : IdentityDbContext
                     .HasTranslation(e => new SqlFunctionExpression("JSON_VALUE",
                                                                    e,
                                                                    true,
-                                                                   new[]
-                                                                   {
+                                                                   [
                                                                        false, false
-                                                                   },
+                                                                   ],
                                                                    typeof(String),
                                                                    null))
                     .HasParameter("column")
@@ -106,38 +101,38 @@ public class DataContext : IdentityDbContext
     {
         var seedSettings = new List<Setting>
         {
-            new Setting
+            new() 
             {
                 SettingId = "LogLevel",
                 Value = "Information"
             },
-            new Setting
+            new() 
             {
                 SettingId = "Email:Smtp:Host",
                 Value = ""
             },
-            new Setting
+            new() 
             {
                 SettingId = "Email:Smtp:Port",
                 Value = ""
             },
-            new Setting
+            new() 
             {
                 SettingId = "Email:Smtp:UserName",
                 Value = ""
             },
-            new Setting
+            new() 
             {
                 SettingId = "Email:Smtp:Password",
                 Value = "",
                 Secure = true
             },
-            new Setting
+            new() 
             {
                 SettingId = "Email:Smtp:UseSsl",
                 Value = ""
             },
-            new Setting
+            new() 
             {
                 SettingId = "Email:Smtp:From",
                 Value = ""
@@ -219,20 +214,15 @@ public class DataContext : IdentityDbContext
     /// <remarks>
     ///     Check this out to view it in SQL: https://stackoverflow.com/questions/5855299/how-do-i-display-the-following-in-a-readable-datetime-format
     /// </remarks>
-    public class DateTimeOffsetToUtcDateTimeTicksConverter : ValueConverter<DateTimeOffset, Int64>
+    /// <remarks>
+    ///     Creates a new instance of this converter.
+    /// </remarks>
+    /// <param name="mappingHints">
+    ///     Hints that can be used by the <see cref="ITypeMappingSource" /> to create data types with appropriate
+    ///     facets for the converted data.
+    /// </param>
+    public class DateTimeOffsetToUtcDateTimeTicksConverter(ConverterMappingHints mappingHints = null) : ValueConverter<DateTimeOffset, Int64>(v => v.UtcDateTime.Ticks, v => new(v, new(0, 0, 0)), mappingHints)
     {
-        /// <summary>
-        ///     Creates a new instance of this converter.
-        /// </summary>
-        /// <param name="mappingHints">
-        ///     Hints that can be used by the <see cref="ITypeMappingSource" /> to create data types with appropriate
-        ///     facets for the converted data.
-        /// </param>
-        public DateTimeOffsetToUtcDateTimeTicksConverter(ConverterMappingHints mappingHints = null)
-            : base(v => v.UtcDateTime.Ticks, v => new(v, new(0, 0, 0)), mappingHints)
-        {
-        }
-
         /// <summary>
         ///     A <see cref="ValueConverterInfo" /> for the default use of this converter.
         /// </summary>

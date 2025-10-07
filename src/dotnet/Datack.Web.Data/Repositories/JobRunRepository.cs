@@ -3,18 +3,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datack.Web.Data.Repositories;
 
-public class JobRunRepository
+public class JobRunRepository(DataContext dataContext)
 {
-    private readonly DataContext _dataContext;
-
-    public JobRunRepository(DataContext dataContext)
-    {
-        _dataContext = dataContext;
-    }
-
     public async Task<List<JobRun>> GetAll(Guid? jobId, CancellationToken cancellationToken)
     {
-        IQueryable<JobRun> query = _dataContext.JobRuns
+        IQueryable<JobRun> query = dataContext.JobRuns
                                                .Include(m => m.Job);
 
         if (jobId.HasValue)
@@ -29,7 +22,7 @@ public class JobRunRepository
 
     public async Task<List<JobRun>> GetRunning(CancellationToken cancellationToken)
     {
-        return await _dataContext
+        return await dataContext
                      .JobRuns
                      .Include(m => m.Job)
                      .AsNoTracking()
@@ -39,7 +32,7 @@ public class JobRunRepository
 
     public async Task<JobRun?> GetById(Guid jobRunId, CancellationToken cancellationToken)
     {
-        return await _dataContext.JobRuns
+        return await dataContext.JobRuns
                                  .AsNoTracking()
                                  .Include(m => m.Job)
                                  .FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
@@ -47,19 +40,19 @@ public class JobRunRepository
 
     public async Task Create(JobRun jobRun, CancellationToken cancellationToken)
     {
-        await _dataContext.JobRuns.AddAsync(jobRun, cancellationToken);
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.JobRuns.AddAsync(jobRun, cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task Update(JobRun jobRun, CancellationToken cancellationToken)
     {
-        _dataContext.Update(jobRun);
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        dataContext.Update(jobRun);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateComplete(Guid jobRunId, CancellationToken cancellationToken)
     {
-        var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+        var dbJobRun = await dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
 
         if (dbJobRun == null)
         {
@@ -70,7 +63,7 @@ public class JobRunRepository
 
         if (!dbJobRun.IsError)
         {
-            var dbJobRunTasks = await _dataContext.JobRunTasks.Where(m => m.JobRunId == jobRunId).ToListAsync(cancellationToken);
+            var dbJobRunTasks = await dataContext.JobRunTasks.Where(m => m.JobRunId == jobRunId).ToListAsync(cancellationToken);
             var dbJobRunTasksWithErrors = dbJobRunTasks.Count(m => m.IsError);
 
             var timespan = dbJobRun.Completed - dbJobRun.Started;
@@ -89,12 +82,12 @@ public class JobRunRepository
             }
         }
 
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateStop(Guid jobRunId, CancellationToken cancellationToken)
     {
-        var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+        var dbJobRun = await dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
 
         if (dbJobRun == null)
         {
@@ -110,12 +103,12 @@ public class JobRunRepository
         dbJobRun.IsError = true;
         dbJobRun.Result = $"Job was manually stopped after {timespan:g}";
             
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateError(Guid jobRunId, String errorMsg, CancellationToken cancellationToken)
     {
-        var dbJobRun = await _dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
+        var dbJobRun = await dataContext.JobRuns.FirstOrDefaultAsync(m => m.JobRunId == jobRunId, cancellationToken);
 
         if (dbJobRun == null)
         {
@@ -125,11 +118,11 @@ public class JobRunRepository
         dbJobRun.IsError = true;
         dbJobRun.Result = errorMsg;
             
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        await dataContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<Int32> DeleteForJob(Guid jobId, DateTimeOffset deleteDate, CancellationToken cancellationToken)
     {
-        return await _dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRuns WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate.Ticks}", cancellationToken);
+        return await dataContext.Database.ExecuteSqlInterpolatedAsync(@$"DELETE FROM JobRuns WHERE JobRuns.JobId = {jobId} AND JobRuns.Started < {deleteDate.Ticks}", cancellationToken);
     }
 }

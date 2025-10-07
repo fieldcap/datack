@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Net;
 using System.Text.Json.Serialization;
 using Datack.Common.Helpers;
 using Datack.Web.Data;
@@ -154,8 +153,6 @@ try
     Datack.Web.Service.DiConfig.Config(builder.Services);
     // ReSharper restore RedundantNameQualifier
 
-    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-    
     // Build the app
     var app = builder.Build();
 

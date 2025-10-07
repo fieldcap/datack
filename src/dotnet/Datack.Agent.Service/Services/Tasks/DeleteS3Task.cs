@@ -11,15 +11,8 @@ namespace Datack.Agent.Services.Tasks;
 /// <summary>
 /// This task deletes files from S3.
 /// </summary>
-public class DeleteS3Task : BaseTask
+public class DeleteS3Task(DataProtector dataProtector) : BaseTask
 {
-    private readonly DataProtector _dataProtector;
-
-    public DeleteS3Task(DataProtector dataProtector)
-    {
-        _dataProtector = dataProtector;
-    }
-
     public override async Task Run(JobRunTask jobRunTask, JobRunTask? previousTask, CancellationToken cancellationToken)
     {
         try
@@ -65,7 +58,7 @@ public class DeleteS3Task : BaseTask
 
             var region = RegionEndpoint.GetBySystemName(jobRunTask.Settings.DeleteS3.Region);
 
-            var secret = _dataProtector.Decrypt(jobRunTask.Settings.DeleteS3.Secret);
+            var secret = dataProtector.Decrypt(jobRunTask.Settings.DeleteS3.Secret);
 
             var s3Client = new AmazonS3Client(new BasicAWSCredentials(jobRunTask.Settings.DeleteS3.AccessKey, secret), region);
 

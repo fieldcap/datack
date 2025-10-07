@@ -12,7 +12,7 @@ public static class FileHelper
                                                        String? restoreIncludeManual,
                                                        String? restoreExcludeManual)
     {
-        files ??= new List<BackupFile>();
+        files ??= [];
 
         var resultList = new List<DatabaseTestResult>();
 
@@ -21,12 +21,12 @@ public static class FileHelper
 
         if (!String.IsNullOrWhiteSpace(restoreIncludeManual))
         {
-            includeManualList = restoreIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            includeManualList = [.. restoreIncludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
         }
 
         if (!String.IsNullOrWhiteSpace(restoreExcludeManual))
         {
-            excludeManualList = restoreExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            excludeManualList = [.. restoreExcludeManual.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
         }
 
         foreach (var file in files)
