@@ -152,12 +152,10 @@ try
     // ReSharper disable RedundantNameQualifier
     Datack.Web.Data.DiConfig.Config(builder.Services, appSettings);
     Datack.Web.Service.DiConfig.Config(builder.Services);
-
     // ReSharper restore RedundantNameQualifier
 
     ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-
+    
     // Build the app
     var app = builder.Build();
 
