@@ -70,11 +70,11 @@ jobs:
           dotnet publish Datack.Agent.csproj -c Release -o ../../../out/agent -p:Version=${{ steps.get_version.outputs.version }}
 
       - name: Zip outputs
+        shell: pwsh
         run: |
           cd out
-          zip -r ../Datack.Server.zip server
-          zip -r ../Datack.Agent.zip agent
-        shell: bash
+          Compress-Archive -Path (Get-ChildItem -Path server -Recurse) -DestinationPath ../Datack.Server.zip -Force
+          Compress-Archive -Path (Get-ChildItem -Path agent -Recurse) -DestinationPath ../Datack.Agent.zip -Force
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
