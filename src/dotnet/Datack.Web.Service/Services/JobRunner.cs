@@ -79,13 +79,7 @@ public class JobRunner
         _logger.LogDebug("SetJobRun {jobId} for backup job {name}", job.JobId, job.Name);
 
         // Make sure only 1 process setup a new job otherwise it's possible that a job is duplicated.
-        var receivedLockSuccesfully = await SetupJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
-
-        if (!receivedLockSuccesfully)
-        {
-            // Lock timed out
-            throw new($"Could not obtain runSetupLock within 30 seconds for job {job.Name}!");
-        }
+        await SetupJobRunLock.WaitAsync(cancellationToken);
 
         _logger.LogDebug("Entered lock for job {name}", job.Name);
 
@@ -220,7 +214,7 @@ public class JobRunner
                 // Add all the run tasks to the database and execute the job.
                 await _jobRunTasks.Create(allJobRunTasks, cancellationToken);
 
-                _logger.LogDebug("Finished setting up job run tasks for job {name}", job.Name);
+                _logger.LogDebug("Finished setting up job run tasks for job {name} {jobId}", job.Name, job.JobId);
 
                 await ExecuteJobRun(jobRun.JobRunId, cancellationToken);
             }
@@ -249,16 +243,8 @@ public class JobRunner
         _logger.LogDebug("ExecuteJobRun for job run {jobRunId}", jobRunId);
 
         // Make sure only 1 process executes a job run otherwise it might run duplicate tasks.
-        var receivedLockSuccesfully = await ExecuteJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
-
-        if (!receivedLockSuccesfully)
-        {
-            // Lock timed out
-            _logger.LogError("Could not obtain executeJobRunLock within 30 seconds for job run {jobRunId}!", jobRunId);
-
-            return;
-        }
-
+        await ExecuteJobRunLock.WaitAsync(cancellationToken);
+        
         _logger.LogDebug("Entering lock for job run {jobRunId}", jobRunId);
 
         try

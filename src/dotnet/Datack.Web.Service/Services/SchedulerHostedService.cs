@@ -45,6 +45,7 @@ public class SchedulerHostedService : IHostedService
             using var serviceScope = _serviceProvider.CreateScope();
 
             var jobsService = serviceScope.ServiceProvider.GetRequiredService<Jobs>();
+            var jobRunsService = serviceScope.ServiceProvider.GetRequiredService<JobRuns>();
                 
             await Task.Delay((60 - DateTime.Now.Second) * 1000, cancellationToken);
 
@@ -55,6 +56,38 @@ public class SchedulerHostedService : IHostedService
             {
                 var now = DateTimeOffset.Now;
                 now = new(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0, TimeZoneInfo.Local.GetUtcOffset(now));
+
+                // Check for jobs that have exceeded the global timeout.
+                var jobRuns = await jobRunsService.GetRunning(cancellationToken);
+
+                foreach (var jobRun in jobRuns)
+                {
+                    if (jobRun.Job.Timeout <= 0)
+                    {
+                        continue;
+                    }
+
+                    var timeout = jobRun.Started.AddMinutes(jobRun.Job.Timeout);
+
+                    if (timeout > DateTimeOffset.UtcNow)
+                    {
+                        continue;
+                    }
+
+                    _logger.LogWarning("Global timeout for job run {jobRun.JobRunId} after {jobRun.Job.Timeout} minutes", jobRun.JobRunId, jobRun.Job.Timeout);
+
+                    _ = Task.Run(async () =>
+                    {
+                        using var blockServiceScope = _serviceProvider.CreateScope();
+                        var blockJobRunsService = blockServiceScope.ServiceProvider.GetRequiredService<JobRuns>();
+                        var blockJobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+
+                        await blockJobRunnerService.Stop(jobRun.JobRunId, cancellationToken);
+
+                        await blockJobRunsService.UpdateError(jobRun.JobRunId, $"Job has timed out on the server after {jobRun.Job.Timeout} minutes", cancellationToken);
+                        await blockJobRunsService.UpdateComplete(jobRun.JobRunId, cancellationToken);
+                    }, cancellationToken);
+                }
 
                 // Get all the jobs and group them by Group.
                 // This enables the user to have multiple tasks fire at the same time
@@ -90,8 +123,8 @@ public class SchedulerHostedService : IHostedService
                         _ = Task.Run(async () =>
                         {
                             using var blockServiceScope = _serviceProvider.CreateScope();
-                            var jobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
-                            await jobRunnerService.SetupJobRun(jobToRun, null, cancellationToken);
+                            var blockJobRunnerService = blockServiceScope.ServiceProvider.GetRequiredService<JobRunner>();
+                            await blockJobRunnerService.SetupJobRun(jobToRun, null, cancellationToken);
                         }, cancellationToken);
                     }
                 }

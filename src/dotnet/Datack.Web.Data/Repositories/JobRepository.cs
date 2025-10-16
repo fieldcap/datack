@@ -64,6 +64,7 @@ public class JobRepository(DataContext dataContext)
         dbJob.Settings = job.Settings;
         dbJob.Group = job.Group;
         dbJob.Priority = job.Priority;
+        dbJob.Timeout = job.Timeout;
         dbJob.DeleteLogsTimeSpanAmount = job.DeleteLogsTimeSpanAmount;
         dbJob.DeleteLogsTimeSpanType = job.DeleteLogsTimeSpanType;
         dbJob.Settings = job.Settings;
@@ -94,6 +95,7 @@ public class JobRepository(DataContext dataContext)
             Description = dbJob.Description,
             Cron = dbJob.Cron,
             Priority = dbJob.Priority + 1,
+            Timeout = dbJob.Timeout,
             DeleteLogsTimeSpanAmount = dbJob.DeleteLogsTimeSpanAmount,
             DeleteLogsTimeSpanType = dbJob.DeleteLogsTimeSpanType,
             Settings = dbJob.Settings

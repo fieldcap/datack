@@ -44,6 +44,16 @@ public class AuthController(Authentication authentication) : Controller
             }
         }
 
+        if (user != null && !String.IsNullOrWhiteSpace(request.ResetToken))
+        {
+            var passwordResetResult = await authentication.ResetPassword(request.ResetToken, request.Password);
+
+            if (!passwordResetResult.Succeeded)
+            {
+                return BadRequest(passwordResetResult.Errors.First().Description);
+            }
+        }
+
         var result = await authentication.Login(request.UserName, request.Password, request.RememberMe);
 
         if (!result.Succeeded)
@@ -76,4 +86,5 @@ public class AuthControllerLoginRequest
     public String? UserName { get; set; }
     public String? Password { get; set; }
     public Boolean RememberMe { get; set; }
+    public String? ResetToken { get; set; }
 }

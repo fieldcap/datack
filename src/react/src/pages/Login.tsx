@@ -7,6 +7,7 @@ import {
   Checkbox,
   Flex,
   FormControl,
+  FormHelperText,
   Heading,
   Input,
   InputGroup,
@@ -30,12 +31,14 @@ const Login: FC = () => {
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [resetKey, setResetKey] = useState<string>('');
   const [rememberMe, setRememberMe] = useState<boolean>(true);
   const [isSetup, setIsSetup] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [redirect, setRedirect] = useState<boolean>(false);
+  const [forgotPassword, setForgotPassword] = useState<boolean>(false);
 
   useEffect(() => {
     (async () => {
@@ -57,7 +60,7 @@ const Login: FC = () => {
     setIsLoggingIn(true);
 
     try {
-      await Auth.login(email, password, rememberMe);
+      await Auth.login(email, password, rememberMe, resetKey);
 
       setIsLoggingIn(false);
       setRedirect(true);
@@ -118,6 +121,29 @@ const Login: FC = () => {
           {error}
         </Alert>
       ) : null}
+      <Button
+        borderRadius={0}
+        type="button"
+        width="full"
+        disabled={isLoggingIn}
+        isLoading={isLoggingIn}
+        onClick={() => setForgotPassword(true)}
+      >
+        Forgot Password?
+      </Button>
+      {forgotPassword && (
+        <FormControl>
+          <InputGroup>
+            <InputLeftElement pointerEvents="none" children={<CFaLock />} />
+            <Input type="text" placeholder="Reset Key" onChange={(e) => setResetKey(e.target.value)} />
+          </InputGroup>
+          <FormHelperText>
+            The reset key can be found in the Datack logs at startup.
+            <br />
+            Enter the key and enter a password above to reset the password.
+          </FormHelperText>
+        </FormControl>
+      )}
       <Button
         borderRadius={0}
         type="submit"

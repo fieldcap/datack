@@ -16,12 +16,18 @@ export namespace Auth {
     }
   };
 
-  export const login = async (userName: string, password: string, rememberMe: boolean): Promise<void> => {
+  export const login = async (
+    userName: string,
+    password: string,
+    rememberMe: boolean,
+    resetToken: string
+  ): Promise<void> => {
     try {
       const result = await axios.post(`/api/Authentication/Login`, {
         userName,
         password,
         rememberMe,
+        resetToken,
       });
       localStorage.setItem('isAuthenticated', result.data);
     } catch (err) {

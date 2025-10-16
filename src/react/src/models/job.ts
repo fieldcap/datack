@@ -4,6 +4,7 @@ export type Job = {
   isActive: boolean;
   group: string;
   priority: number;
+  timeout: number;
   cron: string;
   description: string;
   deleteLogsTimeSpanAmount: number | null;

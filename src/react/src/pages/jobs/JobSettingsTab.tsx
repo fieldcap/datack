@@ -41,6 +41,7 @@ const JobSettingsTab: FC<Props> = (props) => {
   const [isActive, setIsActive] = useState<boolean>(props.job?.isActive ?? false);
   const [group, setGroup] = useState<string>(props.job?.group ?? '');
   const [priority, setPriority] = useState<number>(props.job?.priority ?? 0);
+  const [timeout, setGlobalTimeout] = useState<number>(props.job?.timeout ?? 0);
   const [deleteLogsTimeSpanAmount, setDeleteLogsTimeSpanAmount] = useState<number | null>(
     props.job?.deleteLogsTimeSpanAmount ?? null
   );
@@ -105,6 +106,7 @@ const JobSettingsTab: FC<Props> = (props) => {
         name,
         group,
         priority,
+        timeout,
         description,
         cron,
         deleteLogsTimeSpanAmount,
@@ -192,7 +194,17 @@ const JobSettingsTab: FC<Props> = (props) => {
           <Input type="number" min="0" max="9999" value={priority} onChange={(e) => setPriority(+e.target.value)} />
           <FormHelperText>The priority of this job within the group.</FormHelperText>
         </FormControl>
-
+        <FormControl id="timeout" marginBottom={4}>
+          <FormLabel>Global Timeout</FormLabel>
+          <Input
+            type="number"
+            min="0"
+            max="999999"
+            value={timeout}
+            onChange={(e) => setGlobalTimeout(+e.target.value)}
+          />
+          <FormHelperText>The global timeout for the whole job in minutes, if 0 it is disabled.</FormHelperText>
+        </FormControl>
         <FormControl id="timeSpan1" marginBottom={4}>
           <FormLabel>Delete runs older than</FormLabel>
           {!!deleteLogsTimeSpanType ? (

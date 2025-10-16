@@ -107,18 +107,10 @@ public class JobRunner
         _logger.LogDebug("Running job run task {jobRunTaskId}", jobRunTask.JobRunTaskId);
 
         // Make sure only 1 process executes a job run otherwise it might run duplicate tasks.
-        var receivedLockSuccesfully = await ExecuteJobRunLock.WaitAsync(TimeSpan.FromSeconds(30), cancellationToken);
+        await ExecuteJobRunLock.WaitAsync(cancellationToken);
 
         try
         {
-            if (!receivedLockSuccesfully)
-            {
-                // Lock timed out
-                _logger.LogError("Could not obtain executeJobRunLock within 30 seconds for job run task {jobRunTaskId}", jobRunTask.JobRunTaskId);
-
-                return;
-            }
-
             _logger.LogDebug("Entering lock for job run {jobRunTaskId}", jobRunTask.JobRunTaskId);
 
             try

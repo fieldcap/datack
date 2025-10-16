@@ -39,6 +39,7 @@ const JobAdd: FC = () => {
       cron: '',
       group: '',
       priority: 1,
+      timeout: 0,
       description,
       deleteLogsTimeSpanAmount: null,
       deleteLogsTimeSpanType: null,

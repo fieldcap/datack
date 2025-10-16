@@ -18,6 +18,8 @@ public class Job
 
     public Int32 Priority { get; set; }
 
+    public Int32 Timeout { get; set; }
+
     public String Description { get; set; }
 
     public String Cron { get;set; }
